@@ -68,6 +68,7 @@ namespace TopSpeed.Audio
         public bool IsHrtfActive => _system.IsHrtfActive;
         public int OutputChannels => _output.Channels;
         public int OutputSampleRate => _output.SampleRate;
+        public SteamAudioContext? SteamAudio => _output.SteamAudio;
         public AudioManager(bool useHrtf = false, bool autoDetectDeviceFormat = true)
         {
             var config = new AudioSystemConfig

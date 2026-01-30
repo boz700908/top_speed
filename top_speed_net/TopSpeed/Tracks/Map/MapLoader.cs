@@ -246,6 +246,9 @@ namespace TopSpeed.Tracks.Map
                 var wallWidth = TryGetMetadataFloat(area.Metadata, out var widthValue, "wall_width", "wall_thickness", "wall_size")
                     ? Math.Max(0.1f, widthValue)
                     : 2f;
+                var wallElevation = TryGetMetadataFloat(area.Metadata, out var elevationValue, "wall_elevation", "wall_base_height", "wall_elevation_m")
+                    ? elevationValue
+                    : area.ElevationMeters;
                 var defaultWallHeight = TryGetMetadataFloat(area.Metadata, out var heightValue, "wall_height", "wall_height_m")
                     ? Math.Max(0f, heightValue)
                     : 2f;
@@ -265,16 +268,16 @@ namespace TopSpeed.Tracks.Map
                 var maxZ = Math.Max(shape.Z, shape.Z + shape.Height);
                 if ((edges & WallEdges.North) != 0)
                     AddWallEdgeSegments(map, shapesById, area, areaManager, stepMeters, edgeProbe, "north",
-                        minX, maxX, maxZ, wallWidth, wallHeight, wallMaterialId, material, collision);
+                        minX, maxX, maxZ, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
                 if ((edges & WallEdges.South) != 0)
                     AddWallEdgeSegments(map, shapesById, area, areaManager, stepMeters, edgeProbe, "south",
-                        minX, maxX, minZ, wallWidth, wallHeight, wallMaterialId, material, collision);
+                        minX, maxX, minZ, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
                 if ((edges & WallEdges.East) != 0)
                     AddWallEdgeSegments(map, shapesById, area, areaManager, stepMeters, edgeProbe, "east",
-                        minZ, maxZ, maxX, wallWidth, wallHeight, wallMaterialId, material, collision);
+                        minZ, maxZ, maxX, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
                 if ((edges & WallEdges.West) != 0)
                     AddWallEdgeSegments(map, shapesById, area, areaManager, stepMeters, edgeProbe, "west",
-                        minZ, maxZ, minX, wallWidth, wallHeight, wallMaterialId, material, collision);
+                        minZ, maxZ, minX, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
             }
         }
 
@@ -365,6 +368,7 @@ namespace TopSpeed.Tracks.Map
                     wall.Id,
                     wall.ShapeId,
                     wall.WidthMeters,
+                    wall.ElevationMeters,
                     collisionMaterial,
                     wall.CollisionMode,
                     wall.Name,
@@ -425,7 +429,8 @@ namespace TopSpeed.Tracks.Map
             float wallHeight,
             string? wallMaterialId,
             TrackWallMaterial material,
-            TrackWallCollisionMode collision)
+            TrackWallCollisionMode collision,
+            float wallElevation)
         {
             var length = spanMax - spanMin;
             if (length <= 0.01f)
@@ -446,7 +451,7 @@ namespace TopSpeed.Tracks.Map
                 {
                     if (!float.IsNaN(runStart))
                     {
-                        AddWallRun(map, shapesById, area, edge, runStart, segStart, edgePosition, wallWidth, wallHeight, wallMaterialId, material, collision);
+                        AddWallRun(map, shapesById, area, edge, runStart, segStart, edgePosition, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
                         runStart = float.NaN;
                     }
                 }
@@ -458,7 +463,7 @@ namespace TopSpeed.Tracks.Map
             }
 
             if (!float.IsNaN(runStart))
-                AddWallRun(map, shapesById, area, edge, runStart, spanMax, edgePosition, wallWidth, wallHeight, wallMaterialId, material, collision);
+                AddWallRun(map, shapesById, area, edge, runStart, spanMax, edgePosition, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
         }
 
         private static bool IsAdjacent(
@@ -518,7 +523,8 @@ namespace TopSpeed.Tracks.Map
             float wallHeight,
             string? wallMaterialId,
             TrackWallMaterial material,
-            TrackWallCollisionMode collision)
+            TrackWallCollisionMode collision,
+            float wallElevation)
         {
             var runLength = runEnd - runStart;
             if (runLength <= 0.01f)
@@ -527,16 +533,16 @@ namespace TopSpeed.Tracks.Map
             switch (edge)
             {
                 case "north":
-                    AddWallEdge(map, shapesById, area, edge, runStart, edgePosition, runLength, wallWidth, wallHeight, wallMaterialId, material, collision);
+                    AddWallEdge(map, shapesById, area, edge, runStart, edgePosition, runLength, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
                     break;
                 case "south":
-                    AddWallEdge(map, shapesById, area, edge, runStart, edgePosition - wallWidth, runLength, wallWidth, wallHeight, wallMaterialId, material, collision);
+                    AddWallEdge(map, shapesById, area, edge, runStart, edgePosition - wallWidth, runLength, wallWidth, wallHeight, wallMaterialId, material, collision, wallElevation);
                     break;
                 case "east":
-                    AddWallEdge(map, shapesById, area, edge, edgePosition, runStart, wallWidth, runLength, wallHeight, wallMaterialId, material, collision);
+                    AddWallEdge(map, shapesById, area, edge, edgePosition, runStart, wallWidth, runLength, wallHeight, wallMaterialId, material, collision, wallElevation);
                     break;
                 case "west":
-                    AddWallEdge(map, shapesById, area, edge, edgePosition - wallWidth, runStart, wallWidth, runLength, wallHeight, wallMaterialId, material, collision);
+                    AddWallEdge(map, shapesById, area, edge, edgePosition - wallWidth, runStart, wallWidth, runLength, wallHeight, wallMaterialId, material, collision, wallElevation);
                     break;
             }
         }
@@ -628,7 +634,8 @@ namespace TopSpeed.Tracks.Map
             float wallHeight,
             string? wallMaterialId,
             TrackWallMaterial material,
-            TrackWallCollisionMode collision)
+            TrackWallCollisionMode collision,
+            float wallElevation)
         {
             var shapeBase = $"__auto_wall_{area.Id}_{edge}_shape";
             var wallBase = $"__auto_wall_{area.Id}_{edge}";
@@ -645,7 +652,7 @@ namespace TopSpeed.Tracks.Map
             var wallName = string.IsNullOrWhiteSpace(area.Name) ? null : $"{area.Name} {edge} wall";
             var shape = new ShapeDefinition(shapeId, ShapeType.Rectangle, x, z, width, height);
             map.AddShape(shape);
-            map.AddWall(new TrackWallDefinition(wallId, shapeId, 0f, material, collision, wallName, null, wallHeight, wallMaterialId));
+            map.AddWall(new TrackWallDefinition(wallId, shapeId, 0f, wallElevation, material, collision, wallName, null, wallHeight, wallMaterialId));
             shapesById[shapeId] = shape;
         }
 

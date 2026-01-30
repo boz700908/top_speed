@@ -6,6 +6,7 @@ using TopSpeed.Audio;
 using TopSpeed.Core;
 using TopSpeed.Data;
 using TopSpeed.Tracks.Areas;
+using TopSpeed.Tracks.Acoustics;
 using TopSpeed.Tracks.Guidance;
 using TopSpeed.Tracks.Geometry;
 using TopSpeed.Tracks.Sectors;
@@ -62,6 +63,7 @@ namespace TopSpeed.Tracks.Map
         private readonly bool _userDefined;
         private TrackNoise _currentNoise;
         private readonly float _trackLength;
+        private TrackSteamAudioScene? _steamAudioScene;
 
         private AudioSourceHandle? _soundCrowd;
         private AudioSourceHandle? _soundOcean;
@@ -99,6 +101,7 @@ namespace TopSpeed.Tracks.Map
             _wallManager = new TrackWallManager(map.Shapes, map.Walls);
             _trackLength = ResolveTrackLength();
             InitializeSounds();
+            InitializeSteamAudioScene();
         }
 
         public static MapTrack Load(string nameOrPath, AudioManager audio)
@@ -437,6 +440,7 @@ namespace TopSpeed.Tracks.Map
         public void Dispose()
         {
             FinalizeTrack();
+            _steamAudioScene?.Dispose();
             DisposeSound(_soundCrowd);
             DisposeSound(_soundOcean);
             DisposeSound(_soundRain);
@@ -947,6 +951,22 @@ namespace TopSpeed.Tracks.Map
             _soundHelicopter = CreateLoop(root, "helicopter.wav");
             _soundOwl = CreateLoop(root, "owl.wav");
             _soundBeacon = CreateSpatial(root, "beacon.wav");
+        }
+
+        private void InitializeSteamAudioScene()
+        {
+            var steam = _audio.SteamAudio;
+            if (steam == null)
+                return;
+
+            try
+            {
+                _steamAudioScene = SteamAudioSceneBuilder.Build(_map, steam);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Steam Audio scene build failed: " + ex);
+            }
         }
 
         private AudioSourceHandle? CreateLoop(string root, string file)

@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <RootNamespace>TopSpeed</RootNamespace>
     <AssemblyName>TopSpeed</AssemblyName>
@@ -19,6 +20,8 @@
   <ItemGroup>
     <ProjectReference Include="..\TS.Audio\TS.Audio.csproj" />
     <ProjectReference Include="..\TopSpeed.Shared\TopSpeed.Shared.csproj" />
+    <ProjectReference Include="..\SteamAudio.NET\Src\SteamAudio.NET.csproj" />
+    <ProjectReference Include="..\Triangle.NET\src\Triangle\Triangle.csproj" />
   </ItemGroup>
 
   <ItemGroup>

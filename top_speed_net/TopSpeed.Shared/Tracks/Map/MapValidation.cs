@@ -818,7 +818,22 @@ namespace TopSpeed.Tracks.Map
                         issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, "Polyline requires at least 2 points.", block.StartLine));
                         return;
                     }
-                    shapes.Add(new ShapeDefinition(id, shapeType, points: points));
+                    if (shapeType == ShapeType.Polygon)
+                    {
+                        var normalized = NormalizePolygonPoints(points);
+                        if (normalized.Count < 3)
+                        {
+                            issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, "Polygon requires at least 3 distinct points.", block.StartLine));
+                            return;
+                        }
+                        if (!ValidatePolygon(normalized, id, issues, block.StartLine))
+                            return;
+                        shapes.Add(new ShapeDefinition(id, shapeType, points: normalized));
+                    }
+                    else
+                    {
+                        shapes.Add(new ShapeDefinition(id, shapeType, points: points));
+                    }
                     break;
                 default:
                     issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, $"Shape '{id}' has unsupported type '{rawType}'.", block.StartLine));
@@ -872,6 +887,128 @@ namespace TopSpeed.Tracks.Map
                 issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, $"Sector '{id}' contains branch keys. Use a [branch] section instead.", block.StartLine));
 
             sectors.Add(new TrackSectorDefinition(id, sectorType, name, areaId, code, materialId, noise, flags, metadata));
+        }
+
+        private static List<Vector2> NormalizePolygonPoints(IReadOnlyList<Vector2> points)
+        {
+            var result = new List<Vector2>();
+            if (points == null || points.Count == 0)
+                return result;
+
+            for (var i = 0; i < points.Count; i++)
+            {
+                var current = points[i];
+                if (result.Count == 0 || !NearlyEqual(result[result.Count - 1], current))
+                    result.Add(current);
+            }
+
+            if (result.Count > 2 && NearlyEqual(result[0], result[result.Count - 1]))
+                result.RemoveAt(result.Count - 1);
+
+            return result;
+        }
+
+        private static bool ValidatePolygon(IReadOnlyList<Vector2> points, string shapeId, List<TrackMapIssue> issues, int line)
+        {
+            if (points == null || points.Count < 3)
+                return false;
+
+            if (Math.Abs(SignedArea(points)) <= 0.0001f)
+            {
+                issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, $"Polygon '{shapeId}' has zero area.", line));
+                return false;
+            }
+
+            for (var i = 0; i < points.Count; i++)
+            {
+                for (var j = i + 1; j < points.Count; j++)
+                {
+                    if (NearlyEqual(points[i], points[j]))
+                    {
+                        issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, $"Polygon '{shapeId}' has duplicate points.", line));
+                        return false;
+                    }
+                }
+            }
+
+            var count = points.Count;
+            for (var i = 0; i < count; i++)
+            {
+                var a1 = points[i];
+                var a2 = points[(i + 1) % count];
+                for (var j = i + 1; j < count; j++)
+                {
+                    if (Math.Abs(i - j) <= 1)
+                        continue;
+                    if (i == 0 && j == count - 1)
+                        continue;
+
+                    var b1 = points[j];
+                    var b2 = points[(j + 1) % count];
+                    if (SegmentsIntersect(a1, a2, b1, b2))
+                    {
+                        issues.Add(new TrackMapIssue(TrackMapIssueSeverity.Error, $"Polygon '{shapeId}' self-intersects.", line));
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static float SignedArea(IReadOnlyList<Vector2> points)
+        {
+            var sum = 0f;
+            for (var i = 0; i < points.Count; i++)
+            {
+                var a = points[i];
+                var b = points[(i + 1) % points.Count];
+                sum += (a.X * b.Y) - (b.X * a.Y);
+            }
+            return sum * 0.5f;
+        }
+
+        private static bool SegmentsIntersect(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2)
+        {
+            if (NearlyEqual(a1, b1) || NearlyEqual(a1, b2) || NearlyEqual(a2, b1) || NearlyEqual(a2, b2))
+                return true;
+
+            var o1 = Orientation(a1, a2, b1);
+            var o2 = Orientation(a1, a2, b2);
+            var o3 = Orientation(b1, b2, a1);
+            var o4 = Orientation(b1, b2, a2);
+
+            if (o1 * o2 < 0f && o3 * o4 < 0f)
+                return true;
+
+            if (Math.Abs(o1) <= 0.0001f && OnSegment(a1, a2, b1))
+                return true;
+            if (Math.Abs(o2) <= 0.0001f && OnSegment(a1, a2, b2))
+                return true;
+            if (Math.Abs(o3) <= 0.0001f && OnSegment(b1, b2, a1))
+                return true;
+            if (Math.Abs(o4) <= 0.0001f && OnSegment(b1, b2, a2))
+                return true;
+
+            return false;
+        }
+
+        private static float Orientation(Vector2 a, Vector2 b, Vector2 c)
+        {
+            return (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
+        }
+
+        private static bool OnSegment(Vector2 a, Vector2 b, Vector2 p)
+        {
+            return p.X >= Math.Min(a.X, b.X) - 0.0001f &&
+                   p.X <= Math.Max(a.X, b.X) + 0.0001f &&
+                   p.Y >= Math.Min(a.Y, b.Y) - 0.0001f &&
+                   p.Y <= Math.Max(a.Y, b.Y) + 0.0001f;
+        }
+
+        private static bool NearlyEqual(Vector2 a, Vector2 b)
+        {
+            return Vector2.DistanceSquared(a, b) <= 0.0001f * 0.0001f;
         }
 
         private static void ApplyJunction(
@@ -2318,6 +2455,9 @@ namespace TopSpeed.Tracks.Map
             var name = TryGetValue(block, "name", out var nameValue) ? nameValue : null;
             var width = TryFloatAny(block, out var widthValue, "width", "wall_width") ? Math.Max(0f, widthValue) : 0f;
             var height = TryFloatAny(block, out var heightValue, "height", "wall_height") ? Math.Max(0f, heightValue) : 2f;
+            var elevation = TryFloatAny(block, out var elevationValue, "elevation", "wall_elevation", "base_height")
+                ? elevationValue
+                : metadata.BaseHeightMeters.GetValueOrDefault(0f);
             var materialId = TryMaterialId(block, "material", out var materialValue) ? materialValue : null;
             var material = TrackWallMaterial.Hard;
             if (string.IsNullOrWhiteSpace(materialId) && !metadata.DefaultMaterialDefined)
@@ -2340,7 +2480,7 @@ namespace TopSpeed.Tracks.Map
             }
 
             var wallMetadata = CollectWallMetadata(block);
-            walls.Add(new TrackWallDefinition(id, shapeId, width, material, collisionMode, name, wallMetadata, height, materialId));
+            walls.Add(new TrackWallDefinition(id, shapeId, width, elevation, material, collisionMode, name, wallMetadata, height, materialId));
         }
 
         private static void ApplyMaterial(

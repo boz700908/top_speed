@@ -12,6 +12,7 @@ namespace TopSpeed.Tracks.Walls
             string id,
             string shapeId,
             float widthMeters,
+            float elevationMeters,
             TrackWallMaterial collisionMaterial,
             TrackWallCollisionMode collisionMode,
             string? name = null,
@@ -27,6 +28,7 @@ namespace TopSpeed.Tracks.Walls
             Id = id.Trim();
             ShapeId = shapeId.Trim();
             WidthMeters = widthMeters;
+            ElevationMeters = elevationMeters;
             CollisionMaterial = collisionMaterial;
             CollisionMode = collisionMode;
             var trimmedName = name?.Trim();
@@ -40,6 +42,7 @@ namespace TopSpeed.Tracks.Walls
         public string Id { get; }
         public string ShapeId { get; }
         public float WidthMeters { get; }
+        public float ElevationMeters { get; }
         public float HeightMeters { get; }
         public TrackWallMaterial CollisionMaterial { get; }
         public TrackWallCollisionMode CollisionMode { get; }
