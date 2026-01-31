@@ -111,12 +111,12 @@ height=30
 # Rooms
 [room: demo_room]
 preset=hall_large
-reflection_wet=1.0
-reverb_gain=1.0
-reverb_time=5.0
+reflection_wet=0.5
+reverb_gain=0.5
+reverb_time=2.0
 hf_decay_ratio=0.95
-early_reflections_gain=1.0
-late_reverb_gain=1.0
+early_reflections_gain=0.5
+late_reverb_gain=0.5
 diffusion=1.0
 
 # Areas
