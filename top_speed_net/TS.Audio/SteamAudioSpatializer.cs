@@ -13,10 +13,14 @@ namespace TS.Audio
         private IPL.BinauralEffect _binauralLeft;
         private IPL.BinauralEffect _binauralRight;
         private IPL.AmbisonicsBinauralEffect _ambisonicsBinaural;
+        private IPL.AmbisonicsBinauralEffect _ambisonicsBinauralParametric;
         private IPL.AmbisonicsRotationEffect _ambisonicsRotation;
+        private IPL.AmbisonicsRotationEffect _ambisonicsRotationParametric;
         private IPL.DirectEffect _directLeft;
         private IPL.DirectEffect _directRight;
-        private IPL.ReflectionEffect _reflection;
+        private IPL.ReflectionEffect _reflectionHybrid;
+        private IPL.ReflectionEffect _reflectionConvolution;
+        private IPL.ReflectionEffect _reflectionParametric;
         private readonly float[] _mono;
         private readonly float[] _outL;
         private readonly float[] _outR;
@@ -32,6 +36,9 @@ namespace TS.Audio
         private readonly float[] _reverbAmbiRotated;
         private readonly float[] _reverbWetL;
         private readonly float[] _reverbWetR;
+        private readonly float[] _reverbScratchL;
+        private readonly float[] _reverbScratchR;
+        private float _reflectionWet;
         private readonly int _frameSize;
         private readonly int _reflectionOrder;
         private readonly int _reflectionChannels;
@@ -77,6 +84,9 @@ namespace TS.Audio
             error = IPL.AmbisonicsBinauralEffectCreate(_ctx.Context, in audioSettings, in ambiSettings, out _ambisonicsBinaural);
             if (error != IPL.Error.Success)
                 throw new InvalidOperationException("Failed to create ambisonics binaural effect: " + error);
+            error = IPL.AmbisonicsBinauralEffectCreate(_ctx.Context, in audioSettings, in ambiSettings, out _ambisonicsBinauralParametric);
+            if (error != IPL.Error.Success)
+                throw new InvalidOperationException("Failed to create parametric ambisonics binaural effect: " + error);
 
             var rotationSettings = new IPL.AmbisonicsRotationEffectSettings
             {
@@ -86,6 +96,9 @@ namespace TS.Audio
             error = IPL.AmbisonicsRotationEffectCreate(_ctx.Context, in audioSettings, in rotationSettings, out _ambisonicsRotation);
             if (error != IPL.Error.Success)
                 throw new InvalidOperationException("Failed to create ambisonics rotation effect: " + error);
+            error = IPL.AmbisonicsRotationEffectCreate(_ctx.Context, in audioSettings, in rotationSettings, out _ambisonicsRotationParametric);
+            if (error != IPL.Error.Success)
+                throw new InvalidOperationException("Failed to create parametric ambisonics rotation effect: " + error);
 
             var directSettingsMono = new IPL.DirectEffectSettings { NumChannels = 1 };
             error = IPL.DirectEffectCreate(_ctx.Context, in audioSettings, in directSettingsMono, out _directLeft);
@@ -96,16 +109,24 @@ namespace TS.Audio
             if (error != IPL.Error.Success)
                 throw new InvalidOperationException("Failed to create direct effect: " + error);
 
-            var reflectionSettings = new IPL.ReflectionEffectSettings
-            {
-                Type = _reflectionType,
-                NumChannels = _reflectionChannels,
-                IrSize = _reflectionIrSize
-            };
-
-            error = IPL.ReflectionEffectCreate(_ctx.Context, in audioSettings, in reflectionSettings, out _reflection);
-            if (error != IPL.Error.Success)
-                throw new InvalidOperationException("Failed to create reflection effect: " + error);
+            _reflectionHybrid = CreateReflectionEffect(
+                in audioSettings,
+                IPL.ReflectionEffectType.Hybrid,
+                _reflectionChannels,
+                _reflectionIrSize,
+                "hybrid reflection effect");
+            _reflectionConvolution = CreateReflectionEffect(
+                in audioSettings,
+                IPL.ReflectionEffectType.Convolution,
+                _reflectionChannels,
+                _reflectionIrSize,
+                "convolution reflection effect");
+            _reflectionParametric = CreateReflectionEffect(
+                in audioSettings,
+                IPL.ReflectionEffectType.Parametric,
+                1,
+                1,
+                "parametric reflection effect");
 
             _mono = new float[_frameSize];
             _outL = new float[_frameSize];
@@ -122,6 +143,8 @@ namespace TS.Audio
             _reverbAmbiRotated = new float[_frameSize * _reflectionChannels];
             _reverbWetL = new float[_frameSize];
             _reverbWetR = new float[_frameSize];
+            _reverbScratchL = new float[_frameSize];
+            _reverbScratchR = new float[_frameSize];
         }
 
         public unsafe void Process(NativeArray<float> framesIn, UInt32 frameCountIn, NativeArray<float> framesOut, ref UInt32 frameCountOut, UInt32 channels, AudioSourceSpatialParams spatial)
@@ -255,18 +278,18 @@ namespace TS.Audio
                 if ((simFlags & AudioSourceSpatialParams.SimReflections) != 0)
                 {
                     ApplyReflections(frames, spatial, pReverbL, pReverbR);
-                    float wetScale = Volatile.Read(ref spatial.ReflectionWet);
-                    var roomFlags = Volatile.Read(ref spatial.RoomFlags);
-                    if ((roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0)
-                    {
-                        wetScale *= Clamp01(Volatile.Read(ref spatial.RoomReverbGain));
-                    }
+                    var wetScale = GetReflectionWetScale(spatial);
                     for (int i = 0; i < frames; i++)
                     {
                         int idx = i * (int)channels;
-                        framesOut[idx] += pReverbL[i] * wetScale;
-                        framesOut[idx + 1] += pReverbR[i] * wetScale;
+                        _reflectionWet += (wetScale - _reflectionWet) * 0.05f;
+                        framesOut[idx] += pReverbL[i] * _reflectionWet;
+                        framesOut[idx + 1] += pReverbR[i] * _reflectionWet;
                     }
+                }
+                else
+                {
+                    _reflectionWet *= 0.90f;
                 }
 
                 frameCountOut = (UInt32)frames;
@@ -281,14 +304,22 @@ namespace TS.Audio
                 IPL.BinauralEffectRelease(ref _binauralRight);
             if (_ambisonicsBinaural.Handle != IntPtr.Zero)
                 IPL.AmbisonicsBinauralEffectRelease(ref _ambisonicsBinaural);
+            if (_ambisonicsBinauralParametric.Handle != IntPtr.Zero)
+                IPL.AmbisonicsBinauralEffectRelease(ref _ambisonicsBinauralParametric);
             if (_ambisonicsRotation.Handle != IntPtr.Zero)
                 IPL.AmbisonicsRotationEffectRelease(ref _ambisonicsRotation);
+            if (_ambisonicsRotationParametric.Handle != IntPtr.Zero)
+                IPL.AmbisonicsRotationEffectRelease(ref _ambisonicsRotationParametric);
             if (_directLeft.Handle != IntPtr.Zero)
                 IPL.DirectEffectRelease(ref _directLeft);
             if (_directRight.Handle != IntPtr.Zero)
                 IPL.DirectEffectRelease(ref _directRight);
-            if (_reflection.Handle != IntPtr.Zero)
-                IPL.ReflectionEffectRelease(ref _reflection);
+            if (_reflectionHybrid.Handle != IntPtr.Zero)
+                IPL.ReflectionEffectRelease(ref _reflectionHybrid);
+            if (_reflectionConvolution.Handle != IntPtr.Zero)
+                IPL.ReflectionEffectRelease(ref _reflectionConvolution);
+            if (_reflectionParametric.Handle != IntPtr.Zero)
+                IPL.ReflectionEffectRelease(ref _reflectionParametric);
         }
 
         private unsafe void ProcessMono(NativeArray<float> framesIn, UInt32 frameCountIn, NativeArray<float> framesOut, ref UInt32 frameCountOut, UInt32 channels, AudioSourceSpatialParams spatial)
@@ -400,19 +431,21 @@ namespace TS.Audio
                 if ((simFlags & AudioSourceSpatialParams.SimReflections) != 0)
                 {
                     ApplyReflections(frames, spatial, pReverbL, pReverbR);
-                    float wetScale = Volatile.Read(ref spatial.ReflectionWet);
-                    var roomFlags = Volatile.Read(ref spatial.RoomFlags);
-                    if ((roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0)
-                    {
-                        wetScale *= Clamp01(Volatile.Read(ref spatial.RoomReverbGain));
-                    }
+                    var wetScale = GetReflectionWetScale(spatial);
                     for (int i = 0; i < frames; i++)
                     {
                         int idx = i * (int)channels;
-                        framesOut[idx] += pReverbL[i] * wetScale;
+                        _reflectionWet += (wetScale - _reflectionWet) * 0.05f;
+                        framesOut[idx] += pReverbL[i] * _reflectionWet;
                         if (channels > 1)
-                            framesOut[idx + 1] += pReverbR[i] * wetScale;
+                        {
+                            framesOut[idx + 1] += pReverbR[i] * _reflectionWet;
+                        }
                     }
+                }
+                else
+                {
+                    _reflectionWet *= 0.90f;
                 }
 
                 frameCountOut = (UInt32)frames;
@@ -424,44 +457,232 @@ namespace TS.Audio
             var irPtrValue = Volatile.Read(ref spatial.ReflectionIrHandle);
             var irSize = Volatile.Read(ref spatial.ReflectionIrSize);
             var irChannels = Volatile.Read(ref spatial.ReflectionIrChannels);
+            var hasImpulseResponse = irPtrValue != 0 && irSize > 0 && irChannels > 0;
+            var roomFlags = Volatile.Read(ref spatial.RoomFlags);
+            var hasRoomProfile = (roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0;
 
-            if (irPtrValue == 0 || irSize <= 0 || irChannels <= 0)
+            var timeLow = Volatile.Read(ref spatial.ReverbTimeLow);
+            var timeMid = Volatile.Read(ref spatial.ReverbTimeMid);
+            var timeHigh = Volatile.Read(ref spatial.ReverbTimeHigh);
+            var eqLow = Volatile.Read(ref spatial.ReverbEqLow);
+            var eqMid = Volatile.Read(ref spatial.ReverbEqMid);
+            var eqHigh = Volatile.Read(ref spatial.ReverbEqHigh);
+            var delay = Volatile.Read(ref spatial.ReverbDelay);
+
+            if (!hasRoomProfile)
+            {
+                if (hasImpulseResponse)
+                {
+                    if (RenderReflectionsPass(
+                        frames,
+                        _reflectionType,
+                        irPtrValue,
+                        irSize,
+                        irChannels,
+                        delay,
+                        timeLow,
+                        timeMid,
+                        timeHigh,
+                        eqLow,
+                        eqMid,
+                        eqHigh,
+                        outL,
+                        outR))
+                    {
+                        return;
+                    }
+                }
+
+                // Parametric fallback keeps reverb audible when no IR is available.
+                if (RenderReflectionsPass(
+                    frames,
+                    IPL.ReflectionEffectType.Parametric,
+                    0,
+                    0,
+                    0,
+                    delay,
+                    timeLow,
+                    timeMid,
+                    timeHigh,
+                    eqLow,
+                    eqMid,
+                    eqHigh,
+                    outL,
+                    outR))
+                {
+                    return;
+                }
+            }
+            else
             {
                 for (int i = 0; i < frames; i++)
                 {
                     outL[i] = 0f;
                     outR[i] = 0f;
                 }
-                return;
+
+                var earlyGain = Clamp01(Volatile.Read(ref spatial.RoomEarlyReflectionsGain));
+                var lateGain = Clamp01(Volatile.Read(ref spatial.RoomLateReverbGain));
+                var diffusion = Clamp01(Volatile.Read(ref spatial.RoomDiffusion));
+
+                // Diffusion controls early/late balance with an explicit +/-50% tilt:
+                // diffusion=0.0 -> early x1.5, late x0.5
+                // diffusion=0.5 -> early x1.0, late x1.0
+                // diffusion=1.0 -> early x0.5, late x1.5
+                var earlyMixGain = earlyGain * Lerp(1.5f, 0.5f, diffusion);
+                var lateMixGain = lateGain * Lerp(0.5f, 1.5f, diffusion);
+                var hasOutput = false;
+
+                if (hasImpulseResponse && earlyMixGain > 0f)
+                {
+                    if (RenderReflectionsPass(
+                        frames,
+                        IPL.ReflectionEffectType.Convolution,
+                        irPtrValue,
+                        irSize,
+                        irChannels,
+                        delay,
+                        timeLow,
+                        timeMid,
+                        timeHigh,
+                        eqLow,
+                        eqMid,
+                        eqHigh,
+                        outL,
+                        outR))
+                    {
+                        hasOutput = true;
+                        if (Math.Abs(earlyMixGain - 1f) > 0.0001f)
+                        {
+                            for (int i = 0; i < frames; i++)
+                            {
+                                outL[i] *= earlyMixGain;
+                                outR[i] *= earlyMixGain;
+                            }
+                        }
+                    }
+                }
+
+                if (lateMixGain > 0f)
+                {
+                    fixed (float* pScratchL = _reverbScratchL)
+                    fixed (float* pScratchR = _reverbScratchR)
+                    {
+                        if (RenderReflectionsPass(
+                            frames,
+                            IPL.ReflectionEffectType.Parametric,
+                            0,
+                            0,
+                            0,
+                            delay,
+                            timeLow,
+                            timeMid,
+                            timeHigh,
+                            eqLow,
+                            eqMid,
+                            eqHigh,
+                            pScratchL,
+                            pScratchR))
+                        {
+                            hasOutput = true;
+                            for (int i = 0; i < frames; i++)
+                            {
+                                outL[i] += pScratchL[i] * lateMixGain;
+                                outR[i] += pScratchR[i] * lateMixGain;
+                            }
+                        }
+                    }
+                }
+
+                if (hasOutput)
+                {
+                    return;
+                }
             }
 
-            int channels = Math.Min(irChannels, _reflectionChannels);
-            int irSamples = Math.Min(irSize, _reflectionIrSize);
-            int order = OrderFromChannels(channels);
-            if (order < 0 || order > _reflectionOrder)
+            for (int i = 0; i < frames; i++)
+            {
+                outL[i] = 0f;
+                outR[i] = 0f;
+            }
+        }
+
+        private unsafe bool RenderReflectionsPass(
+            int frames,
+            IPL.ReflectionEffectType effectType,
+            long irPtrValue,
+            int irSize,
+            int irChannels,
+            int delay,
+            float timeLow,
+            float timeMid,
+            float timeHigh,
+            float eqLow,
+            float eqMid,
+            float eqHigh,
+            float* outL,
+            float* outR)
+        {
+            var needsIr = effectType == IPL.ReflectionEffectType.Convolution || effectType == IPL.ReflectionEffectType.Hybrid;
+            var hasImpulseResponse = irPtrValue != 0 && irSize > 0 && irChannels > 0;
+            if (needsIr && !hasImpulseResponse)
+                return false;
+
+            var reflection = GetReflectionEffect(effectType);
+            if (reflection.Handle == IntPtr.Zero)
+                return false;
+
+            int channelsToRender;
+            int channelsToProcess;
+            int irSamples;
+            int order;
+
+            if (effectType == IPL.ReflectionEffectType.Parametric)
+            {
+                channelsToRender = 1;
+                channelsToProcess = 1;
+                irSamples = 0;
+                order = 0;
+            }
+            else
+            {
+                channelsToRender = _reflectionChannels;
+                channelsToProcess = Math.Min(irChannels, _reflectionChannels);
+                irSamples = Math.Min(irSize, _reflectionIrSize);
                 order = _reflectionOrder;
+            }
+
+            if (channelsToRender <= 0 || channelsToProcess <= 0)
+                return false;
 
             var reflectionParams = new IPL.ReflectionEffectParams
             {
-                Type = _reflectionType,
-                NumChannels = channels,
+                Type = effectType,
+                NumChannels = channelsToProcess,
                 IrSize = irSamples,
-                Ir = new IPL.ReflectionEffectIR(new IntPtr(irPtrValue)),
-                Delay = Volatile.Read(ref spatial.ReverbDelay)
+                Ir = (hasImpulseResponse && needsIr) ? new IPL.ReflectionEffectIR(new IntPtr(irPtrValue)) : default,
+                Delay = delay
             };
 
-            reflectionParams.ReverbTimes[0] = Volatile.Read(ref spatial.ReverbTimeLow);
-            reflectionParams.ReverbTimes[1] = Volatile.Read(ref spatial.ReverbTimeMid);
-            reflectionParams.ReverbTimes[2] = Volatile.Read(ref spatial.ReverbTimeHigh);
-            reflectionParams.Eq[0] = Volatile.Read(ref spatial.ReverbEqLow);
-            reflectionParams.Eq[1] = Volatile.Read(ref spatial.ReverbEqMid);
-            reflectionParams.Eq[2] = Volatile.Read(ref spatial.ReverbEqHigh);
+            reflectionParams.ReverbTimes[0] = timeLow;
+            reflectionParams.ReverbTimes[1] = timeMid;
+            reflectionParams.ReverbTimes[2] = timeHigh;
+            reflectionParams.Eq[0] = eqLow;
+            reflectionParams.Eq[1] = eqMid;
+            reflectionParams.Eq[2] = eqHigh;
 
             fixed (float* pIn = _mono)
             fixed (float* pAmbi = _reverbAmbi)
             fixed (float* pAmbiRot = _reverbAmbiRotated)
             {
-                for (int ch = 0; ch < channels; ch++)
+                var rotationEffect = effectType == IPL.ReflectionEffectType.Parametric
+                    ? _ambisonicsRotationParametric
+                    : _ambisonicsRotation;
+                var binauralEffect = effectType == IPL.ReflectionEffectType.Parametric
+                    ? _ambisonicsBinauralParametric
+                    : _ambisonicsBinaural;
+
+                for (int ch = 0; ch < channelsToRender; ch++)
                 {
                     float* chPtr = pAmbi + ch * _frameSize;
                     for (int i = 0; i < frames; i++)
@@ -475,20 +696,20 @@ namespace TS.Audio
 
                 var inPtr = stackalloc IntPtr[1];
                 inPtr[0] = (IntPtr)pIn;
-                var outPtr = stackalloc IntPtr[channels];
-                for (int ch = 0; ch < channels; ch++)
+                var outPtr = stackalloc IntPtr[channelsToRender];
+                for (int ch = 0; ch < channelsToRender; ch++)
                     outPtr[ch] = (IntPtr)(pAmbi + ch * _frameSize);
 
                 var inBuffer = new IPL.AudioBuffer { NumChannels = 1, NumSamples = frames, Data = (IntPtr)inPtr };
-                var outBuffer = new IPL.AudioBuffer { NumChannels = channels, NumSamples = frames, Data = (IntPtr)outPtr };
+                var outBuffer = new IPL.AudioBuffer { NumChannels = channelsToRender, NumSamples = frames, Data = (IntPtr)outPtr };
 
-                IPL.ReflectionEffectApply(_reflection, ref reflectionParams, ref inBuffer, ref outBuffer, default);
+                IPL.ReflectionEffectApply(reflection, ref reflectionParams, ref inBuffer, ref outBuffer, default);
 
-                var rotOutPtr = stackalloc IntPtr[channels];
-                for (int ch = 0; ch < channels; ch++)
+                var rotOutPtr = stackalloc IntPtr[channelsToRender];
+                for (int ch = 0; ch < channelsToRender; ch++)
                     rotOutPtr[ch] = (IntPtr)(pAmbiRot + ch * _frameSize);
 
-                var rotOutBuffer = new IPL.AudioBuffer { NumChannels = channels, NumSamples = frames, Data = (IntPtr)rotOutPtr };
+                var rotOutBuffer = new IPL.AudioBuffer { NumChannels = channelsToRender, NumSamples = frames, Data = (IntPtr)rotOutPtr };
                 var listener = _ctx.ListenerSnapshot;
                 var rotationParams = new IPL.AmbisonicsRotationEffectParams
                 {
@@ -502,7 +723,7 @@ namespace TS.Audio
                     Order = order
                 };
 
-                IPL.AmbisonicsRotationEffectApply(_ambisonicsRotation, ref rotationParams, ref outBuffer, ref rotOutBuffer);
+                IPL.AmbisonicsRotationEffectApply(rotationEffect, ref rotationParams, ref outBuffer, ref rotOutBuffer);
 
                 var ambiParams = new IPL.AmbisonicsBinauralEffectParams
                 {
@@ -515,18 +736,57 @@ namespace TS.Audio
                 ambiOutPtr[1] = (IntPtr)outR;
                 var ambiOutBuffer = new IPL.AudioBuffer { NumChannels = 2, NumSamples = frames, Data = (IntPtr)ambiOutPtr };
 
-                IPL.AmbisonicsBinauralEffectApply(_ambisonicsBinaural, ref ambiParams, ref rotOutBuffer, ref ambiOutBuffer);
+                IPL.AmbisonicsBinauralEffectApply(binauralEffect, ref ambiParams, ref rotOutBuffer, ref ambiOutBuffer);
+            }
+
+            return true;
+        }
+
+        private IPL.ReflectionEffect GetReflectionEffect(IPL.ReflectionEffectType effectType)
+        {
+            switch (effectType)
+            {
+                case IPL.ReflectionEffectType.Convolution:
+                    return _reflectionConvolution;
+                case IPL.ReflectionEffectType.Parametric:
+                    return _reflectionParametric;
+                case IPL.ReflectionEffectType.Hybrid:
+                default:
+                    return _reflectionHybrid;
             }
         }
 
-        private static int OrderFromChannels(int channels)
+        private IPL.ReflectionEffect CreateReflectionEffect(
+            in IPL.AudioSettings audioSettings,
+            IPL.ReflectionEffectType type,
+            int numChannels,
+            int irSize,
+            string label)
         {
-            if (channels <= 0)
-                return -1;
-            int root = (int)Math.Round(Math.Sqrt(channels));
-            if (root * root != channels)
-                return -1;
-            return root - 1;
+            var settings = new IPL.ReflectionEffectSettings
+            {
+                Type = type,
+                NumChannels = Math.Max(1, numChannels),
+                IrSize = Math.Max(1, irSize)
+            };
+
+            var error = IPL.ReflectionEffectCreate(_ctx.Context, in audioSettings, in settings, out var effect);
+            if (error != IPL.Error.Success)
+                throw new InvalidOperationException($"Failed to create {label}: {error}");
+
+            return effect;
+        }
+
+        private static float GetReflectionWetScale(AudioSourceSpatialParams spatial)
+        {
+            var wetScale = Clamp01(Volatile.Read(ref spatial.ReflectionWet));
+            var roomFlags = Volatile.Read(ref spatial.RoomFlags);
+            if ((roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0)
+            {
+                wetScale *= Clamp01(Volatile.Read(ref spatial.RoomReverbGain));
+            }
+
+            return wetScale;
         }
 
         private float GetAttenuationAndDirection(AudioSourceSpatialParams spatial, out IPL.Vector3 direction)
@@ -642,6 +902,11 @@ namespace TS.Audio
         private static float Clamp01(float value)
         {
             return Clamp(value, 0f, 1f);
+        }
+
+        private static float Lerp(float from, float to, float t)
+        {
+            return from + ((to - from) * t);
         }
 
         private float DownmixSample(NativeArray<float> framesIn, int offset, int channels)

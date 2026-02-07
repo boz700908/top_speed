@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Numerics;
 using TopSpeed.Tracks.Areas;
 using TopSpeed.Tracks.Map;
@@ -24,15 +25,16 @@ namespace TopSpeed.Tracks.Surfaces
             var profilesById = BuildProfileLookup(map.Profiles);
             var banksById = BuildBankLookup(map.Banks);
             var surfaceDefaults = BuildSurfaceDefaults(map.Areas, map.DefaultWidthMeters);
+            var surfacesToBuild = BuildSurfaceWorklist(map.Surfaces, map.Areas, geometriesById);
 
             var defaultResolution = Math.Max(0.25f, map.SurfaceResolutionMeters);
-            foreach (var surface in map.Surfaces)
+            foreach (var surface in surfacesToBuild)
             {
                 if (surface == null)
                     continue;
                 if (string.IsNullOrWhiteSpace(surface.GeometryId))
                     continue;
-                if (!geometriesById.TryGetValue(surface.GeometryId, out var geometry))
+                if (!geometriesById.TryGetValue(surface.GeometryId!, out var geometry))
                     continue;
 
                 profilesById.TryGetValue(surface.ProfileId ?? string.Empty, out var profile);
@@ -91,6 +93,9 @@ namespace TopSpeed.Tracks.Surfaces
             var maxLayer = options?.MaxLayer;
             var preferLayer = options?.PreferHighestLayer ?? true;
             var preferHeight = options?.PreferHighestHeight ?? true;
+            var preferClosestHeight = options?.PreferClosestHeightToReference ?? false;
+            var referenceHeight = options?.ReferenceHeightMeters ?? position.Y;
+            var maxHeightDelta = options?.MaxHeightDeltaMeters;
 
             foreach (var index in surfaceIndices)
             {
@@ -103,8 +108,13 @@ namespace TopSpeed.Tracks.Surfaces
                     continue;
                 if (!surface.TrySample(position.X, position.Z, out var hit))
                     continue;
+                if (maxHeightDelta.HasValue &&
+                    Math.Abs(hit.Position.Y - referenceHeight) > maxHeightDelta.Value)
+                {
+                    continue;
+                }
 
-                if (!found || IsBetter(hit, best, preferLayer, preferHeight))
+                if (!found || IsBetter(hit, best, preferLayer, preferHeight, preferClosestHeight, referenceHeight))
                 {
                     found = true;
                     best = hit;
@@ -118,10 +128,25 @@ namespace TopSpeed.Tracks.Surfaces
             return true;
         }
 
-        private static bool IsBetter(TrackSurfaceSample candidate, TrackSurfaceSample current, bool preferLayer, bool preferHeight)
+        private static bool IsBetter(
+            TrackSurfaceSample candidate,
+            TrackSurfaceSample current,
+            bool preferLayer,
+            bool preferHeight,
+            bool preferClosestHeight,
+            float referenceHeight)
         {
             if (preferLayer && candidate.Layer != current.Layer)
                 return candidate.Layer > current.Layer;
+
+            if (preferClosestHeight)
+            {
+                var candidateDelta = Math.Abs(candidate.Position.Y - referenceHeight);
+                var currentDelta = Math.Abs(current.Position.Y - referenceHeight);
+                if (Math.Abs(candidateDelta - currentDelta) > 0.0001f)
+                    return candidateDelta < currentDelta;
+            }
+
             if (preferHeight)
                 return candidate.Position.Y > current.Position.Y;
             return false;
@@ -139,6 +164,93 @@ namespace TopSpeed.Tracks.Surfaces
                 lookup[geometry.Id] = geometry;
             }
             return lookup;
+        }
+
+        private static IReadOnlyList<TrackSurfaceDefinition> BuildSurfaceWorklist(
+            IEnumerable<TrackSurfaceDefinition> explicitSurfaces,
+            IEnumerable<TrackAreaDefinition> areas,
+            IReadOnlyDictionary<string, GeometryDefinition> geometriesById)
+        {
+            var list = new List<TrackSurfaceDefinition>();
+            var explicitIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (explicitSurfaces != null)
+            {
+                foreach (var surface in explicitSurfaces)
+                {
+                    if (surface == null)
+                        continue;
+                    list.Add(surface);
+                    if (!string.IsNullOrWhiteSpace(surface.Id))
+                        explicitIds.Add(surface.Id);
+                }
+            }
+
+            foreach (var generated in BuildImplicitMeshSurfaces(areas, geometriesById, explicitIds))
+                list.Add(generated);
+
+            return list;
+        }
+
+        private static IReadOnlyList<TrackSurfaceDefinition> BuildImplicitMeshSurfaces(
+            IEnumerable<TrackAreaDefinition> areas,
+            IReadOnlyDictionary<string, GeometryDefinition> geometriesById,
+            HashSet<string> explicitSurfaceIds)
+        {
+            var generated = new List<TrackSurfaceDefinition>();
+            var generatedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (areas == null || geometriesById == null)
+                return generated;
+
+            foreach (var area in areas)
+            {
+                if (area == null || string.IsNullOrWhiteSpace(area.GeometryId))
+                    continue;
+                if (area.Type == TrackAreaType.Boundary || area.Type == TrackAreaType.OffTrack)
+                    continue;
+                if (!geometriesById.TryGetValue(area.GeometryId, out var geometry))
+                    continue;
+                if (geometry.Type != GeometryType.Mesh)
+                    continue;
+
+                var candidateId = !string.IsNullOrWhiteSpace(area.SurfaceId)
+                    ? area.SurfaceId!.Trim()
+                    : $"auto_mesh_{area.Id}";
+                if (explicitSurfaceIds.Contains(candidateId))
+                    continue;
+
+                var surfaceId = candidateId;
+                if (!generatedIds.Add(surfaceId))
+                {
+                    surfaceId = $"{candidateId}_{area.Id}";
+                    if (!generatedIds.Add(surfaceId))
+                        continue;
+                }
+
+                var metadata = BuildImplicitMeshSurfaceMetadata(area);
+                var profileId = TryGetAreaSurfaceValue(area.Metadata, "surface_profile", "mesh_profile");
+                var bankId = TryGetAreaSurfaceValue(area.Metadata, "surface_bank", "mesh_bank");
+                var layer = TryGetAreaSurfaceLayer(area.Metadata) ?? 0;
+                var resolution = TryGetAreaSurfaceResolution(area.Metadata);
+                var name = string.IsNullOrWhiteSpace(area.Name)
+                    ? $"Auto mesh surface {area.Id}"
+                    : $"Auto mesh surface {area.Name}";
+
+                generated.Add(new TrackSurfaceDefinition(
+                    surfaceId,
+                    TrackSurfaceType.Mesh,
+                    area.GeometryId,
+                    profileId,
+                    bankId,
+                    layer,
+                    resolution,
+                    area.MaterialId,
+                    name,
+                    metadata.Count > 0 ? metadata : null));
+            }
+
+            return generated;
         }
 
         private static Dictionary<string, TrackProfileDefinition> BuildProfileLookup(IEnumerable<TrackProfileDefinition> profiles)
@@ -182,7 +294,7 @@ namespace TopSpeed.Tracks.Surfaces
                 if (area == null || string.IsNullOrWhiteSpace(area.SurfaceId))
                     continue;
 
-                var surfaceId = area.SurfaceId.Trim();
+                var surfaceId = area.SurfaceId!.Trim();
                 var width = area.WidthMeters ?? defaultWidth;
                 var height = area.ElevationMeters;
                 var resolution = TryGetAreaSurfaceResolution(area.Metadata);
@@ -226,6 +338,62 @@ namespace TopSpeed.Tracks.Surfaces
                 return Math.Max(0.1f, resolution);
 
             return null;
+        }
+
+        private static int? TryGetAreaSurfaceLayer(IReadOnlyDictionary<string, string> metadata)
+        {
+            if (metadata == null || metadata.Count == 0)
+                return null;
+
+            if (!SurfaceParameterParser.TryGetValue(metadata, out var raw, "surface_layer", "mesh_layer"))
+                return null;
+
+            if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+                return parsed;
+            return null;
+        }
+
+        private static string? TryGetAreaSurfaceValue(IReadOnlyDictionary<string, string> metadata, params string[] keys)
+        {
+            if (metadata == null || metadata.Count == 0)
+                return null;
+
+            if (!SurfaceParameterParser.TryGetValue(metadata, out var raw, keys))
+                return null;
+
+            var trimmed = raw.Trim();
+            return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+        }
+
+        private static IReadOnlyDictionary<string, string> BuildImplicitMeshSurfaceMetadata(TrackAreaDefinition area)
+        {
+            var metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["base_height"] = area.ElevationMeters.ToString(CultureInfo.InvariantCulture)
+            };
+
+            CopyAreaMetadata(area.Metadata, metadata, "mesh_height_mode", "mesh_y_mode", "height_mode", "mesh_height");
+            CopyAreaMetadata(area.Metadata, metadata, "mesh_y_offset", "mesh_offset", "y_offset", "height_offset");
+            CopyAreaMetadata(area.Metadata, metadata, "mesh_apply_profile", "apply_profile", "profile_on_mesh");
+
+            return metadata;
+        }
+
+        private static void CopyAreaMetadata(
+            IReadOnlyDictionary<string, string> source,
+            Dictionary<string, string> destination,
+            params string[] keys)
+        {
+            if (source == null || source.Count == 0)
+                return;
+
+            foreach (var key in keys)
+            {
+                if (!source.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
+                    continue;
+                destination[key] = value.Trim();
+                break;
+            }
         }
 
         private readonly struct SurfaceDefaults

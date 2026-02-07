@@ -22,7 +22,8 @@ namespace TopSpeed.Tracks.Topology
             TrackAreaVolumeMode volumeMode = TrackAreaVolumeMode.LocalBand,
             TrackAreaVolumeOffsetMode volumeOffsetMode = TrackAreaVolumeOffsetMode.Bottom,
             TrackAreaVolumeSpace volumeOffsetSpace = TrackAreaVolumeSpace.Inherit,
-            TrackAreaVolumeSpace volumeMinMaxSpace = TrackAreaVolumeSpace.Inherit)
+            TrackAreaVolumeSpace volumeMinMaxSpace = TrackAreaVolumeSpace.Inherit,
+            string? volumeId = null)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentException("Portal id is required.", nameof(id));
@@ -48,6 +49,8 @@ namespace TopSpeed.Tracks.Topology
             VolumeOffsetMode = volumeOffsetMode;
             VolumeOffsetSpace = volumeOffsetSpace;
             VolumeMinMaxSpace = volumeMinMaxSpace;
+            var trimmedVolumeId = volumeId?.Trim();
+            VolumeId = string.IsNullOrWhiteSpace(trimmedVolumeId) ? null : trimmedVolumeId;
         }
 
         public string Id { get; }
@@ -67,5 +70,6 @@ namespace TopSpeed.Tracks.Topology
         public TrackAreaVolumeOffsetMode VolumeOffsetMode { get; }
         public TrackAreaVolumeSpace VolumeOffsetSpace { get; }
         public TrackAreaVolumeSpace VolumeMinMaxSpace { get; }
+        public string? VolumeId { get; }
     }
 }

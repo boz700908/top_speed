@@ -215,6 +215,12 @@ namespace TopSpeed.Tracks.Markers
             var markerPos = new Vector3(marker.X, marker.Y, marker.Z);
             distanceMeters = Vector3.Distance(position, markerPos);
 
+            if (!string.IsNullOrWhiteSpace(marker.VolumeId) &&
+                !_areaManager.ContainsVolume(marker.VolumeId!, position))
+            {
+                return false;
+            }
+
             if (!IsWithinVolume(marker, position.Y))
                 return false;
 

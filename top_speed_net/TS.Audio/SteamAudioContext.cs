@@ -269,7 +269,7 @@ namespace TS.Audio
                 SceneType = IPL.SceneType.Default,
                 ReflectionType = ReflectionType,
                 MaxNumOcclusionSamples = 32,
-                MaxNumRays = 4096,
+                MaxNumRays = 2048,
                 NumDiffuseSamples = 64,
                 MaxDuration = ReflectionDurationSeconds,
                 MaxOrder = ReflectionOrder,
@@ -424,7 +424,7 @@ namespace TS.Audio
                     Up = listener.Up,
                     Ahead = listener.Ahead
                 },
-                NumRays = 4096,
+                NumRays = 2048,
                 NumBounces = 2,
                 Duration = ReflectionDurationSeconds,
                 Order = ReflectionOrder,
@@ -541,12 +541,11 @@ namespace TS.Audio
             var roomTimeMid = timeMidRoom;
             var roomTimeHigh = timeMidRoom * hfRatio;
 
-            var roomEqHigh = Clamp01(Volatile.Read(ref spatial.RoomEarlyReflectionsGain));
-            var roomEqLow = Clamp01(Volatile.Read(ref spatial.RoomLateReverbGain));
-            var roomEqMid = Clamp01((roomEqLow + roomEqHigh) * 0.5f);
-            var diffusion = Clamp01(Volatile.Read(ref spatial.RoomDiffusion));
-            roomEqLow = Lerp(roomEqLow, roomEqMid, diffusion);
-            roomEqHigh = Lerp(roomEqHigh, roomEqMid, diffusion);
+            // Early/late gains are now applied in the spatializer as separate convolution/parametric mix gains.
+            // Keep EQ neutral here so room tone shaping comes from decay-time parameters.
+            var roomEqLow = 1f;
+            var roomEqMid = 1f;
+            var roomEqHigh = 1f;
             var roomDelay = 0;
             handle.ApplyReflectionSimulation(roomTimeLow, roomTimeMid, roomTimeHigh, roomEqLow, roomEqMid, roomEqHigh, roomDelay);
         }

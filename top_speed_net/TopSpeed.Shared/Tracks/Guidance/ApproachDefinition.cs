@@ -27,7 +27,8 @@ namespace TopSpeed.Tracks.Guidance
             TrackAreaVolumeMode volumeMode = TrackAreaVolumeMode.LocalBand,
             TrackAreaVolumeOffsetMode volumeOffsetMode = TrackAreaVolumeOffsetMode.Bottom,
             TrackAreaVolumeSpace volumeOffsetSpace = TrackAreaVolumeSpace.Inherit,
-            TrackAreaVolumeSpace volumeMinMaxSpace = TrackAreaVolumeSpace.Inherit)
+            TrackAreaVolumeSpace volumeMinMaxSpace = TrackAreaVolumeSpace.Inherit,
+            string? volumeId = null)
         {
             if (string.IsNullOrWhiteSpace(sectorId))
                 throw new ArgumentException("Sector id is required.", nameof(sectorId));
@@ -53,6 +54,8 @@ namespace TopSpeed.Tracks.Guidance
             VolumeOffsetMode = volumeOffsetMode;
             VolumeOffsetSpace = volumeOffsetSpace;
             VolumeMinMaxSpace = volumeMinMaxSpace;
+            var trimmedVolumeId = volumeId?.Trim();
+            VolumeId = string.IsNullOrWhiteSpace(trimmedVolumeId) ? null : trimmedVolumeId;
         }
 
         public string SectorId { get; }
@@ -73,6 +76,7 @@ namespace TopSpeed.Tracks.Guidance
         public TrackAreaVolumeOffsetMode VolumeOffsetMode { get; }
         public TrackAreaVolumeSpace VolumeOffsetSpace { get; }
         public TrackAreaVolumeSpace VolumeMinMaxSpace { get; }
+        public string? VolumeId { get; }
 
         private static IReadOnlyDictionary<string, string> NormalizeMetadata(IReadOnlyDictionary<string, string>? metadata)
         {

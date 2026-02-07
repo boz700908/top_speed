@@ -189,6 +189,7 @@ namespace TopSpeed.Tracks.Guidance
             var volumeOffsetMode = GetVolumeOffsetMode(metadata);
             var volumeOffsetSpace = GetVolumeSpace(metadata, "volume_offset_space", "offset_space");
             var volumeMinMaxSpace = GetVolumeSpace(metadata, "volume_minmax_space", "minmax_space", "bounds_space", "volume_bounds_space");
+            var volumeId = GetString(metadata, "volume", "volume_id");
 
             var portals = _portalManager.GetPortalsForSector(sector.Id);
             if (string.IsNullOrWhiteSpace(entryPortalId))
@@ -223,7 +224,8 @@ namespace TopSpeed.Tracks.Guidance
                 volumeMode,
                 volumeOffsetMode,
                 volumeOffsetSpace,
-                volumeMinMaxSpace);
+                volumeMinMaxSpace,
+                volumeId);
         }
 
         private static bool HasGuidanceMetadata(TrackSectorDefinition sector)

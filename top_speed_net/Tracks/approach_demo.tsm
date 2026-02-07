@@ -67,19 +67,19 @@ points3d=40 0 0, 80 0 0, 80 0 30, 40 0 30
 
 [geometry: outer_grass_south]
 type=polygon
-points3d=-50 0 -50, 300 0 -50, 300 0 50, -50 0 50
+points3d=-50 0 -50, 300 0 -50, 300 0 -1, -50 0 -1
 
 [geometry: outer_grass_north]
 type=polygon
-points3d=-50 0 200, 300 0 200, 300 0 300, -50 0 300
+points3d=-50 0 251, 300 0 251, 300 0 300, -50 0 300
 
 [geometry: outer_grass_west]
 type=polygon
-points3d=-50 0 50, 50 0 50, 50 0 200, -50 0 200
+points3d=-50 0 -50, -1 0 -50, -1 0 300, -50 0 300
 
 [geometry: outer_grass_east]
 type=polygon
-points3d=200 0 50, 300 0 50, 300 0 200, 200 0 200
+points3d=251 0 -50, 300 0 -50, 300 0 300, 251 0 300
 
 # Rooms
 [room: demo_room]

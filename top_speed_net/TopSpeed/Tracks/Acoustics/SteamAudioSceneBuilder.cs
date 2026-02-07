@@ -9,6 +9,7 @@ using TopSpeed.Tracks.Areas;
 using TopSpeed.Tracks.Map;
 using TopSpeed.Tracks.Materials;
 using TopSpeed.Tracks.Geometry;
+using TopSpeed.Tracks.Surfaces;
 using TopSpeed.Tracks.Walls;
 using TS.Audio;
 
@@ -37,12 +38,40 @@ namespace TopSpeed.Tracks.Acoustics
             var vertices = new List<IPL.Vector3>();
             var triangles = new List<IPL.Triangle>();
             var materialIndices = new List<int>();
+            var surfaceSystem = map.BuildSurfaceSystem();
+            var surfacesById = BuildSurfaceLookup(surfaceSystem.Surfaces);
+            var addedSurfaceIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var addedMeshGeometryIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var area in map.Areas)
             {
                 if (area == null || IsOverlayArea(area))
                     continue;
-                if (!geometriesById.TryGetValue(area.GeometryId, out var geometry))
+
+                geometriesById.TryGetValue(area.GeometryId, out var geometry);
+
+                // For mesh-authored areas, preserve the full authored mesh in acoustics.
+                if (geometry != null && geometry.Type == GeometryType.Mesh)
+                {
+                    if (addedMeshGeometryIds.Add(geometry.Id))
+                    {
+                        var meshMaterialIndex = materialLookup.GetIndex(area.MaterialId);
+                        AddMeshGeometry(geometry, meshMaterialIndex, vertices, triangles, materialIndices);
+                    }
+                    continue;
+                }
+
+                if (TryResolveAreaSurface(area, surfacesById, out var surfaceId, out var surfaceMesh))
+                {
+                    if (addedSurfaceIds.Add(surfaceId))
+                    {
+                        var surfaceMaterialIndex = materialLookup.GetIndex(surfaceMesh.MaterialId ?? area.MaterialId);
+                        AddSurfaceMeshGeometry(surfaceMesh, surfaceMaterialIndex, vertices, triangles, materialIndices);
+                    }
+                    continue;
+                }
+
+                if (geometry == null)
                     continue;
                 var materialIndex = materialLookup.GetIndex(area.MaterialId);
                 AddAreaGeometry(geometry, area, materialIndex, vertices, triangles, materialIndices);
@@ -338,6 +367,54 @@ namespace TopSpeed.Tracks.Acoustics
             }
         }
 
+        private static Dictionary<string, TrackSurfaceMesh> BuildSurfaceLookup(IEnumerable<TrackSurfaceMesh> surfaces)
+        {
+            var lookup = new Dictionary<string, TrackSurfaceMesh>(StringComparer.OrdinalIgnoreCase);
+            if (surfaces == null)
+                return lookup;
+
+            foreach (var surface in surfaces)
+            {
+                if (surface == null || string.IsNullOrWhiteSpace(surface.Id))
+                    continue;
+                if (!lookup.ContainsKey(surface.Id))
+                    lookup[surface.Id] = surface;
+            }
+
+            return lookup;
+        }
+
+        private static bool TryResolveAreaSurface(
+            TrackAreaDefinition area,
+            IReadOnlyDictionary<string, TrackSurfaceMesh> surfacesById,
+            out string surfaceId,
+            out TrackSurfaceMesh surface)
+        {
+            surfaceId = string.Empty;
+            surface = null!;
+            if (area == null || surfacesById == null || surfacesById.Count == 0)
+                return false;
+
+            if (!string.IsNullOrWhiteSpace(area.SurfaceId))
+            {
+                var explicitSurfaceId = area.SurfaceId!.Trim();
+                if (surfacesById.TryGetValue(explicitSurfaceId, out surface!))
+                {
+                    surfaceId = explicitSurfaceId;
+                    return true;
+                }
+            }
+
+            var implicitSurfaceId = $"auto_mesh_{area.Id}";
+            if (surfacesById.TryGetValue(implicitSurfaceId, out surface!))
+            {
+                surfaceId = implicitSurfaceId;
+                return true;
+            }
+
+            return false;
+        }
+
         private static void AddAreaGeometry(
             GeometryDefinition geometry,
             TrackAreaDefinition area,
@@ -368,6 +445,31 @@ namespace TopSpeed.Tracks.Acoustics
             AddPolygonSurface(points, elevation, materialIndex, vertices, triangles, materialIndices, flipWinding: false);
             if (ceiling.HasValue)
                 AddPolygonSurface(points, ceiling.Value, materialIndex, vertices, triangles, materialIndices, flipWinding: true);
+        }
+
+        private static void AddSurfaceMeshGeometry(
+            TrackSurfaceMesh surface,
+            int materialIndex,
+            List<IPL.Vector3> vertices,
+            List<IPL.Triangle> triangles,
+            List<int> materialIndices)
+        {
+            if (surface == null || surface.Triangles == null || surface.Triangles.Count == 0)
+                return;
+
+            for (var i = 0; i < surface.Triangles.Count; i++)
+            {
+                var tri = surface.Triangles[i];
+                AddTriangle(
+                    new IPL.Vector3 { X = tri.A.X, Y = tri.A.Y, Z = tri.A.Z },
+                    new IPL.Vector3 { X = tri.B.X, Y = tri.B.Y, Z = tri.B.Z },
+                    new IPL.Vector3 { X = tri.C.X, Y = tri.C.Y, Z = tri.C.Z },
+                    materialIndex,
+                    doubleSided: true,
+                    vertices,
+                    triangles,
+                    materialIndices);
+            }
         }
 
         private static void AddWallGeometry(
@@ -437,6 +539,7 @@ namespace TopSpeed.Tracks.Acoustics
                         new IPL.Vector3 { X = b.X, Y = b.Y, Z = b.Z },
                         new IPL.Vector3 { X = c.X, Y = c.Y, Z = c.Z },
                         materialIndex,
+                        doubleSided: true,
                         vertices,
                         triangles,
                         materialIndices);
@@ -462,6 +565,7 @@ namespace TopSpeed.Tracks.Acoustics
                     new IPL.Vector3 { X = b.X, Y = b.Y, Z = b.Z },
                     new IPL.Vector3 { X = c.X, Y = c.Y, Z = c.Z },
                     materialIndex,
+                    doubleSided: true,
                     vertices,
                     triangles,
                     materialIndices);
@@ -759,11 +863,24 @@ namespace TopSpeed.Tracks.Acoustics
             List<IPL.Triangle> triangles,
             List<int> materialIndices)
         {
+            AddTriangle(a, b, c, materialIndex, false, vertices, triangles, materialIndices);
+        }
+
+        private static void AddTriangle(
+            IPL.Vector3 a,
+            IPL.Vector3 b,
+            IPL.Vector3 c,
+            int materialIndex,
+            bool doubleSided,
+            List<IPL.Vector3> vertices,
+            List<IPL.Triangle> triangles,
+            List<int> materialIndices)
+        {
             var start = vertices.Count;
             vertices.Add(a);
             vertices.Add(b);
             vertices.Add(c);
-            AddTriangle(start, start + 1, start + 2, materialIndex, vertices, triangles, materialIndices);
+            AddTriangle(start, start + 1, start + 2, materialIndex, doubleSided, vertices, triangles, materialIndices);
         }
 
         private static unsafe void AddTriangle(
@@ -775,11 +892,34 @@ namespace TopSpeed.Tracks.Acoustics
             List<IPL.Triangle> triangles,
             List<int> materialIndices)
         {
+            AddTriangle(indexA, indexB, indexC, materialIndex, false, vertices, triangles, materialIndices);
+        }
+
+        private static unsafe void AddTriangle(
+            int indexA,
+            int indexB,
+            int indexC,
+            int materialIndex,
+            bool doubleSided,
+            List<IPL.Vector3> vertices,
+            List<IPL.Triangle> triangles,
+            List<int> materialIndices)
+        {
             var tri = new IPL.Triangle();
             tri.Indices[0] = indexA;
             tri.Indices[1] = indexB;
             tri.Indices[2] = indexC;
             triangles.Add(tri);
+            materialIndices.Add(materialIndex);
+
+            if (!doubleSided)
+                return;
+
+            var reverse = new IPL.Triangle();
+            reverse.Indices[0] = indexC;
+            reverse.Indices[1] = indexB;
+            reverse.Indices[2] = indexA;
+            triangles.Add(reverse);
             materialIndices.Add(materialIndex);
         }
 

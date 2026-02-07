@@ -891,7 +891,7 @@ namespace TopSpeed.Tracks.Map
                 return;
             if (!_portalManager.TryGetPortal(portalId!, out var portal))
                 return;
-            if (!IsWithinVolume(approach, portal, position.Y))
+            if (!IsWithinVolume(approach, portal, position))
                 return;
 
             var portalPos = new Vector3(portal.X, portal.Y, portal.Z);
@@ -1178,15 +1178,31 @@ namespace TopSpeed.Tracks.Map
             return false;
         }
 
-        private static bool IsWithinVolume(TrackApproachDefinition approach, PortalDefinition portal, float y)
+        private bool IsWithinVolume(TrackApproachDefinition? approach, PortalDefinition? portal, Vector3 position)
         {
+            if (approach != null &&
+                !string.IsNullOrWhiteSpace(approach.VolumeId) &&
+                !_areaManager.ContainsVolume(approach.VolumeId!, position))
+            {
+                return false;
+            }
+
+            if (portal != null &&
+                !string.IsNullOrWhiteSpace(portal.VolumeId) &&
+                !_areaManager.ContainsVolume(portal.VolumeId!, position))
+            {
+                return false;
+            }
+
+            var y = position.Y;
+            var anchorY = portal?.Y ?? 0f;
             if (approach != null && (approach.VolumeThicknessMeters.HasValue ||
                                      approach.VolumeOffsetMeters.HasValue ||
                                      approach.VolumeMinY.HasValue ||
                                      approach.VolumeMaxY.HasValue))
             {
                 if (!VolumeBounds.TryResolve(
-                        portal.Y,
+                        anchorY,
                         approach.VolumeMode,
                         approach.VolumeOffsetMode,
                         approach.VolumeOffsetSpace,
@@ -1488,7 +1504,12 @@ namespace TopSpeed.Tracks.Map
             if (!_hasSurfaces)
                 return false;
 
-            if (!_surfaceSystem.TrySample(position, out var hit))
+            var options = new TrackSurfaceQueryOptions
+            {
+                PreferClosestHeightToReference = true,
+                ReferenceHeightMeters = position.Y
+            };
+            if (!_surfaceSystem.TrySample(position, out var hit, options))
                 return false;
 
             var normal = hit.Normal;
@@ -1509,7 +1530,12 @@ namespace TopSpeed.Tracks.Map
             if (!_hasSurfaces)
                 return false;
 
-            if (!_surfaceSystem.TrySample(position, out var sample))
+            var options = new TrackSurfaceQueryOptions
+            {
+                PreferClosestHeightToReference = true,
+                ReferenceHeightMeters = position.Y
+            };
+            if (!_surfaceSystem.TrySample(position, out var sample, options))
                 return false;
 
             var normal = sample.Normal;

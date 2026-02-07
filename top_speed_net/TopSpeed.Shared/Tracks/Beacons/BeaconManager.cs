@@ -234,6 +234,12 @@ namespace TopSpeed.Tracks.Beacons
             var beaconPos = new Vector3(beacon.X, beacon.Y, beacon.Z);
             distanceMeters = Vector3.Distance(position, beaconPos);
 
+            if (!string.IsNullOrWhiteSpace(beacon.VolumeId) &&
+                !_areaManager.ContainsVolume(beacon.VolumeId!, position))
+            {
+                return false;
+            }
+
             if (!IsWithinVolume(beacon, position.Y))
                 return false;
 

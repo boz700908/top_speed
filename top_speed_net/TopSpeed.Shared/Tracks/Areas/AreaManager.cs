@@ -158,6 +158,13 @@ namespace TopSpeed.Tracks.Areas
             return Contains(geometry, position, width, false);
         }
 
+        public bool ContainsVolume(string volumeId, Vector3 position)
+        {
+            if (string.IsNullOrWhiteSpace(volumeId) || _volumeManager == null)
+                return false;
+            return _volumeManager.Contains(volumeId.Trim(), position);
+        }
+
         internal bool TryGetMeshContainment(string geometryId, out MeshContainment containment)
         {
             containment = null!;

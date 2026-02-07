@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using TopSpeed.Tracks.Areas;
 using TopSpeed.Tracks.Map;
 using TopSpeed.Tracks.Geometry;
 using TopSpeed.Tracks.Topology;
@@ -54,6 +55,7 @@ namespace TopSpeed.Tracks.Guidance
 
     internal sealed class TrackApproachBeacon
     {
+        private readonly TrackAreaManager _areaManager;
         private readonly TrackPortalManager _portalManager;
         private readonly TrackApproachManager _approachManager;
         private readonly Dictionary<string, GeometryDefinition> _geometriesById;
@@ -64,6 +66,7 @@ namespace TopSpeed.Tracks.Guidance
             if (map == null)
                 throw new ArgumentNullException(nameof(map));
 
+            _areaManager = map.BuildAreaManager();
             _portalManager = map.BuildPortalManager();
             _approachManager = new TrackApproachManager(map.Sectors, map.Approaches, _portalManager);
             _geometriesById = new Dictionary<string, GeometryDefinition>(StringComparer.OrdinalIgnoreCase);
@@ -147,7 +150,7 @@ namespace TopSpeed.Tracks.Guidance
                 return false;
             if (!_portalManager.TryGetPortal(portalId!, out var portal))
                 return false;
-            if (!IsWithinVolume(approach, portal, position.Y))
+            if (!IsWithinVolume(approach, portal, position))
                 return false;
 
             var portalPos = new Vector3(portal.X, portal.Y, portal.Z);
@@ -399,13 +402,17 @@ namespace TopSpeed.Tracks.Guidance
         {
             if (points == null || points.Count == 0)
                 return float.MaxValue;
+            var position2D = new Vector2(position.X, position.Z);
             if (points.Count == 1)
-                return Vector3.Distance(points[0], position);
+                return Vector2.Distance(new Vector2(points[0].X, points[0].Z), position2D);
 
             var best = float.MaxValue;
             for (var i = 0; i < points.Count - 1; i++)
             {
-                var distance = DistanceToSegment(points[i], points[i + 1], position);
+                var distance = DistanceToSegment2D(
+                    new Vector2(points[i].X, points[i].Z),
+                    new Vector2(points[i + 1].X, points[i + 1].Z),
+                    position2D);
                 if (distance < best)
                     best = distance;
             }
@@ -420,18 +427,14 @@ namespace TopSpeed.Tracks.Guidance
             var points2D = ProjectToXZ(points);
             var position2D = new Vector2(position.X, position.Z);
             if (IsPointInPolygon(points2D, position2D))
-            {
-                if (TryGetPolygonPlane(points, out var planePoint, out var planeNormal))
-                    return Math.Abs(Vector3.Dot(position - planePoint, planeNormal));
-                return Math.Abs(position.Y - ResolveAverageY(points));
-            }
+                return 0f;
 
             var best = float.MaxValue;
-            for (var i = 0; i < points.Count; i++)
+            for (var i = 0; i < points2D.Count; i++)
             {
-                var a = points[i];
-                var b = points[(i + 1) % points.Count];
-                var distance = DistanceToSegment(a, b, position);
+                var a = points2D[i];
+                var b = points2D[(i + 1) % points2D.Count];
+                var distance = DistanceToSegment2D(a, b, position2D);
                 if (distance < best)
                     best = distance;
             }
@@ -467,20 +470,20 @@ namespace TopSpeed.Tracks.Guidance
             return inside;
         }
 
-        private static float DistanceToSegment(Vector3 a, Vector3 b, Vector3 position)
+        private static float DistanceToSegment2D(Vector2 a, Vector2 b, Vector2 position)
         {
             var ab = b - a;
             var ap = position - a;
-            var abLenSq = Vector3.Dot(ab, ab);
+            var abLenSq = Vector2.Dot(ab, ab);
             if (abLenSq <= float.Epsilon)
-                return Vector3.Distance(a, position);
-            var t = Vector3.Dot(ap, ab) / abLenSq;
+                return Vector2.Distance(a, position);
+            var t = Vector2.Dot(ap, ab) / abLenSq;
             if (t <= 0f)
-                return Vector3.Distance(a, position);
+                return Vector2.Distance(a, position);
             if (t >= 1f)
-                return Vector3.Distance(b, position);
+                return Vector2.Distance(b, position);
             var closest = a + (ab * t);
-            return Vector3.Distance(closest, position);
+            return Vector2.Distance(closest, position);
         }
 
         private static bool TryGetFloat(
@@ -735,12 +738,28 @@ namespace TopSpeed.Tracks.Guidance
             return position - (planeNormal * distance);
         }
 
-        private static bool IsWithinVolume(TrackApproachDefinition approach, PortalDefinition portal, float y)
+        private bool IsWithinVolume(TrackApproachDefinition? approach, PortalDefinition? portal, Vector3 position)
         {
-            if (HasVolume(approach))
+            if (approach != null &&
+                !string.IsNullOrWhiteSpace(approach.VolumeId) &&
+                !_areaManager.ContainsVolume(approach.VolumeId!, position))
+            {
+                return false;
+            }
+
+            if (portal != null &&
+                !string.IsNullOrWhiteSpace(portal.VolumeId) &&
+                !_areaManager.ContainsVolume(portal.VolumeId!, position))
+            {
+                return false;
+            }
+
+            var y = position.Y;
+            var anchorY = portal?.Y ?? 0f;
+            if (approach != null && HasVolume(approach))
             {
                 if (!VolumeBounds.TryResolve(
-                        portal.Y,
+                        anchorY,
                         approach.VolumeMode,
                         approach.VolumeOffsetMode,
                         approach.VolumeOffsetSpace,
@@ -758,7 +777,7 @@ namespace TopSpeed.Tracks.Guidance
                 return y >= minY && y <= maxY;
             }
 
-            if (HasVolume(portal))
+            if (portal != null && HasVolume(portal))
             {
                 if (!VolumeBounds.TryResolve(
                         portal.Y,
@@ -782,7 +801,7 @@ namespace TopSpeed.Tracks.Guidance
             return true;
         }
 
-        private static bool HasVolume(TrackApproachDefinition approach)
+        private static bool HasVolume(TrackApproachDefinition? approach)
         {
             if (approach == null)
                 return false;
@@ -792,7 +811,7 @@ namespace TopSpeed.Tracks.Guidance
                    approach.VolumeMaxY.HasValue;
         }
 
-        private static bool HasVolume(PortalDefinition portal)
+        private static bool HasVolume(PortalDefinition? portal)
         {
             if (portal == null)
                 return false;
