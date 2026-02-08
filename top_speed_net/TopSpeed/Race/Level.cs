@@ -52,6 +52,12 @@ namespace TopSpeed.Race
         private const float KmToMiles = 0.621371f;
         private const float MetersPerMile = 1609.344f;
         private const float MetersToFeet = 3.28084f;
+        private const float WallPingRangeMeters = 30.0f;
+        private const float WallPingNearMeters = 5.0f;
+        private const float WallPingMinIntervalSeconds = 0.15f;
+        private const float WallPingMaxIntervalSeconds = 1.4f;
+        private const float WallPingMinVolume = 0.15f;
+        private const float WallPingMaxVolume = 0.6f;
 
         public enum RandomSound
         {
@@ -137,6 +143,8 @@ namespace TopSpeed.Race
         protected AudioSourceHandle? _soundUnpause;
         protected AudioSourceHandle? _soundTrackName;
         protected AudioSourceHandle? _soundDing;
+        protected AudioSourceHandle? _soundWallPing;
+        private float _wallPingCooldown;
 
         private bool _steerAlignActive;
         private float _steerAlignTargetHeading;
@@ -304,6 +312,25 @@ namespace TopSpeed.Race
             _lastTurnPortalId = null;
             _lastTurnAnnouncementTime = 0f;
             _lastTurnAnnouncementDistance = 0;
+            _wallPingCooldown = 0f;
+            InitializeWallPing();
+        }
+
+        private void InitializeWallPing()
+        {
+            DisposeSound(_soundWallPing);
+            _soundWallPing = null;
+
+            var path = GetLegacySoundPath("Wall.wav");
+            if (path == null)
+                return;
+
+            var sound = _audio.CreateSpatialSource(path, streamFromDisk: true, allowHrtf: true);
+            sound.SetUseReflections(false);
+            sound.SetUseBakedReflections(false);
+            sound.SetDopplerFactor(0f);
+            sound.SetVolume(WallPingMinVolume);
+            _soundWallPing = sound;
         }
 
         protected void FinalizeLevel()
@@ -1024,6 +1051,56 @@ namespace TopSpeed.Race
             _audio.UpdateListener(position, forward, up, velocity);
         }
 
+        protected void UpdateWallPing(float elapsed)
+        {
+            if (_soundWallPing == null)
+                return;
+
+            if (!_started || _finished || _car.State != CarState.Running)
+            {
+                ResetWallPing();
+                return;
+            }
+
+            var forward = _car.WorldForward;
+            if (forward.LengthSquared() < 0.0001f)
+                forward = MapMovement.HeadingVector(_car.HeadingDegrees);
+
+            var startOffset = Math.Max(0.5f, _car.LengthM * 0.5f);
+            var start = _car.WorldPosition + (forward * startOffset);
+            if (!_track.TryGetWallProximity(start, forward, WallPingRangeMeters, out _, out var distance, out var hitWorld))
+            {
+                ResetWallPing();
+                return;
+            }
+
+            var clampedDistance = Clamp(distance, WallPingNearMeters, WallPingRangeMeters);
+            var t = (clampedDistance - WallPingNearMeters) / Math.Max(0.001f, WallPingRangeMeters - WallPingNearMeters);
+            t = (float)Math.Pow(t, 0.6f);
+            var interval = WallPingMinIntervalSeconds + (WallPingMaxIntervalSeconds - WallPingMinIntervalSeconds) * t;
+            var volume = WallPingMaxVolume - (WallPingMaxVolume - WallPingMinVolume) * t;
+
+            _soundWallPing.SetPosition(AudioWorld.ToMeters(hitWorld));
+            _soundWallPing.SetVelocity(Vector3.Zero);
+            _soundWallPing.SetVolume(volume);
+
+            _wallPingCooldown -= elapsed;
+            if (_wallPingCooldown <= 0f)
+            {
+                _soundWallPing.Stop();
+                _soundWallPing.SeekToStart();
+                _soundWallPing.Play(loop: false);
+                _wallPingCooldown = interval;
+            }
+        }
+
+        private void ResetWallPing()
+        {
+            _wallPingCooldown = 0f;
+            if (_soundWallPing != null && _soundWallPing.IsPlaying)
+                _soundWallPing.Stop();
+        }
+
         protected float GetRelativeTrackDelta(float otherDistanceMeters)
         {
             return otherDistanceMeters - _car.DistanceMeters;
@@ -1293,6 +1370,7 @@ namespace TopSpeed.Race
             DisposeSound(_soundUnpause);
             DisposeSound(_soundTrackName);
             DisposeSound(_soundDing);
+            DisposeSound(_soundWallPing);
 
             for (var i = 0; i < _soundNumbers.Length; i++)
                 DisposeSound(_soundNumbers[i]);

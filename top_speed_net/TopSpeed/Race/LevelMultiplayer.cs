@@ -214,6 +214,7 @@ namespace TopSpeed.Race
             var road = _track.RoadAt(_car.MapState);
             _car.Evaluate(road);
             UpdateAudioListener(elapsed);
+            UpdateWallPing(elapsed);
             if (_track.NextRoad(_car.MapState, _car.Speed, (int)_settings.CurveAnnouncement, out var nextRoad))
                 CallNextRoad(nextRoad);
 

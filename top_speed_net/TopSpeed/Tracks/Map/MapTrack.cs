@@ -52,6 +52,7 @@ namespace TopSpeed.Tracks.Map
     internal sealed class MapTrack : IDisposable
     {
         private const float CallLengthMeters = 30.0f;
+        private const float WallProbeStepMeters = 0.5f;
 
         private readonly AudioManager _audio;
         private readonly TrackMap _map;
@@ -1491,6 +1492,48 @@ namespace TopSpeed.Tracks.Map
                 if (TryFindWallAt(pos, out wall))
                     return true;
                 pos += step;
+            }
+
+            return false;
+        }
+
+        public bool TryGetWallProximity(
+            Vector3 worldPosition,
+            Vector3 forward,
+            float maxDistanceMeters,
+            out TrackWallDefinition wall,
+            out float distanceMeters,
+            out Vector3 hitWorldPosition)
+        {
+            wall = null!;
+            distanceMeters = 0f;
+            hitWorldPosition = worldPosition;
+
+            if (_wallManager == null || !_wallManager.HasWalls)
+                return false;
+
+            var forward2 = new Vector2(forward.X, forward.Z);
+            if (forward2.LengthSquared() <= 0.000001f)
+                return false;
+
+            var maxDistance = Math.Max(0f, maxDistanceMeters);
+            if (maxDistance <= 0.001f)
+                return false;
+
+            forward2 = Vector2.Normalize(forward2);
+            var stepSize = Math.Max(0.1f, WallProbeStepMeters);
+            var steps = Math.Max(1, (int)Math.Ceiling(maxDistance / stepSize));
+            var step = maxDistance / steps;
+            var pos = new Vector2(worldPosition.X, worldPosition.Z);
+            for (var i = 0; i <= steps; i++)
+            {
+                if (TryFindWallAt(pos, out wall))
+                {
+                    distanceMeters = i * step;
+                    hitWorldPosition = new Vector3(pos.X, worldPosition.Y, pos.Y);
+                    return true;
+                }
+                pos += forward2 * step;
             }
 
             return false;
