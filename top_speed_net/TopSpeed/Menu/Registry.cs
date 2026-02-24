@@ -76,14 +76,11 @@ namespace TopSpeed.Menu
             _menu.Register(BuildMultiplayerServersMenu());
             _menu.Register(BuildMultiplayerSavedServersMenu());
             _menu.Register(BuildMultiplayerSavedServerFormMenu());
-            _menu.Register(BuildMultiplayerSavedServerDiscardMenu());
-            _menu.Register(BuildMultiplayerSavedServerDeleteMenu());
             _menu.Register(BuildMultiplayerLobbyMenu());
             _menu.Register(BuildMultiplayerRoomsMenu());
             _menu.Register(BuildMultiplayerCreateRoomMenu());
             _menu.Register(BuildMultiplayerRoomControlsMenu());
             _menu.Register(BuildMultiplayerRoomOptionsMenu());
-            _menu.Register(BuildMultiplayerLeaveRoomConfirmMenu());
             _menu.Register(BuildMultiplayerLoadoutVehicleMenu());
             _menu.Register(BuildMultiplayerLoadoutTransmissionMenu());
 

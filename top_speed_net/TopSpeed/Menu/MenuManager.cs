@@ -40,44 +40,44 @@ namespace TopSpeed.Menu
             screen.ReplaceItems(items, preserveSelection);
         }
 
-        public void ShowRoot(string id)
+        public void ShowRoot(string id, string? openingAnnouncement = null, int? preferredSelectionIndex = null)
         {
             foreach (var existingScreen in _stack)
                 existingScreen.CancelPendingHint();
             _stack.Clear();
             var screen = GetScreen(id);
-            screen.ResetSelection();
+            screen.ResetSelection(preferredSelectionIndex);
             screen.Initialize();
             _stack.Push(screen);
-            screen.QueueTitleAnnouncement();
+            screen.QueueTitleAnnouncement(openingAnnouncement);
         }
 
-        public void Push(string id)
+        public void Push(string id, string? openingAnnouncement = null, int? preferredSelectionIndex = null)
         {
             if (_stack.Count > 0)
                 _stack.Peek().CancelPendingHint();
             var screen = GetScreen(id);
-            screen.ResetSelection();
+            screen.ResetSelection(preferredSelectionIndex);
             screen.Initialize();
             _stack.Push(screen);
-            screen.QueueTitleAnnouncement();
+            screen.QueueTitleAnnouncement(openingAnnouncement);
         }
 
-        public void ReplaceTop(string id)
+        public void ReplaceTop(string id, string? openingAnnouncement = null, int? preferredSelectionIndex = null)
         {
             if (_stack.Count == 0)
             {
-                ShowRoot(id);
+                ShowRoot(id, openingAnnouncement, preferredSelectionIndex);
                 return;
             }
 
             _stack.Peek().CancelPendingHint();
             _stack.Pop();
             var screen = GetScreen(id);
-            screen.ResetSelection();
+            screen.ResetSelection(preferredSelectionIndex);
             screen.Initialize();
             _stack.Push(screen);
-            screen.QueueTitleAnnouncement();
+            screen.QueueTitleAnnouncement(openingAnnouncement);
         }
 
         public void PopToPrevious()

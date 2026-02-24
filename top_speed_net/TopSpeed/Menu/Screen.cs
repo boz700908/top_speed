@@ -51,6 +51,8 @@ namespace TopSpeed.Menu
         private string? _menuSoundPresetRoot;
         private bool _titlePending;
         private int _activeActionIndex = NoSelection;
+        private string? _openingAnnouncementOverride;
+        private int? _pendingFocusIndex;
         private readonly Dictionary<string, string> _menuSoundPathCache =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private string? _cachedMusicFile;
@@ -359,10 +361,11 @@ namespace TopSpeed.Menu
             return MenuUpdateResult.None;
         }
 
-        public void ResetSelection()
+        public void ResetSelection(int? preferredSelectionIndex = null)
         {
             _index = NoSelection;
             _activeActionIndex = NoSelection;
+            _pendingFocusIndex = preferredSelectionIndex;
             _justEntered = true;
             _autoFocusPending = true;
             CancelHint();
@@ -381,6 +384,7 @@ namespace TopSpeed.Menu
             {
                 _index = Math.Max(0, Math.Min(previousIndex, _items.Count - 1));
                 _activeActionIndex = NoSelection;
+                _pendingFocusIndex = null;
                 _justEntered = false;
                 _autoFocusPending = false;
                 return;
@@ -388,6 +392,7 @@ namespace TopSpeed.Menu
 
             _index = NoSelection;
             _activeActionIndex = NoSelection;
+            _pendingFocusIndex = null;
             _justEntered = true;
             _autoFocusPending = true;
         }
@@ -495,15 +500,18 @@ namespace TopSpeed.Menu
             _ignoreHeldInput = true;
             _activeActionIndex = NoSelection;
             CancelHint();
-            if (!string.IsNullOrWhiteSpace(Title))
-                _speech.Speak(Title, SpeechService.SpeakFlag.Interruptable);
+            var opening = _openingAnnouncementOverride ?? Title;
+            _openingAnnouncementOverride = null;
+            if (!string.IsNullOrWhiteSpace(opening))
+                _speech.Speak(opening, SpeechService.SpeakFlag.Interruptable);
 
             _index = NoSelection;
             _autoFocusPending = true;
         }
 
-        public void QueueTitleAnnouncement()
+        public void QueueTitleAnnouncement(string? openingAnnouncementOverride = null)
         {
+            _openingAnnouncementOverride = openingAnnouncementOverride;
             _titlePending = true;
         }
 
@@ -511,7 +519,11 @@ namespace TopSpeed.Menu
         {
             if (_items.Count == 0)
                 return;
-            _index = 0;
+            var targetIndex = 0;
+            if (_pendingFocusIndex.HasValue)
+                targetIndex = Math.Max(0, Math.Min(_items.Count - 1, _pendingFocusIndex.Value));
+            _pendingFocusIndex = null;
+            _index = targetIndex;
             _activeActionIndex = NoSelection;
             PlayNavigateSound();
             AnnounceCurrent(purge: false);

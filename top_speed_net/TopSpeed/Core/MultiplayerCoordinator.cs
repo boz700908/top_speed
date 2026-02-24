@@ -23,13 +23,10 @@ namespace TopSpeed.Core
         private const string MultiplayerRoomOptionsMenuId = "multiplayer_room_options";
         private const string MultiplayerRoomBrowserMenuId = "multiplayer_rooms";
         private const string MultiplayerCreateRoomMenuId = "multiplayer_create_room";
-        private const string MultiplayerLeaveRoomConfirmMenuId = "multiplayer_leave_room_confirm";
         private const string MultiplayerLoadoutVehicleMenuId = "multiplayer_loadout_vehicle";
         private const string MultiplayerLoadoutTransmissionMenuId = "multiplayer_loadout_transmission";
         private const string MultiplayerSavedServersMenuId = "multiplayer_saved_servers";
         private const string MultiplayerSavedServerFormMenuId = "multiplayer_saved_server_form";
-        private const string MultiplayerSavedServerDiscardMenuId = "multiplayer_saved_server_discard";
-        private const string MultiplayerSavedServerDeleteMenuId = "multiplayer_saved_server_delete";
         private static readonly string[] RoomTypeOptions = { "Race with bots", "One-on-one without bots" };
         private static readonly string[] PlayerCountOptions = BuildNumericOptions(1, ProtocolConstants.MaxRoomPlayersToStart, "players");
         private static readonly string[] LapCountOptions = BuildNumericOptions(1, 16, "laps");
@@ -38,6 +35,7 @@ namespace TopSpeed.Core
         private const int ConnectingPulseIntervalMs = 500;
 
         private readonly MenuManager _menu;
+        private readonly QuestionDialog _questions;
         private readonly AudioManager _audio;
         private readonly SpeechService _speech;
         private readonly RaceSettings _settings;
@@ -95,6 +93,7 @@ namespace TopSpeed.Core
             Action<int, bool> setLocalMultiplayerLoadout)
         {
             _menu = menu ?? throw new ArgumentNullException(nameof(menu));
+            _questions = new QuestionDialog(_menu);
             _audio = audio ?? throw new ArgumentNullException(nameof(audio));
             _speech = speech ?? throw new ArgumentNullException(nameof(speech));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -166,11 +165,8 @@ namespace TopSpeed.Core
             RebuildCreateRoomMenu();
             RebuildSavedServersMenu();
             RebuildSavedServerFormMenu();
-            RebuildSavedServerDiscardMenu();
-            RebuildSavedServerDeleteMenu();
             RebuildRoomControlsMenu();
             RebuildRoomOptionsMenu();
-            RebuildLeaveRoomConfirmMenu();
             RebuildLoadoutVehicleMenu();
             RebuildLoadoutTransmissionMenu();
             UpdateRoomBrowserMenu();
@@ -433,8 +429,11 @@ namespace TopSpeed.Core
                 return;
             }
 
-            RebuildSavedServerDiscardMenu();
-            _menu.Push(MultiplayerSavedServerDiscardMenuId);
+            _questions.Show(new Question(
+                "Save changes before closing?",
+                "Choose whether to save or discard your server changes.",
+                new QuestionButton("Save changes", SaveSavedServerDraft, QuestionButtonFlags.Default),
+                new QuestionButton("Discard changes", DiscardSavedServerDraftChanges)));
         }
 
         private bool IsSavedServerDraftDirty()
@@ -450,20 +449,12 @@ namespace TopSpeed.Core
                 || current.Port != original.Port;
         }
 
-        private void RebuildSavedServerDiscardMenu()
-        {
-            var items = new List<MenuItem>
-            {
-                new MenuItem("Save changes", MenuAction.None, onActivate: SaveSavedServerDraft),
-                new MenuItem("Discard changes", MenuAction.None, onActivate: DiscardSavedServerDraftChanges)
-            };
-            _menu.UpdateItems(MultiplayerSavedServerDiscardMenuId, items);
-        }
-
         private void DiscardSavedServerDraftChanges()
         {
-            _menu.PopToPrevious();
-            _menu.PopToPrevious();
+            if (_questions.IsQuestionMenu(_menu.CurrentId))
+                _menu.PopToPrevious();
+            if (string.Equals(_menu.CurrentId, MultiplayerSavedServerFormMenuId, StringComparison.Ordinal))
+                _menu.PopToPrevious();
         }
 
         private void SaveSavedServerDraft()
@@ -484,11 +475,9 @@ namespace TopSpeed.Core
             _saveSettings();
             RebuildSavedServersMenu();
 
-            if (string.Equals(_menu.CurrentId, MultiplayerSavedServerDiscardMenuId, StringComparison.Ordinal))
+            if (_questions.IsQuestionMenu(_menu.CurrentId))
                 _menu.PopToPrevious();
             if (string.Equals(_menu.CurrentId, MultiplayerSavedServerFormMenuId, StringComparison.Ordinal))
-                _menu.PopToPrevious();
-            else if (string.Equals(_menu.CurrentId, MultiplayerSavedServerDiscardMenuId, StringComparison.Ordinal))
                 _menu.PopToPrevious();
 
             _speech.Speak("Server saved.");
@@ -500,18 +489,11 @@ namespace TopSpeed.Core
                 return;
 
             _pendingDeleteServerIndex = index;
-            RebuildSavedServerDeleteMenu();
-            _menu.Push(MultiplayerSavedServerDeleteMenuId);
-        }
-
-        private void RebuildSavedServerDeleteMenu()
-        {
-            var items = new List<MenuItem>
-            {
-                new MenuItem("Yes, delete this server", MenuAction.None, onActivate: ConfirmDeleteSavedServer),
-                new MenuItem("No, keep this server", MenuAction.Back)
-            };
-            _menu.UpdateItems(MultiplayerSavedServerDeleteMenuId, items);
+            _questions.Show(new Question(
+                "Delete this server?",
+                "This will remove the saved server entry.",
+                new QuestionButton("Yes, delete this server", ConfirmDeleteSavedServer),
+                new QuestionButton("No, keep this server", () => _menu.PopToPrevious(), QuestionButtonFlags.Default)));
         }
 
         private void ConfirmDeleteSavedServer()
@@ -519,7 +501,8 @@ namespace TopSpeed.Core
             var servers = _settings.SavedServers ?? (_settings.SavedServers = new List<SavedServerEntry>());
             if (_pendingDeleteServerIndex < 0 || _pendingDeleteServerIndex >= servers.Count)
             {
-                _menu.PopToPrevious();
+                if (_questions.IsQuestionMenu(_menu.CurrentId))
+                    _menu.PopToPrevious();
                 return;
             }
 
@@ -527,7 +510,8 @@ namespace TopSpeed.Core
             _pendingDeleteServerIndex = -1;
             _saveSettings();
             RebuildSavedServersMenu();
-            _menu.PopToPrevious();
+            if (_questions.IsQuestionMenu(_menu.CurrentId))
+                _menu.PopToPrevious();
             _speech.Speak("Server deleted.");
         }
 
@@ -1170,16 +1154,6 @@ namespace TopSpeed.Core
             _menu.UpdateItems(MultiplayerRoomOptionsMenuId, items, preserveSelection);
         }
 
-        private void RebuildLeaveRoomConfirmMenu()
-        {
-            var items = new List<MenuItem>
-            {
-                new MenuItem("Yes, leave this game room", MenuAction.None, onActivate: ConfirmLeaveRoom),
-                new MenuItem("No, stay in this game room", MenuAction.Back)
-            };
-            _menu.UpdateItems(MultiplayerLeaveRoomConfirmMenuId, items);
-        }
-
         private void RebuildLoadoutVehicleMenu()
         {
             var items = new List<MenuItem>();
@@ -1329,10 +1303,14 @@ namespace TopSpeed.Core
                 return;
             }
 
-            if (string.Equals(_menu.CurrentId, MultiplayerLeaveRoomConfirmMenuId, StringComparison.Ordinal))
+            if (_questions.IsQuestionMenu(_menu.CurrentId))
                 return;
 
-            _menu.Push(MultiplayerLeaveRoomConfirmMenuId);
+            _questions.Show(new Question(
+                "Leave this game room?",
+                "Choose whether to leave this game room or stay.",
+                new QuestionButton("Yes, leave this game room", ConfirmLeaveRoom),
+                new QuestionButton("No, stay in this game room", () => _menu.PopToPrevious(), QuestionButtonFlags.Default)));
         }
 
         private void ConfirmLeaveRoom()
