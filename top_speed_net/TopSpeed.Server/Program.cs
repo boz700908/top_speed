@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using TopSpeed.Server.Config;
 using TopSpeed.Server.Logging;
@@ -19,6 +20,8 @@ namespace TopSpeed.Server
                 ShowHelp();
                 return 0;
             }
+
+            using var timerResolution = new WindowsTimerResolution(1);
 
             var loggingEnabled = args.Length > 0;
             var levels = loggingEnabled ? ParseLogLevels(args) : LogLevel.None;
@@ -69,6 +72,46 @@ namespace TopSpeed.Server
             if (loggingEnabled)
                 logger.Info("TopSpeed.Server stopped.");
             return 0;
+        }
+
+        private sealed class WindowsTimerResolution : IDisposable
+        {
+            private readonly uint _milliseconds;
+            private readonly bool _active;
+
+            public WindowsTimerResolution(uint milliseconds)
+            {
+                _milliseconds = milliseconds;
+                try
+                {
+                    _active = timeBeginPeriod(_milliseconds) == 0;
+                }
+                catch
+                {
+                    _active = false;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (!_active)
+                    return;
+
+                try
+                {
+                    timeEndPeriod(_milliseconds);
+                }
+                catch
+                {
+                    // Ignore timer API shutdown failures.
+                }
+            }
+
+            [DllImport("winmm.dll", EntryPoint = "timeBeginPeriod")]
+            private static extern uint timeBeginPeriod(uint uPeriod);
+
+            [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
+            private static extern uint timeEndPeriod(uint uPeriod);
         }
 
         private static void RunLoop(RaceServer server, CancellationToken token)

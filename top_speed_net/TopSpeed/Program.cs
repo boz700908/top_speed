@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using TopSpeed.Core;
 
@@ -10,6 +11,7 @@ namespace TopSpeed
         [STAThread]
         private static void Main()
         {
+            using var timerResolution = new WindowsTimerResolution(1);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -21,6 +23,46 @@ namespace TopSpeed
             {
                 app.Run();
             }
+        }
+
+        private sealed class WindowsTimerResolution : IDisposable
+        {
+            private readonly uint _milliseconds;
+            private readonly bool _active;
+
+            public WindowsTimerResolution(uint milliseconds)
+            {
+                _milliseconds = milliseconds;
+                try
+                {
+                    _active = timeBeginPeriod(_milliseconds) == 0;
+                }
+                catch
+                {
+                    _active = false;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (!_active)
+                    return;
+
+                try
+                {
+                    timeEndPeriod(_milliseconds);
+                }
+                catch
+                {
+                    // Ignore timer API shutdown failures.
+                }
+            }
+
+            [DllImport("winmm.dll", EntryPoint = "timeBeginPeriod")]
+            private static extern uint timeBeginPeriod(uint uPeriod);
+
+            [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
+            private static extern uint timeEndPeriod(uint uPeriod);
         }
 
         private static void HandleException(Exception exception)
