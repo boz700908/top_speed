@@ -735,6 +735,18 @@ namespace TopSpeed.Menu
             StartMusicFade(_musicCurrentVolume, 0f, durationMs, stopOnEnd: true);
         }
 
+        public void ApplyExternalMusicVolume(float volume)
+        {
+            _musicVolume = Math.Max(0f, Math.Min(1f, volume));
+            if (_music == null)
+                return;
+
+            if (_music.IsPlaying)
+                _music.SetVolume(_musicVolume);
+
+            _musicCurrentVolume = _music.IsPlaying ? _musicVolume : 0f;
+        }
+
         public void FadeInMusic(int durationMs)
         {
             if (!HasMusic)

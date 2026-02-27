@@ -127,6 +127,8 @@ namespace TopSpeed.Vehicles
         private AudioSourceHandle _soundMiniCrash;
         private AudioSourceHandle _soundBump;
         private AudioSourceHandle? _soundBackfire;
+        private int _lastOtherEngineVolumePercent = -1;
+        private int _lastOtherEventsVolumePercent = -1;
 
         private EngineModel _engine;
         private readonly BotPhysicsConfig _physicsConfig;
@@ -269,16 +271,17 @@ namespace TopSpeed.Vehicles
             _soundStart = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Start), "start");
             _soundHorn = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Horn), "horn", looped: true);
             _soundCrash = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Crash), "crash");
-            _soundBrake = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Brake), "brake", looped: true);
+            _soundBrake = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Brake), "brake", looped: true, allowHrtf: false);
             _soundEngine.SetDopplerFactor(1f);
             _soundHorn.SetDopplerFactor(0f);
             _soundBrake.SetDopplerFactor(0f);
             _soundMiniCrash = CreateRequiredSound(Path.Combine(_legacyRoot, "crashshort.wav"), "mini crash");
-            _soundBump = CreateRequiredSound(Path.Combine(_legacyRoot, "bump.wav"), "bump");
+            _soundBump = CreateRequiredSound(Path.Combine(_legacyRoot, "bump.wav"), "bump", allowHrtf: false);
             _soundCrash.SetDopplerFactor(0f);
             _soundMiniCrash.SetDopplerFactor(0f);
             _soundBump.SetDopplerFactor(0f);
             _soundBackfire = TryCreateSound(definition.GetSoundPath(VehicleAction.Backfire));
+            RefreshCategoryVolumes(force: true);
         }
 
         public ComputerState State => _state;
@@ -415,13 +418,14 @@ namespace TopSpeed.Vehicles
         {
             _soundBrake.Stop();
             _soundHorn.Stop();
-            _soundEngine.SetVolumePercent(80);
+            SetOtherEngineVolumePercent(_soundEngine, 80);
             if (_soundBackfire != null)
-                _soundBackfire.SetVolumePercent(80);
+                SetOtherEventVolumePercent(_soundBackfire, 80);
         }
 
         public void Run(float elapsed, float playerX, float playerY)
         {
+            RefreshCategoryVolumes();
             if (_positionY < 0f)
                 _positionY = 0f;
 
@@ -1179,7 +1183,37 @@ namespace TopSpeed.Vehicles
             sound.SetVelocity(velocity);
         }
 
-        private AudioSourceHandle CreateRequiredSound(string? path, string label, bool looped = false)
+        private void RefreshCategoryVolumes(bool force = false)
+        {
+            var enginePercent = _settings.AudioVolumes?.OtherVehicleEnginePercent ?? 80;
+            var eventsPercent = _settings.AudioVolumes?.OtherVehicleEventsPercent ?? 100;
+            if (!force && enginePercent == _lastOtherEngineVolumePercent && eventsPercent == _lastOtherEventsVolumePercent)
+                return;
+
+            _lastOtherEngineVolumePercent = enginePercent;
+            _lastOtherEventsVolumePercent = eventsPercent;
+
+            SetOtherEngineVolumePercent(_soundEngine, 80);
+            SetOtherEngineVolumePercent(_soundStart, 100);
+            SetOtherEventVolumePercent(_soundHorn, 100);
+            SetOtherEventVolumePercent(_soundCrash, 100);
+            SetOtherEventVolumePercent(_soundBrake, 100);
+            SetOtherEventVolumePercent(_soundMiniCrash, 100);
+            SetOtherEventVolumePercent(_soundBump, 100);
+            SetOtherEventVolumePercent(_soundBackfire, 100);
+        }
+
+        private void SetOtherEngineVolumePercent(AudioSourceHandle? sound, int percent)
+        {
+            sound.SetVolumePercent(_settings, AudioVolumeCategory.OtherVehicleEngine, percent);
+        }
+
+        private void SetOtherEventVolumePercent(AudioSourceHandle? sound, int percent)
+        {
+            sound.SetVolumePercent(_settings, AudioVolumeCategory.OtherVehicleEvents, percent);
+        }
+
+        private AudioSourceHandle CreateRequiredSound(string? path, string label, bool looped = false, bool allowHrtf = true)
         {
             if (string.IsNullOrWhiteSpace(path))
                 throw new InvalidOperationException($"Sound path not provided for {label}.");
@@ -1187,11 +1221,11 @@ namespace TopSpeed.Vehicles
             if (!File.Exists(resolved))
                 throw new FileNotFoundException("Sound file not found.", resolved);
             return looped
-                ? _audio.CreateLoopingSource(resolved, useHrtf: true)
-                : _audio.CreateSource(resolved, streamFromDisk: true, useHrtf: true);
+                ? _audio.CreateLoopingSpatialSource(resolved, allowHrtf: allowHrtf)
+                : _audio.CreateSpatialSource(resolved, streamFromDisk: true, allowHrtf: allowHrtf);
         }
 
-        private AudioSourceHandle? TryCreateSound(string? path, bool looped = false)
+        private AudioSourceHandle? TryCreateSound(string? path, bool looped = false, bool allowHrtf = true)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return null;
@@ -1199,8 +1233,8 @@ namespace TopSpeed.Vehicles
             if (!File.Exists(resolved))
                 return null;
             return looped
-                ? _audio.CreateLoopingSource(resolved, useHrtf: true)
-                : _audio.CreateSource(resolved, streamFromDisk: true, useHrtf: true);
+                ? _audio.CreateLoopingSpatialSource(resolved, allowHrtf: allowHrtf)
+                : _audio.CreateSpatialSource(resolved, streamFromDisk: true, allowHrtf: allowHrtf);
         }
 
         private sealed class BotEvent

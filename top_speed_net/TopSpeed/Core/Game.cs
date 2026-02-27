@@ -120,6 +120,9 @@ namespace TopSpeed.Core
             RegisterMultiplayerPacketHandlers();
             _menuRegistry.RegisterAll();
             _multiplayerCoordinator.ConfigureMenuCloseHandlers();
+            _settings.AudioVolumes ??= new AudioVolumeSettings();
+            _settings.SyncAudioCategoriesFromMusicVolume();
+            ApplyAudioSettings();
             _needsCalibration = _settings.ScreenReaderRateMs <= 0f;
         }
 
@@ -418,6 +421,7 @@ namespace TopSpeed.Core
             _menu.SetWrapNavigation(_settings.MenuWrapNavigation);
             _menu.SetMenuSoundPreset(_settings.MenuSoundPreset);
             _menu.SetMenuNavigatePanning(_settings.MenuNavigatePanning);
+            ApplyAudioSettings();
             SaveSettings();
             _speech.Speak("Defaults restored.");
         }
@@ -838,7 +842,17 @@ namespace TopSpeed.Core
         private void SaveMusicVolume(float volume)
         {
             _settings.MusicVolume = volume;
+            _settings.SyncAudioCategoriesFromMusicVolume();
+            ApplyAudioSettings();
             SaveSettings();
+        }
+
+        private void ApplyAudioSettings()
+        {
+            _settings.AudioVolumes ??= new AudioVolumeSettings();
+            _settings.SyncMusicVolumeFromAudioCategories();
+            _audio.SetMasterVolume(_settings.GetCategoryScalar(AudioVolumeCategory.Master));
+            _menu.SetMenuMusicVolume(_settings.MusicVolume);
         }
 
         void IMenuActions.SaveMusicVolume(float volume) => SaveMusicVolume(volume);
@@ -855,6 +869,7 @@ namespace TopSpeed.Core
         void IMenuActions.ToggleCurveAnnouncements() => ToggleCurveAnnouncements();
         void IMenuActions.ToggleSetting(Action update) => ToggleSetting(update);
         void IMenuActions.UpdateSetting(Action update) => UpdateSetting(update);
+        void IMenuActions.ApplyAudioSettings() => ApplyAudioSettings();
         void IMenuActions.BeginMapping(InputMappingMode mode, InputAction action) => _inputMapping.BeginMapping(mode, action);
         string IMenuActions.FormatMappingValue(InputAction action, InputMappingMode mode) => _inputMapping.FormatMappingValue(action, mode);
     }

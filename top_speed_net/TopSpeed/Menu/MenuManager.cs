@@ -308,6 +308,12 @@ namespace TopSpeed.Menu
                 screen.MenuNavigatePanning = enabled;
         }
 
+        public void SetMenuMusicVolume(float volume)
+        {
+            foreach (var screen in _screens.Values)
+                screen.ApplyExternalMusicVolume(volume);
+        }
+
         public MenuScreen CreateMenu(string id, IEnumerable<MenuItem> items, string? title = null, Func<string>? titleProvider = null)
         {
             var screen = new MenuScreen(id, items, _audio, _speech, title, titleProvider, _usageHintsEnabled)

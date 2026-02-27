@@ -177,6 +177,11 @@ namespace TopSpeed.Audio
             _system.Update();
         }
 
+        public void SetMasterVolume(float volume)
+        {
+            _output.SetMasterVolume(volume);
+        }
+
         public void StartUpdateThread(int intervalMs = 8)
         {
             if (_updateRunning)

@@ -1,0 +1,99 @@
+using System;
+
+namespace TopSpeed.Input
+{
+    internal enum AudioVolumeCategory
+    {
+        Master,
+        PlayerVehicleEngine,
+        PlayerVehicleEvents,
+        OtherVehicleEngine,
+        OtherVehicleEvents,
+        SurfaceLoops,
+        Music,
+        OnlineServerEvents
+    }
+
+    internal sealed class AudioVolumeSettings
+    {
+        public int MasterPercent { get; set; }
+        public int PlayerVehicleEnginePercent { get; set; }
+        public int PlayerVehicleEventsPercent { get; set; }
+        public int OtherVehicleEnginePercent { get; set; }
+        public int OtherVehicleEventsPercent { get; set; }
+        public int SurfaceLoopsPercent { get; set; }
+        public int MusicPercent { get; set; }
+        public int OnlineServerEventsPercent { get; set; }
+
+        public void RestoreDefaults(int defaultMusicPercent)
+        {
+            MasterPercent = 100;
+            PlayerVehicleEnginePercent = 100;
+            PlayerVehicleEventsPercent = 100;
+            OtherVehicleEnginePercent = 80;
+            OtherVehicleEventsPercent = 100;
+            SurfaceLoopsPercent = 70;
+            MusicPercent = ClampPercent(defaultMusicPercent);
+            OnlineServerEventsPercent = 100;
+        }
+
+        public void ClampAll()
+        {
+            MasterPercent = ClampPercent(MasterPercent);
+            PlayerVehicleEnginePercent = ClampPercent(PlayerVehicleEnginePercent);
+            PlayerVehicleEventsPercent = ClampPercent(PlayerVehicleEventsPercent);
+            OtherVehicleEnginePercent = ClampPercent(OtherVehicleEnginePercent);
+            OtherVehicleEventsPercent = ClampPercent(OtherVehicleEventsPercent);
+            SurfaceLoopsPercent = ClampPercent(SurfaceLoopsPercent);
+            MusicPercent = ClampPercent(MusicPercent);
+            OnlineServerEventsPercent = ClampPercent(OnlineServerEventsPercent);
+        }
+
+        public int GetPercent(AudioVolumeCategory category)
+        {
+            return category switch
+            {
+                AudioVolumeCategory.Master => MasterPercent,
+                AudioVolumeCategory.PlayerVehicleEngine => PlayerVehicleEnginePercent,
+                AudioVolumeCategory.PlayerVehicleEvents => PlayerVehicleEventsPercent,
+                AudioVolumeCategory.OtherVehicleEngine => OtherVehicleEnginePercent,
+                AudioVolumeCategory.OtherVehicleEvents => OtherVehicleEventsPercent,
+                AudioVolumeCategory.SurfaceLoops => SurfaceLoopsPercent,
+                AudioVolumeCategory.Music => MusicPercent,
+                AudioVolumeCategory.OnlineServerEvents => OnlineServerEventsPercent,
+                _ => 100
+            };
+        }
+
+        public static int ClampPercent(int percent)
+        {
+            if (percent < 0)
+                return 0;
+            if (percent > 100)
+                return 100;
+            return percent;
+        }
+
+        public static float PercentToScalar(int percent)
+        {
+            return ClampPercent(percent) / 100f;
+        }
+    }
+
+    internal static class AudioVolumeSettingsExtensions
+    {
+        public static float GetCategoryScalar(this RaceSettings settings, AudioVolumeCategory category)
+        {
+            if (settings == null)
+                return 1f;
+            return AudioVolumeSettings.PercentToScalar(settings.AudioVolumes.GetPercent(category));
+        }
+
+        public static float GetEffectiveScalar(this RaceSettings settings, AudioVolumeCategory category)
+        {
+            if (settings == null)
+                return 1f;
+            return settings.GetCategoryScalar(AudioVolumeCategory.Master) * settings.GetCategoryScalar(category);
+        }
+    }
+}

@@ -41,6 +41,8 @@ namespace TopSpeed.Core
             var serverAddress = settings.LastServerAddress;
             var screenReaderRate = settings.ScreenReaderRateMs;
             var menuSoundPreset = settings.MenuSoundPreset;
+            settings.AudioVolumes ??= new AudioVolumeSettings();
+            settings.SyncAudioCategoriesFromMusicVolume();
             var savedServers = new List<SavedServerEntry>();
             var values = new List<int>();
             foreach (var rawLine in lines)
@@ -81,6 +83,10 @@ namespace TopSpeed.Core
                         if (TryParseSavedServer(val, out var savedServer))
                             savedServers.Add(savedServer);
                     }
+                    else if (TryApplyAudioVolumeKey(settings, key, val))
+                    {
+                        // Handled by audio volume key parser.
+                    }
                     continue;
                 }
 
@@ -93,6 +99,9 @@ namespace TopSpeed.Core
             settings.ScreenReaderRateMs = screenReaderRate;
             settings.MenuSoundPreset = menuSoundPreset ?? settings.MenuSoundPreset;
             ApplyValues(settings, values);
+            settings.AudioVolumes ??= new AudioVolumeSettings();
+            settings.AudioVolumes.ClampAll();
+            settings.SyncMusicVolumeFromAudioCategories();
             settings.SavedServers = savedServers;
             return settings;
         }
@@ -118,6 +127,16 @@ namespace TopSpeed.Core
                         lines.Add($"saved_server={serialized}");
                 }
             }
+            settings.AudioVolumes ??= new AudioVolumeSettings();
+            settings.SyncAudioCategoriesFromMusicVolume();
+            lines.Add($"vol_master={settings.AudioVolumes.MasterPercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_player_engine={settings.AudioVolumes.PlayerVehicleEnginePercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_player_events={settings.AudioVolumes.PlayerVehicleEventsPercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_other_engine={settings.AudioVolumes.OtherVehicleEnginePercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_other_events={settings.AudioVolumes.OtherVehicleEventsPercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_surface_loops={settings.AudioVolumes.SurfaceLoopsPercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_music={settings.AudioVolumes.MusicPercent.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"vol_online_events={settings.AudioVolumes.OnlineServerEventsPercent.ToString(CultureInfo.InvariantCulture)}");
 
             AppendValue(lines, (int)settings.JoystickLeft);
             AppendValue(lines, (int)settings.JoystickRight);
@@ -316,6 +335,47 @@ namespace TopSpeed.Core
             if (TryNext(values, ref index, out value)) settings.MenuWrapNavigation = value != 0;
             if (TryNext(values, ref index, out value)) settings.MenuNavigatePanning = value != 0;
             if (TryNext(values, ref index, out value)) settings.AutoDetectAudioDeviceFormat = value != 0;
+            settings.SyncAudioCategoriesFromMusicVolume();
+        }
+
+        private static bool TryApplyAudioVolumeKey(RaceSettings settings, string key, string value)
+        {
+            if (settings == null || string.IsNullOrWhiteSpace(key))
+                return false;
+
+            if (!TryParsePercent(value, out var percent))
+                return false;
+
+            settings.AudioVolumes ??= new AudioVolumeSettings();
+            if (key.Equals("vol_master", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.MasterPercent = percent;
+            else if (key.Equals("vol_player_engine", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.PlayerVehicleEnginePercent = percent;
+            else if (key.Equals("vol_player_events", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.PlayerVehicleEventsPercent = percent;
+            else if (key.Equals("vol_other_engine", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.OtherVehicleEnginePercent = percent;
+            else if (key.Equals("vol_other_events", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.OtherVehicleEventsPercent = percent;
+            else if (key.Equals("vol_surface_loops", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.SurfaceLoopsPercent = percent;
+            else if (key.Equals("vol_music", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.MusicPercent = percent;
+            else if (key.Equals("vol_online_events", StringComparison.OrdinalIgnoreCase))
+                settings.AudioVolumes.OnlineServerEventsPercent = percent;
+            else
+                return false;
+
+            return true;
+        }
+
+        private static bool TryParsePercent(string value, out int percent)
+        {
+            percent = 0;
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+                return false;
+            percent = AudioVolumeSettings.ClampPercent(parsed);
+            return true;
         }
 
         private static int ClampPort(int value, int fallback)

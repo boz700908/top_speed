@@ -155,7 +155,7 @@ namespace TS.Audio
                 var active = new HashSet<AudioSourceHandle>();
                 foreach (var source in sources)
                 {
-                    if (source == null || !source.IsSpatialized || !source.UsesSteamAudio)
+                    if (source == null || !source.IsSpatialized || !source.UsesSteamAudio || !source.IsPlaying)
                         continue;
                     active.Add(source);
                 }

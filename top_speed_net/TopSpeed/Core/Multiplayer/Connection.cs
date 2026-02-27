@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TopSpeed.Audio;
 using TopSpeed.Common;
+using TopSpeed.Input;
 using TopSpeed.Menu;
 using TopSpeed.Network;
 using TopSpeed.Speech;
@@ -240,6 +241,7 @@ namespace TopSpeed.Core.Multiplayer
 
             try
             {
+                handle.SetVolumePercent(_settings, AudioVolumeCategory.OnlineServerEvents, 100);
                 handle.Restart(loop: false);
             }
             catch
@@ -260,6 +262,7 @@ namespace TopSpeed.Core.Multiplayer
             try
             {
                 cache = _audio.AcquireCachedSource(fullPath, streamFromDisk: false);
+                cache.SetVolumePercent(_settings, AudioVolumeCategory.OnlineServerEvents, 100);
                 return cache;
             }
             catch

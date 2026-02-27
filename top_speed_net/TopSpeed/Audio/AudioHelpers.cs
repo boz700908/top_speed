@@ -1,4 +1,5 @@
 using System;
+using TopSpeed.Input;
 using TS.Audio;
 
 namespace TopSpeed.Audio
@@ -9,6 +10,26 @@ namespace TopSpeed.Audio
         {
             var clamped = Math.Max(0, Math.Min(100, percent));
             handle.SetVolume(clamped / 100f);
+        }
+
+        public static void SetVolumePercent(this AudioSourceHandle? handle, RaceSettings settings, AudioVolumeCategory category, int percent)
+        {
+            if (handle == null)
+                return;
+
+            var clamped = Math.Max(0, Math.Min(100, percent));
+            var scale = settings.GetCategoryScalar(category);
+            handle.SetVolume((clamped / 100f) * scale);
+        }
+
+        public static void SetVolumeUnit(this AudioSourceHandle? handle, RaceSettings settings, AudioVolumeCategory category, float normalizedVolume)
+        {
+            if (handle == null)
+                return;
+
+            var clamped = Math.Max(0f, Math.Min(1f, normalizedVolume));
+            var scale = settings.GetCategoryScalar(category);
+            handle.SetVolume(clamped * scale);
         }
 
         public static void SetPanPercent(this AudioSourceHandle handle, int pan)

@@ -1,5 +1,6 @@
 using SharpDX.DirectInput;
 using TopSpeed.Common;
+using System;
 using System.Collections.Generic;
 
 namespace TopSpeed.Input
@@ -103,6 +104,7 @@ namespace TopSpeed.Input
         public UnitSystem Units { get; set; }
         public int ServerNumber { get; set; }
         public float MusicVolume { get; set; }
+        public AudioVolumeSettings AudioVolumes { get; set; } = new AudioVolumeSettings();
         public bool ThreeDSound { get; set; }
         public bool ReverseStereo { get; set; }
         public bool AutoDetectAudioDeviceFormat { get; set; }
@@ -177,6 +179,8 @@ namespace TopSpeed.Input
             Units = UnitSystem.Metric;
             ServerNumber = Algorithm.RandomInt(4999) + 1000;
             MusicVolume = 0.6f;
+            AudioVolumes = new AudioVolumeSettings();
+            AudioVolumes.RestoreDefaults((int)Math.Round(MusicVolume * 100f));
             ThreeDSound = true;
             ReverseStereo = false;
             AutoDetectAudioDeviceFormat = true;
@@ -184,6 +188,7 @@ namespace TopSpeed.Input
             RandomCustomVehicles = false;
             SingleRaceCustomVehicles = false;
             MusicVolume = 0.6f;
+            AudioVolumes.RestoreDefaults((int)Math.Round(MusicVolume * 100f));
             LastServerAddress = string.Empty;
             ServerPort = 0;
             ScreenReaderRateMs = 0f;
@@ -192,6 +197,20 @@ namespace TopSpeed.Input
             MenuSoundPreset = "1";
             MenuNavigatePanning = false;
             SavedServers = new List<SavedServerEntry>();
+        }
+
+        public void SyncMusicVolumeFromAudioCategories()
+        {
+            AudioVolumes ??= new AudioVolumeSettings();
+            AudioVolumes.ClampAll();
+            MusicVolume = AudioVolumeSettings.PercentToScalar(AudioVolumes.MusicPercent);
+        }
+
+        public void SyncAudioCategoriesFromMusicVolume()
+        {
+            AudioVolumes ??= new AudioVolumeSettings();
+            AudioVolumes.MusicPercent = AudioVolumeSettings.ClampPercent((int)Math.Round(Math.Max(0f, Math.Min(1f, MusicVolume)) * 100f));
+            AudioVolumes.ClampAll();
         }
     }
 

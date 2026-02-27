@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using MiniAudioEx.Core.AdvancedAPI;
 using MiniAudioEx.Native;
 
@@ -24,6 +25,9 @@ namespace TS.Audio
         private readonly SteamAudioContext? _steamAudio;
         private RoomAcoustics _roomAcoustics;
         private readonly object _sourceLock = new object();
+        private GCHandle _callbackHandle;
+        private float _masterVolume = 1f;
+        private float _limiterGain = 1f;
 
         public string Name => _config.Name;
         public int SampleRate => (int)_config.SampleRate;
@@ -133,7 +137,8 @@ namespace TS.Audio
 
             unsafe
             {
-                _device.Handle.Get()->pUserData = _engine.Handle.pointer;
+                _callbackHandle = GCHandle.Alloc(this);
+                _device.Handle.Get()->pUserData = GCHandle.ToIntPtr(_callbackHandle);
             }
 
             _listener = new MaEngineListener();
@@ -144,6 +149,12 @@ namespace TS.Audio
                 : null;
 
             _device.Start();
+        }
+
+        public void SetMasterVolume(float volume)
+        {
+            var clamped = Math.Max(0f, Math.Min(1f, volume));
+            Volatile.Write(ref _masterVolume, clamped);
         }
 
         public AudioSourceHandle CreateSource(string filePath, bool streamFromDisk = true, bool useHrtf = true)
@@ -304,6 +315,8 @@ namespace TS.Audio
             _device.Dispose();
             _resourceManager.Dispose();
             _context.Dispose();
+            if (_callbackHandle.IsAllocated)
+                _callbackHandle.Free();
         }
 
         private uint ResolveAutoChannels()
@@ -431,8 +444,63 @@ namespace TS.Audio
                 if (device->pUserData == IntPtr.Zero)
                     return;
 
-                var enginePtr = new ma_engine_ptr(device->pUserData);
-                MiniAudioNative.ma_engine_read_pcm_frames(enginePtr, pOutput, frameCount);
+                var handle = GCHandle.FromIntPtr(device->pUserData);
+                if (!(handle.Target is AudioOutput output))
+                    return;
+
+                MiniAudioNative.ma_engine_read_pcm_frames(output._engine.Handle, pOutput, frameCount);
+                ApplyMasterLimiter(output, pOutput, frameCount, output._config.Channels);
+            }
+        }
+
+        private static unsafe void ApplyMasterLimiter(AudioOutput output, IntPtr pOutput, uint frameCount, uint channels)
+        {
+            if (pOutput == IntPtr.Zero || frameCount == 0)
+                return;
+
+            var ch = channels > 0 ? channels : output._config.Channels;
+            if (ch == 0)
+                ch = 2;
+
+            var sampleCountLong = (long)frameCount * ch;
+            if (sampleCountLong <= 0 || sampleCountLong > int.MaxValue)
+                return;
+
+            var samples = (float*)pOutput;
+            var sampleCount = (int)sampleCountLong;
+            var master = Volatile.Read(ref output._masterVolume);
+            if (master < 0f) master = 0f;
+            if (master > 1f) master = 1f;
+
+            var peak = 0f;
+            for (var i = 0; i < sampleCount; i++)
+            {
+                var abs = Math.Abs(samples[i] * master);
+                if (abs > peak)
+                    peak = abs;
+            }
+
+            var targetLimiterGain = peak > 1f ? 1f / peak : 1f;
+            var limiterGain = output._limiterGain;
+            if (targetLimiterGain < limiterGain)
+            {
+                limiterGain = targetLimiterGain;
+            }
+            else
+            {
+                limiterGain += (targetLimiterGain - limiterGain) * 0.05f;
+                if (limiterGain > 1f)
+                    limiterGain = 1f;
+            }
+            output._limiterGain = limiterGain;
+
+            var gain = master * limiterGain;
+            for (var i = 0; i < sampleCount; i++)
+            {
+                var value = samples[i] * gain;
+                if (value > 1f) value = 1f;
+                else if (value < -1f) value = -1f;
+                samples[i] = value;
             }
         }
     }
