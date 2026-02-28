@@ -1,0 +1,11 @@
+using TopSpeed.Input;
+
+namespace TopSpeed.Vehicles.Events
+{
+    internal sealed class EventEntry
+    {
+        public float Time { get; set; }
+        public EventType Type { get; set; }
+        public VibrationEffectType? Effect { get; set; }
+    }
+}

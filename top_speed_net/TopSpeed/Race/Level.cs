@@ -13,6 +13,7 @@ using TopSpeed.Race.Panels;
 using TopSpeed.Speech;
 using TopSpeed.Tracks;
 using TopSpeed.Vehicles;
+using TopSpeed.Vehicles.Core;
 using TS.Audio;
 
 namespace TopSpeed.Race
@@ -56,7 +57,7 @@ namespace TopSpeed.Race
         protected readonly RaceInput _input;
         protected readonly IVibrationDevice? _vibrationDevice;
         protected readonly Track _track;
-        protected readonly Car _car;
+        protected readonly ICar _car;
         protected readonly List<RaceEvent> _events;
         protected readonly Stopwatch _stopwatch;
         protected readonly AudioSourceHandle[] _soundNumbers;
@@ -162,7 +163,7 @@ namespace TopSpeed.Race
             _track = trackData == null
                 ? Track.Load(track, audio)
                 : Track.LoadFromData(track, trackData, audio, userDefined);
-            _car = new Car(audio, _track, input, settings, vehicle, vehicleFile, () => _elapsedTotal, () => _started, _vibrationDevice);
+            _car = CarFactory.CreateDefault(audio, _track, input, settings, vehicle, vehicleFile, () => _elapsedTotal, () => _started, _vibrationDevice);
             _localRadio = new VehicleRadioController(audio);
             _panelManager = new VehiclePanelManager(new IVehicleRacePanel[]
             {
