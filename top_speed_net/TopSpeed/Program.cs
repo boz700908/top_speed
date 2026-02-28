@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using TopSpeed.Core;
+using TopSpeed.Game;
 
 namespace TopSpeed
 {

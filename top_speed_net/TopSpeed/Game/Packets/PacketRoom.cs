@@ -3,7 +3,7 @@ using TopSpeed.Data;
 using TopSpeed.Network;
 using TopSpeed.Protocol;
 
-namespace TopSpeed.Core
+namespace TopSpeed.Game
 {
     internal sealed partial class Game
     {

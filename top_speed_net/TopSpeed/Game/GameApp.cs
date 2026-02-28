@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using TopSpeed.Windowing;
 
-namespace TopSpeed.Core
+namespace TopSpeed.Game
 {
     internal sealed class GameApp : IDisposable
     {
