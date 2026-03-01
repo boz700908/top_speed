@@ -3,6 +3,7 @@ using TopSpeed.Audio;
 using TopSpeed.Common;
 using TopSpeed.Data;
 using TopSpeed.Input;
+using TopSpeed.Race.Events;
 using TopSpeed.Speech;
 using TopSpeed.Tracks;
 using TopSpeed.Vehicles;

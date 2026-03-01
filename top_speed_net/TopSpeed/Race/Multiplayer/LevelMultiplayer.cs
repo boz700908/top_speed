@@ -1,0 +1,327 @@
+using System;
+using System.Collections.Generic;
+using TopSpeed.Audio;
+using TopSpeed.Common;
+using TopSpeed.Data;
+using TopSpeed.Input;
+using TopSpeed.Network;
+using TopSpeed.Protocol;
+using TopSpeed.Race.Events;
+using TopSpeed.Race.Multiplayer;
+using TopSpeed.Speech;
+using TopSpeed.Tracks;
+using TopSpeed.Vehicles;
+using TS.Audio;
+
+namespace TopSpeed.Race
+{
+    internal sealed partial class LevelMultiplayer : Level
+    {
+        private const int MaxPlayers = ProtocolConstants.MaxPlayers;
+        private const float SendIntervalSeconds = 1f / 60f;
+        private const float StartLineY = 140.0f;
+        private const float ServerTickRate = 125.0f;
+        private const float SnapshotDelayTicks = 4.0f;
+        private const int SnapshotBufferMax = 8;
+
+        private readonly MultiplayerSession _session;
+        private readonly uint _playerId;
+        private readonly byte _playerNumber;
+        private readonly Dictionary<byte, RemotePlayer> _remotePlayers;
+        private readonly Dictionary<byte, MediaTransfer> _remoteMediaTransfers;
+        private readonly List<SnapshotFrame> _snapshotFrames;
+        private readonly AudioSourceHandle?[] _soundPosition;
+        private readonly AudioSourceHandle?[] _soundPlayerNr;
+        private readonly AudioSourceHandle?[] _soundFinished;
+        private readonly bool[] _disconnectedPlayerSlots;
+
+        private AudioSourceHandle? _soundYouAre;
+        private AudioSourceHandle? _soundPlayer;
+        private float _lastComment;
+        private bool _infoKeyReleased;
+        private int _positionFinish;
+        private int _position;
+        private int _positionComment;
+        private bool _pauseKeyReleased = true;
+        private float _sendAccumulator;
+        private bool _sentStart;
+        private bool _sentFinish;
+        private bool _serverStopReceived;
+        private PlayerState _currentState;
+        private CarState _lastCarState;
+        private uint _lastRaceSnapshotSequence;
+        private uint _lastRaceSnapshotTick;
+        private bool _hasRaceSnapshotSequence;
+        private float _snapshotTickNow;
+        private bool _hasSnapshotTickNow;
+
+        public LevelMultiplayer(
+            AudioManager audio,
+            SpeechService speech,
+            RaceSettings settings,
+            RaceInput input,
+            TrackData trackData,
+            string trackName,
+            bool automaticTransmission,
+            int nrOfLaps,
+            int vehicle,
+            string? vehicleFile,
+            IVibrationDevice? vibrationDevice,
+            MultiplayerSession session,
+            uint playerId,
+            byte playerNumber)
+            : base(audio, speech, settings, input, trackName, automaticTransmission, nrOfLaps, vehicle, vehicleFile, vibrationDevice, trackData, trackData.UserDefined)
+        {
+            _session = session ?? throw new ArgumentNullException(nameof(session));
+            _playerId = playerId;
+            _playerNumber = playerNumber;
+            _remotePlayers = new Dictionary<byte, RemotePlayer>();
+            _remoteMediaTransfers = new Dictionary<byte, MediaTransfer>();
+            _snapshotFrames = new List<SnapshotFrame>(SnapshotBufferMax);
+            _soundPosition = new AudioSourceHandle?[MaxPlayers];
+            _soundPlayerNr = new AudioSourceHandle?[MaxPlayers];
+            _soundFinished = new AudioSourceHandle?[MaxPlayers];
+            _disconnectedPlayerSlots = new bool[MaxPlayers];
+            _currentState = PlayerState.NotReady;
+        }
+
+        public void Initialize()
+        {
+            InitializeLevel();
+            _positionFinish = 0;
+            _position = _playerNumber + 1;
+            _positionComment = _position;
+            _lastComment = 0.0f;
+            _infoKeyReleased = true;
+            _sendAccumulator = 0.0f;
+            _sentStart = false;
+            _sentFinish = false;
+            _serverStopReceived = false;
+            _lastCarState = _car.State;
+            _lastRaceSnapshotSequence = 0;
+            _lastRaceSnapshotTick = 0;
+            _hasRaceSnapshotSequence = false;
+            _snapshotFrames.Clear();
+            _snapshotTickNow = 0f;
+            _hasSnapshotTickNow = false;
+            Array.Clear(_disconnectedPlayerSlots, 0, _disconnectedPlayerSlots.Length);
+
+            var rowSpacing = Math.Max(10.0f, _car.LengthM * 1.5f);
+            var positionX = CalculateGridStartX(_playerNumber, _car.WidthM, StartLineY);
+            var positionY = CalculateGridStartY(_playerNumber, rowSpacing, StartLineY);
+            _car.SetPosition(positionX, positionY);
+
+            for (var i = 0; i < MaxPlayers; i++)
+            {
+                _soundPlayerNr[i] = LoadLanguageSound($"race\\info\\player{i + 1}");
+                _soundPosition[i] = LoadLanguageSound($"race\\info\\youarepos{i + 1}");
+                _soundFinished[i] = LoadLanguageSound($"race\\info\\finished{i + 1}");
+            }
+
+            LoadRandomSounds(RandomSound.Front, "race\\info\\front");
+            LoadRandomSounds(RandomSound.Tail, "race\\info\\tail");
+
+            _soundYouAre = LoadLanguageSound("race\\youare");
+            _soundPlayer = LoadLanguageSound("race\\player");
+            _soundTheme4 = LoadLanguageSound("music\\theme4", streamFromDisk: false);
+            _soundPause = LoadLanguageSound("race\\pause");
+            _soundUnpause = LoadLanguageSound("race\\unpause");
+            _soundTheme4.SetVolumePercent((int)Math.Round(_settings.MusicVolume * 100f));
+
+            Speak(_soundYouAre);
+            Speak(_soundPlayer);
+            Speak(_soundNumbers[_playerNumber + 1]);
+
+            _currentState = PlayerState.AwaitingStart;
+            _session.SendPlayerState(_currentState);
+        }
+
+        public void FinalizeLevelMultiplayer()
+        {
+            foreach (var remote in _remotePlayers.Values)
+            {
+                remote.Player.FinalizePlayer();
+                remote.Player.Dispose();
+            }
+            _remotePlayers.Clear();
+            _remoteMediaTransfers.Clear();
+            _snapshotFrames.Clear();
+
+            for (var i = 0; i < _soundPosition.Length; i++)
+            {
+                DisposeSound(_soundPosition[i]);
+                DisposeSound(_soundPlayerNr[i]);
+                DisposeSound(_soundFinished[i]);
+            }
+
+            DisposeSound(_soundYouAre);
+            DisposeSound(_soundPlayer);
+            FinalizeLevel();
+        }
+
+        public void Run(float elapsed)
+        {
+            EnsureStartSequenceScheduled();
+            ProcessDueEvents();
+
+            ApplyBufferedRaceSnapshots(elapsed);
+            UpdatePositions();
+            UpdateVehiclePanels(elapsed);
+            _car.Run(elapsed);
+            _track.Run(_car.PositionY);
+            var spatialTrackLength = GetSpatialTrackLength();
+            foreach (var remote in _remotePlayers.Values)
+                remote.Player.UpdateRemoteAudio(_car.PositionX, _car.PositionY, spatialTrackLength, elapsed);
+
+            if (_started
+                && !_sentFinish
+                && _lastCarState != CarState.Crashing
+                && _lastCarState != CarState.Crashed
+                && (_car.State == CarState.Crashing || _car.State == CarState.Crashed))
+            {
+                _session.SendPlayerCrashed();
+            }
+            _lastCarState = _car.State;
+
+            var road = _track.RoadAtPosition(_car.PositionY);
+            _car.Evaluate(road);
+            UpdateAudioListener(elapsed);
+            if (_track.NextRoad(_car.PositionY, _car.Speed, (int)_settings.CurveAnnouncement, out var nextRoad))
+                CallNextRoad(nextRoad);
+
+            if (_track.Lap(_car.PositionY) > _lap)
+            {
+                _lap = _track.Lap(_car.PositionY);
+                if (_lap > _nrOfLaps)
+                {
+                    var finishSound = _randomSounds[(int)RandomSound.Finish][Algorithm.RandomInt(_totalRandomSounds[(int)RandomSound.Finish])];
+                    if (finishSound != null)
+                        Speak(finishSound, true);
+                    _car.ManualTransmission = false;
+                    _car.Quiet();
+                    _car.Stop();
+                    _raceTime = (int)(_stopwatch.ElapsedMilliseconds - _stopwatchDiffMs);
+                    SpeakIfAvailable(_soundPlayerNr[_playerNumber], true);
+                    SpeakIfAvailable(_soundFinished[Math.Min(_positionFinish++, _soundFinished.Length - 1)], true);
+                    if (!_sentFinish)
+                    {
+                        _sentFinish = true;
+                        _currentState = PlayerState.Finished;
+                        _session.SendPlayerFinished();
+                        _session.SendPlayerState(_currentState);
+                    }
+                    PushEvent(RaceEventType.RaceFinish, 1.0f + _speakTime - _elapsedTotal);
+                }
+                else if (_settings.AutomaticInfo != AutomaticInfoMode.Off && _lap > 1 && _lap <= _nrOfLaps)
+                {
+                    Speak(_soundLaps[_nrOfLaps - _lap], true);
+                }
+            }
+
+            HandleCoreRaceMetricsRequests(includeFinishedRaceTime: true);
+            HandleCommentRequests(elapsed, Comment, ref _lastComment, ref _infoKeyReleased);
+
+            if (_input.TryGetPlayerInfo(out var infoPlayer)
+                && _acceptPlayerInfo
+                && infoPlayer >= 0
+                && infoPlayer < MaxPlayers
+                && HasPlayerInRace(infoPlayer))
+            {
+                _acceptPlayerInfo = false;
+                SpeakText(GetVehicleNameForPlayer(infoPlayer));
+                PushEvent(RaceEventType.AcceptPlayerInfo, 0.5f);
+            }
+
+            if (_input.TryGetPlayerPosition(out var positionPlayer)
+                && _acceptPlayerInfo
+                && _started
+                && positionPlayer >= 0
+                && positionPlayer < MaxPlayers
+                && HasPlayerInRace(positionPlayer))
+            {
+                _acceptPlayerInfo = false;
+                var perc = CalculatePlayerPerc(positionPlayer);
+                SpeakText(FormatPercentageText(string.Empty, perc));
+                PushEvent(RaceEventType.AcceptPlayerInfo, 0.5f);
+            }
+
+            HandlePlayerNumberRequest(_playerNumber);
+            HandleGeneralInfoRequests(ref _pauseKeyReleased);
+
+            _sendAccumulator += elapsed;
+            if (_sendAccumulator >= SendIntervalSeconds)
+            {
+                _sendAccumulator = 0.0f;
+                var state = _currentState;
+                if (_sentFinish)
+                    state = PlayerState.Finished;
+                else if (_started)
+                    state = PlayerState.Racing;
+
+                var raceData = new PlayerRaceData
+                {
+                    PositionX = _car.PositionX,
+                    PositionY = _car.PositionY,
+                    Speed = (ushort)_car.Speed,
+                    Frequency = _car.Frequency
+                };
+                _session.SendPlayerData(
+                    raceData,
+                    _car.CarType,
+                    state,
+                    _car.EngineRunning,
+                    _car.Braking,
+                    _car.Horning,
+                    _car.Backfiring(),
+                    LocalMediaLoaded,
+                    LocalMediaPlaying,
+                    LocalMediaId);
+            }
+
+            if (CompleteFrame(elapsed))
+                return;
+        }
+
+        protected override void OnRaceStartEvent()
+        {
+            base.OnRaceStartEvent();
+            if (_sentStart)
+                return;
+
+            _sentStart = true;
+            _currentState = PlayerState.Racing;
+            _session.SendPlayerStarted();
+            _session.SendPlayerState(_currentState);
+        }
+
+        public void Pause()
+        {
+            _soundTheme4?.SetVolumePercent((int)Math.Round(_settings.MusicVolume * 100f));
+            _soundTheme4?.Play(loop: true);
+            FadeIn();
+            PauseVehiclePanels();
+            _car.Pause();
+            foreach (var remote in _remotePlayers.Values)
+                remote.Player.Pause();
+            _soundPause?.Play(loop: false);
+        }
+
+        public void Unpause()
+        {
+            _car.Unpause();
+            ResumeVehiclePanels();
+            foreach (var remote in _remotePlayers.Values)
+                remote.Player.Unpause();
+            FadeOut();
+            _soundTheme4?.Stop();
+            _soundTheme4?.SeekToStart();
+            _soundUnpause?.Play(loop: false);
+        }
+
+        protected override void OnLocalRadioMediaLoaded(uint mediaId, string mediaPath)
+        {
+            if (!_session.SendRadioMediaStreamed(mediaId, mediaPath))
+                SpeakText("Failed to transmit radio media.");
+        }
+    }
+}

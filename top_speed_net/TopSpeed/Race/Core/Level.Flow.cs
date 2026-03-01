@@ -1,6 +1,7 @@
 using System;
 using TopSpeed.Common;
 using TopSpeed.Input;
+using TopSpeed.Race.Events;
 
 namespace TopSpeed.Race
 {
