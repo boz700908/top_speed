@@ -89,14 +89,18 @@ namespace TopSpeed.Network
 
             manager.Connect(endpoint.Address.ToString(), endpoint.Port, ProtocolConstants.ConnectionKey);
 
+            var protocolHello = BuildProtocolHelloPacket();
             var hello = BuildPlayerHelloPacket(sanitizedCallSign);
             var initialState = BuildPlayerStatePacket();
             var keepAlive = new[] { ProtocolConstants.Version, (byte)Command.KeepAlive };
-            var handshakeSent = false;
+            var protocolHelloSent = false;
+            var protocolNegotiated = false;
             var nextKeepAliveUtc = DateTime.UtcNow;
             byte? playerNumber = null;
             uint? playerId = null;
             string? motd = null;
+            PacketProtocolWelcome? protocolWelcome = null;
+            string? protocolFailureMessage = null;
             var deadline = DateTime.UtcNow + timeout;
 
             while (DateTime.UtcNow < deadline && !token.IsCancellationRequested)
@@ -109,13 +113,12 @@ namespace TopSpeed.Network
                     return ConnectResult.CreateFail($"Connection failed: {disconnectReason}");
                 }
 
-                if (!handshakeSent && connectedPeer != null && connectedPeer.ConnectionState == ConnectionState.Connected)
+                if (!protocolHelloSent && connectedPeer != null && connectedPeer.ConnectionState == ConnectionState.Connected)
                 {
                     try
                     {
-                        connectedPeer.Send(hello, DeliveryMethod.ReliableOrdered);
-                        connectedPeer.Send(initialState, DeliveryMethod.ReliableOrdered);
-                        handshakeSent = true;
+                        connectedPeer.Send(protocolHello, DeliveryMethod.ReliableOrdered);
+                        protocolHelloSent = true;
                         nextKeepAliveUtc = DateTime.UtcNow + TimeSpan.FromSeconds(1);
                     }
                     catch (ObjectDisposedException ex)
@@ -130,7 +133,7 @@ namespace TopSpeed.Network
                     }
                 }
 
-                if (handshakeSent && connectedPeer != null && DateTime.UtcNow >= nextKeepAliveUtc)
+                if (protocolHelloSent && connectedPeer != null && DateTime.UtcNow >= nextKeepAliveUtc)
                 {
                     try
                     {
@@ -148,47 +151,112 @@ namespace TopSpeed.Network
                     nextKeepAliveUtc = DateTime.UtcNow + TimeSpan.FromSeconds(1);
                 }
 
+                var disconnectedDuringPoll = false;
                 while (incoming.TryDequeue(out var packet))
                 {
                     if (packet.Command == Command.Disconnect)
                     {
-                        manager.Stop();
-                        return ConnectResult.CreateFail("The server refused the connection (server may be full)." );
+                        if (ClientPacketSerializer.TryReadDisconnect(packet.Payload, out var disconnectMessage) &&
+                            !string.IsNullOrWhiteSpace(disconnectMessage))
+                        {
+                            protocolFailureMessage = disconnectMessage;
+                        }
+                        disconnectedDuringPoll = true;
+                        continue;
                     }
 
                     if (packet.Command == Command.PlayerNumber && ClientPacketSerializer.TryReadPlayer(packet.Payload, out var assigned))
                     {
+                        if (!protocolNegotiated)
+                        {
+                            manager.Stop();
+                            return ConnectResult.CreateFail("This server does not support required protocol negotiation. Please update your server.");
+                        }
+
                         playerId = assigned.PlayerId;
                         playerNumber = assigned.PlayerNumber;
                         if (!string.IsNullOrWhiteSpace(motd))
-                            return ConnectResult.CreateSuccess(manager, connectedPeer, endpoint, assigned.PlayerId, assigned.PlayerNumber, motd, sanitizedCallSign, incoming);
+                            return ConnectResult.CreateSuccess(manager, connectedPeer, endpoint, assigned.PlayerId, assigned.PlayerNumber, motd, sanitizedCallSign, incoming, protocolWelcome);
                     }
                     else if (packet.Command == Command.ServerInfo && ClientPacketSerializer.TryReadServerInfo(packet.Payload, out var info))
                     {
                         motd = info.Motd;
                         if (playerId.HasValue && playerNumber.HasValue)
-                            return ConnectResult.CreateSuccess(manager, connectedPeer, endpoint, playerId.Value, playerNumber.Value, motd, sanitizedCallSign, incoming);
+                            return ConnectResult.CreateSuccess(manager, connectedPeer, endpoint, playerId.Value, playerNumber.Value, motd, sanitizedCallSign, incoming, protocolWelcome);
+                    }
+                    else if (packet.Command == Command.ProtocolWelcome && ClientPacketSerializer.TryReadProtocolWelcome(packet.Payload, out var welcome))
+                    {
+                        protocolWelcome = welcome;
+
+                        if (!IsCompatibilityAccepted(welcome.Status))
+                        {
+                            protocolFailureMessage = string.IsNullOrWhiteSpace(welcome.Message)
+                                ? "Connection refused due to protocol mismatch."
+                                : welcome.Message;
+                            disconnectedDuringPoll = true;
+                            continue;
+                        }
+
+                        if (!protocolNegotiated && connectedPeer != null)
+                        {
+                            try
+                            {
+                                connectedPeer.Send(hello, DeliveryMethod.ReliableOrdered);
+                                connectedPeer.Send(initialState, DeliveryMethod.ReliableOrdered);
+                                protocolNegotiated = true;
+                            }
+                            catch (ObjectDisposedException ex)
+                            {
+                                manager.Stop();
+                                return ConnectResult.CreateFail($"Failed to send handshake: {ex.Message}");
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                manager.Stop();
+                                return ConnectResult.CreateFail($"Failed to send handshake: {ex.Message}");
+                            }
+                        }
                     }
                     else if (packet.Command == Command.ProtocolMessage && ClientPacketSerializer.TryReadProtocolMessage(packet.Payload, out var protocolMessage))
                     {
                         // Surface immediate protocol errors during handshake.
                         if (protocolMessage.Code == ProtocolMessageCode.Failed)
                         {
-                            manager.Stop();
-                            return ConnectResult.CreateFail(string.IsNullOrWhiteSpace(protocolMessage.Message)
+                            protocolFailureMessage = string.IsNullOrWhiteSpace(protocolMessage.Message)
                                 ? "Connection refused by server."
-                                : protocolMessage.Message);
+                                : protocolMessage.Message;
+                            disconnectedDuringPoll = true;
+                            continue;
                         }
                     }
                 }
 
-                if (playerId.HasValue && playerNumber.HasValue && connectedPeer != null)
-                    return ConnectResult.CreateSuccess(manager, connectedPeer, endpoint, playerId.Value, playerNumber.Value, motd, sanitizedCallSign, incoming);
+                if (disconnectedDuringPoll)
+                {
+                    manager.Stop();
+                    if (!string.IsNullOrWhiteSpace(protocolFailureMessage))
+                        return ConnectResult.CreateFail(protocolFailureMessage!);
+                    if (protocolWelcome != null && !IsCompatibilityAccepted(protocolWelcome.Status))
+                    {
+                        var fallback = BuildProtocolRefusalFallback(protocolWelcome);
+                        return ConnectResult.CreateFail(fallback);
+                    }
+
+                    var reason = string.IsNullOrWhiteSpace(disconnectReason)
+                        ? "The server refused the connection."
+                        : $"The server refused the connection. Details: {disconnectReason}.";
+                    return ConnectResult.CreateFail(reason);
+                }
+
+                if (protocolNegotiated && playerId.HasValue && playerNumber.HasValue && connectedPeer != null)
+                    return ConnectResult.CreateSuccess(manager, connectedPeer, endpoint, playerId.Value, playerNumber.Value, motd, sanitizedCallSign, incoming, protocolWelcome);
 
                 await Task.Delay(10, token);
             }
 
             manager.Stop();
+            if (protocolHelloSent && !protocolNegotiated)
+                return ConnectResult.CreateFail("No protocol negotiation response from server. The server may be outdated or incompatible.");
             return ConnectResult.CreateFail("No response from server. The server may be offline or unreachable.");
         }
 
@@ -215,6 +283,17 @@ namespace TopSpeed.Network
             return buffer;
         }
 
+        private static byte[] BuildProtocolHelloPacket()
+        {
+            var packet = new PacketProtocolHello
+            {
+                ClientVersion = ProtocolProfile.Current,
+                MinSupported = ProtocolProfile.ClientSupported.MinSupported,
+                MaxSupported = ProtocolProfile.ClientSupported.MaxSupported
+            };
+            return ClientPacketSerializer.WriteProtocolHello(packet);
+        }
+
         private static byte[] BuildPlayerStatePacket()
         {
             var buffer = new byte[2 + 4 + 1 + 1];
@@ -229,11 +308,38 @@ namespace TopSpeed.Network
             buffer[7] = (byte)PlayerState.NotReady;
             return buffer;
         }
+
+        private static bool IsCompatibilityAccepted(ProtocolCompatStatus status)
+        {
+            return status == ProtocolCompatStatus.Exact || status == ProtocolCompatStatus.CompatibleDowngrade;
+        }
+
+        private static string BuildProtocolRefusalFallback(PacketProtocolWelcome welcome)
+        {
+            var range = new ProtocolRange(welcome.ServerMinSupported, welcome.ServerMaxSupported);
+            return $"Your client version is {ProtocolProfile.Current}. This server supports versions {range}.";
+        }
+    }
+
+    internal readonly struct CompatibilityNotice
+    {
+        public CompatibilityNotice(ProtocolCompatStatus status, ProtocolVer clientVersion, ProtocolRange serverSupported, string message)
+        {
+            Status = status;
+            ClientVersion = clientVersion;
+            ServerSupported = serverSupported;
+            Message = message ?? string.Empty;
+        }
+
+        public ProtocolCompatStatus Status { get; }
+        public ProtocolVer ClientVersion { get; }
+        public ProtocolRange ServerSupported { get; }
+        public string Message { get; }
     }
 
     internal readonly struct ConnectResult
     {
-        private ConnectResult(bool success, string message, MultiplayerSession? session, string? motd)
+        private ConnectResult(bool success, string message, MultiplayerSession? session, string? motd, CompatibilityNotice? compatibilityNotice)
         {
             Success = success;
             Message = message;
@@ -243,6 +349,7 @@ namespace TopSpeed.Network
             PlayerNumber = session?.PlayerNumber ?? 0;
             PlayerId = session?.PlayerId ?? 0;
             Motd = motd ?? string.Empty;
+            CompatibilityNotice = compatibilityNotice;
         }
 
         public bool Success { get; }
@@ -253,6 +360,8 @@ namespace TopSpeed.Network
         public byte PlayerNumber { get; }
         public uint PlayerId { get; }
         public string Motd { get; }
+        public CompatibilityNotice? CompatibilityNotice { get; }
+        public bool RequiresCompatibilityConfirmation => CompatibilityNotice.HasValue && CompatibilityNotice.Value.Status == ProtocolCompatStatus.CompatibleDowngrade;
 
         public static ConnectResult CreateSuccess(
             NetManager manager,
@@ -262,7 +371,8 @@ namespace TopSpeed.Network
             byte playerNumber,
             string? motd,
             string? playerName,
-            ConcurrentQueue<IncomingPacket> incoming)
+            ConcurrentQueue<IncomingPacket> incoming,
+            PacketProtocolWelcome? protocolWelcome)
         {
             if (peer == null)
             {
@@ -271,12 +381,30 @@ namespace TopSpeed.Network
             }
 
             var session = new MultiplayerSession(manager, peer, endPoint, playerId, playerNumber, motd, playerName, incoming);
-            return new ConnectResult(true, "Connected.", session, motd);
+            return new ConnectResult(true, "Connected.", session, motd, BuildCompatibilityNotice(protocolWelcome));
         }
 
         public static ConnectResult CreateFail(string message)
         {
-            return new ConnectResult(false, message ?? "Connection failed.", null, null);
+            return new ConnectResult(false, message ?? "Connection failed.", null, null, null);
+        }
+
+        private static CompatibilityNotice? BuildCompatibilityNotice(PacketProtocolWelcome? welcome)
+        {
+            if (welcome == null)
+                return null;
+            if (welcome.Status != ProtocolCompatStatus.CompatibleDowngrade)
+                return null;
+
+            var range = new ProtocolRange(welcome.ServerMinSupported, welcome.ServerMaxSupported);
+            var message = string.IsNullOrWhiteSpace(welcome.Message)
+                ? "The server supports an older protocol range. You can continue, but some features may behave differently."
+                : welcome.Message;
+            return new CompatibilityNotice(
+                welcome.Status,
+                ProtocolProfile.Current,
+                range,
+                message);
         }
     }
 }

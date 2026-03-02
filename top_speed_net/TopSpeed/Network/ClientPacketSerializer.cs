@@ -75,6 +75,23 @@ namespace TopSpeed.Network
             return true;
         }
 
+        public static bool TryReadDisconnect(byte[] data, out string message)
+        {
+            message = string.Empty;
+            if (data == null || data.Length < 2)
+                return false;
+            if (data[0] != ProtocolConstants.Version || data[1] != (byte)Command.Disconnect)
+                return false;
+            if (data.Length < 2 + ProtocolConstants.MaxProtocolDetailsLength)
+                return false;
+
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            message = reader.ReadFixedString(ProtocolConstants.MaxProtocolDetailsLength);
+            return true;
+        }
+
         public static byte[] WritePlayerState(Command command, uint playerId, byte playerNumber, PlayerState state)
         {
             var buffer = WritePacketHeader(command, 4 + 1 + 1);

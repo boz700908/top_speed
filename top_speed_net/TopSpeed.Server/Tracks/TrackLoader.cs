@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TopSpeed.Data;
+using TopSpeed.Server.Logging;
 
 namespace TopSpeed.Server.Tracks
 {
@@ -8,7 +9,7 @@ namespace TopSpeed.Server.Tracks
     {
         private const float MinPartLength = 50.0f;
 
-        public static TrackData LoadTrack(string nameOrPath, byte defaultLaps)
+        public static TrackData LoadTrack(string nameOrPath, byte defaultLaps, Logger? logger = null)
         {
             if (TrackCatalog.BuiltIn.TryGetValue(nameOrPath, out var builtIn))
             {
@@ -16,7 +17,7 @@ namespace TopSpeed.Server.Tracks
                 return new TrackData(builtIn.UserDefined, builtIn.Weather, builtIn.Ambience, builtIn.Definitions, laps);
             }
 
-            var data = ReadCustomTrackData(nameOrPath);
+            var data = ReadCustomTrackData(nameOrPath, logger);
             data.Laps = ResolveLaps(nameOrPath, defaultLaps);
             return data;
         }
@@ -28,11 +29,11 @@ namespace TopSpeed.Server.Tracks
                 : (byte)1;
         }
 
-        private static TrackData ReadCustomTrackData(string filename)
+        private static TrackData ReadCustomTrackData(string filename, Logger? logger)
         {
             if (!TrackTsmParser.TryLoad(filename, out var parsed, out var issues, MinPartLength))
             {
-                LogTrackIssues(filename, issues);
+                LogTrackIssues(filename, issues, logger);
                 return CreateFallbackTrack();
             }
             return parsed;
@@ -48,17 +49,17 @@ namespace TopSpeed.Server.Tracks
             return new TrackData(true, TrackWeather.Sunny, TrackAmbience.NoAmbience, definitions);
         }
 
-        private static void LogTrackIssues(string filename, IReadOnlyList<TrackTsmIssue> issues)
+        private static void LogTrackIssues(string filename, IReadOnlyList<TrackTsmIssue> issues, Logger? logger)
         {
             if (issues == null || issues.Count == 0)
             {
-                Console.WriteLine($"[TrackLoader] Failed to load '{filename}'.");
+                logger?.Warning($"[TrackLoader] Failed to load '{filename}'.");
                 return;
             }
 
-            Console.WriteLine($"[TrackLoader] Failed to load '{filename}':");
+            logger?.Warning($"[TrackLoader] Failed to load '{filename}':");
             for (var i = 0; i < issues.Count; i++)
-                Console.WriteLine($"  - {issues[i]}");
+                logger?.Warning($"  - {issues[i]}");
         }
     }
 }

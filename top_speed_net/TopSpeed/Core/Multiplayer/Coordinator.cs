@@ -35,6 +35,7 @@ namespace TopSpeed.Core.Multiplayer
 
         private readonly MenuManager _menu;
         private readonly QuestionDialog _questions;
+        private readonly DialogManager _dialogs;
         private readonly AudioManager _audio;
         private readonly SpeechService _speech;
         private readonly RaceSettings _settings;
@@ -82,10 +83,13 @@ namespace TopSpeed.Core.Multiplayer
         private SavedServerEntry? _savedServerOriginal;
         private int _savedServerEditIndex = -1;
         private int _pendingDeleteServerIndex = -1;
+        private bool _hasPendingCompatibilityResult;
+        private ConnectResult _pendingCompatibilityResult;
         public QuestionDialog Questions => _questions;
 
         public MultiplayerCoordinator(
             MenuManager menu,
+            DialogManager dialogs,
             AudioManager audio,
             SpeechService speech,
             RaceSettings settings,
@@ -101,6 +105,7 @@ namespace TopSpeed.Core.Multiplayer
         {
             _menu = menu ?? throw new ArgumentNullException(nameof(menu));
             _questions = new QuestionDialog(_menu);
+            _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _audio = audio ?? throw new ArgumentNullException(nameof(audio));
             _speech = speech ?? throw new ArgumentNullException(nameof(speech));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -168,6 +173,8 @@ namespace TopSpeed.Core.Multiplayer
             _savedServerOriginal = null;
             _savedServerEditIndex = -1;
             _pendingDeleteServerIndex = -1;
+            _hasPendingCompatibilityResult = false;
+            _pendingCompatibilityResult = default;
             _pingPending = false;
             _pingStartedAtMs = 0;
             RebuildLobbyMenu();

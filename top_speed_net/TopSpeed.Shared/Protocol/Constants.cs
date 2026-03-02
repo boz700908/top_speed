@@ -1,0 +1,23 @@
+namespace TopSpeed.Protocol
+{
+    public static class ProtocolConstants
+    {
+        public const int MaxPlayers = 10;
+        public const int MaxMultiTrackLength = 8192;
+        public const int MaxMediaFileExtensionLength = 16;
+        public const int MaxMediaBytes = 8 * 1024 * 1024;
+        public const int MaxMediaChunkBytes = 900;
+        public const byte PacketVersion = ProtocolVersionInfo.PacketVersion;
+        public const byte Version = PacketVersion;
+        public const int DefaultFrequency = 22050;
+        public const int MaxPlayerNameLength = 64;
+        public const int MaxMotdLength = 4096;
+        public const int MaxRoomNameLength = 128;
+        public const int MaxRoomListEntries = 64;
+        public const int MaxProtocolMessageLength = 512;
+        public const int MaxRoomPlayersToStart = 10;
+        public const int MaxVersionLabelLength = 32;
+        public const int MaxProtocolDetailsLength = 1024;
+        public const string ConnectionKey = "TopSpeedMultiplayer";
+    }
+}

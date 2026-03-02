@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using TopSpeed.Menu;
 using TopSpeed.Network;
 
 namespace TopSpeed.Core.Multiplayer
@@ -58,13 +60,14 @@ namespace TopSpeed.Core.Multiplayer
         private void AttemptConnect(string host, int port, string callSign)
         {
             _speech.Speak("Attempting to connect, please wait...");
+            ClearPendingCompatibilityResult(disposeSession: true);
             _clearSession();
             _pingPending = false;
             StartConnectingPulse();
             _connectCts?.Cancel();
             _connectCts?.Dispose();
             _connectCts = new CancellationTokenSource();
-            _connectTask = _connector.ConnectAsync(host, port, callSign, TimeSpan.FromSeconds(3), _connectCts.Token);
+            _connectTask = _connector.ConnectAsync(host, port, callSign, TimeSpan.FromSeconds(5), _connectCts.Token);
         }
 
         private void HandleConnectResult(ConnectResult result)
@@ -72,25 +75,114 @@ namespace TopSpeed.Core.Multiplayer
             StopConnectingPulse();
             if (result.Success && result.Session != null)
             {
-                var session = result.Session;
-                _setSession(session);
-                _resetPendingState();
+                if (result.RequiresCompatibilityConfirmation && result.CompatibilityNotice.HasValue)
+                {
+                    _pendingCompatibilityResult = result;
+                    _hasPendingCompatibilityResult = true;
+                    ShowCompatibilityDialog(result.CompatibilityNotice.Value);
+                    _enterMenuState();
+                    return;
+                }
 
-                OnSessionCleared();
-                PlayNetworkSound("connected.ogg");
-
-                var welcome = "Connected to server.";
-                if (!string.IsNullOrWhiteSpace(result.Motd))
-                    welcome += $" Message of the day: {result.Motd}.";
-                _speech.Speak(welcome);
-                _menu.FadeOutMenuMusic();
-                _menu.ShowRoot(MultiplayerLobbyMenuId);
-                _enterMenuState();
+                CompleteSuccessfulConnection(result);
                 return;
             }
 
-            _speech.Speak($"Failed to connect: {result.Message}");
+            ShowConnectionFailedDialog(result.Message);
             _enterMenuState();
+        }
+
+        private void CompleteSuccessfulConnection(ConnectResult result)
+        {
+            var session = result.Session;
+            if (session == null)
+                return;
+
+            _setSession(session);
+            _resetPendingState();
+            ClearPendingCompatibilityResult(disposeSession: false);
+
+            OnSessionCleared();
+            PlayNetworkSound("connected.ogg");
+
+            var welcome = "Connected to server.";
+            if (!string.IsNullOrWhiteSpace(result.Motd))
+                welcome += $" Message of the day: {result.Motd}.";
+            _speech.Speak(welcome);
+            _menu.FadeOutMenuMusic();
+            _menu.ShowRoot(MultiplayerLobbyMenuId);
+            _enterMenuState();
+        }
+
+        private void ShowCompatibilityDialog(CompatibilityNotice notice)
+        {
+            var items = new List<DialogItem>
+            {
+                new DialogItem(string.IsNullOrWhiteSpace(notice.Message)
+                    ? "The server and client are compatible, but not an exact match."
+                    : notice.Message),
+                new DialogItem($"Your client version: {notice.ClientVersion}"),
+                new DialogItem($"Server supported versions: {notice.ServerSupported.MinSupported} to {notice.ServerSupported.MaxSupported}")
+            };
+
+            var dialog = new Dialog(
+                "Compatibility warning",
+                "Review these details before connecting.",
+                QuestionId.Close,
+                items,
+                HandleCompatibilityDialogResult,
+                new DialogButton(QuestionId.Confirm, "Continue connection", flags: DialogButtonFlags.Default),
+                new DialogButton(QuestionId.Close, "Disconnect"));
+            _dialogs.Show(dialog);
+        }
+
+        private void HandleCompatibilityDialogResult(int resultId)
+        {
+            if (!_hasPendingCompatibilityResult)
+                return;
+
+            if (resultId == QuestionId.Confirm)
+            {
+                var result = _pendingCompatibilityResult;
+                _hasPendingCompatibilityResult = false;
+                _pendingCompatibilityResult = default;
+                CompleteSuccessfulConnection(result);
+                return;
+            }
+
+            if (_pendingCompatibilityResult.Session != null)
+                _pendingCompatibilityResult.Session.Dispose();
+            ClearPendingCompatibilityResult(disposeSession: false);
+            _speech.Speak("Connection canceled.");
+            _enterMenuState();
+        }
+
+        private void ClearPendingCompatibilityResult(bool disposeSession)
+        {
+            if (!_hasPendingCompatibilityResult)
+                return;
+
+            if (disposeSession && _pendingCompatibilityResult.Session != null)
+                _pendingCompatibilityResult.Session.Dispose();
+
+            _hasPendingCompatibilityResult = false;
+            _pendingCompatibilityResult = default;
+        }
+
+        private void ShowConnectionFailedDialog(string message)
+        {
+            var text = string.IsNullOrWhiteSpace(message)
+                ? "The connection attempt failed for an unknown reason."
+                : message.Trim();
+
+            var dialog = new Dialog(
+                "Connection failed",
+                null,
+                QuestionId.Ok,
+                new[] { new DialogItem(text) },
+                null,
+                new DialogButton(QuestionId.Ok, "OK"));
+            _dialogs.Show(dialog);
         }
     }
 }

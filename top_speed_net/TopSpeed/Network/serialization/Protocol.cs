@@ -1,0 +1,61 @@
+using TopSpeed.Protocol;
+
+namespace TopSpeed.Network
+{
+    internal static partial class ClientPacketSerializer
+    {
+        public static bool TryReadProtocolWelcome(byte[] data, out PacketProtocolWelcome packet)
+        {
+            packet = new PacketProtocolWelcome();
+            if (data.Length < 2 + 1 + 4 + 4 + 4 + ProtocolConstants.MaxProtocolDetailsLength)
+                return false;
+            if (data[0] != ProtocolConstants.Version || data[1] != (byte)Command.ProtocolWelcome)
+                return false;
+
+            try
+            {
+                var reader = new PacketReader(data);
+                reader.ReadByte();
+                reader.ReadByte();
+                packet.Status = (ProtocolCompatStatus)reader.ReadByte();
+                packet.NegotiatedVersion = ReadProtocolVer(ref reader);
+                packet.ServerMinSupported = ReadProtocolVer(ref reader);
+                packet.ServerMaxSupported = ReadProtocolVer(ref reader);
+                packet.Message = reader.ReadFixedString(ProtocolConstants.MaxProtocolDetailsLength);
+                return true;
+            }
+            catch (System.ArgumentOutOfRangeException)
+            {
+                packet = new PacketProtocolWelcome();
+                return false;
+            }
+        }
+
+        public static byte[] WriteProtocolHello(PacketProtocolHello packet)
+        {
+            var buffer = WritePacketHeader(Command.ProtocolHello, 4 + 4 + 4);
+            var writer = new PacketWriter(buffer);
+            writer.WriteByte(ProtocolConstants.Version);
+            writer.WriteByte((byte)Command.ProtocolHello);
+            WriteProtocolVer(ref writer, packet.ClientVersion);
+            WriteProtocolVer(ref writer, packet.MinSupported);
+            WriteProtocolVer(ref writer, packet.MaxSupported);
+            return buffer;
+        }
+
+        private static ProtocolVer ReadProtocolVer(ref PacketReader reader)
+        {
+            var year = reader.ReadUInt16();
+            var month = reader.ReadByte();
+            var day = reader.ReadByte();
+            return new ProtocolVer(year, month, day);
+        }
+
+        private static void WriteProtocolVer(ref PacketWriter writer, ProtocolVer version)
+        {
+            writer.WriteUInt16(version.Year);
+            writer.WriteByte(version.Month);
+            writer.WriteByte(version.Day);
+        }
+    }
+}

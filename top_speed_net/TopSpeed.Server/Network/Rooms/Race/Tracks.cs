@@ -1,0 +1,50 @@
+using System;
+using System.Linq;
+using LiteNetLib;
+using TopSpeed.Bots;
+using TopSpeed.Data;
+using TopSpeed.Protocol;
+using TopSpeed.Server.Protocol;
+using TopSpeed.Server.Tracks;
+
+namespace TopSpeed.Server.Network
+{
+    internal sealed partial class RaceServer
+    {
+        private void SendTrackToRoom(RaceRoom room)
+        {
+            foreach (var id in room.PlayerIds)
+            {
+                if (_players.TryGetValue(id, out var player))
+                    SendTrack(room, player);
+            }
+        }
+
+        private void SendTrackToNotReady(RaceRoom room)
+        {
+            foreach (var id in room.PlayerIds)
+            {
+                if (_players.TryGetValue(id, out var player) && player.State == PlayerState.NotReady)
+                    SendTrack(room, player);
+            }
+        }
+
+        private void SendTrack(RaceRoom room, PlayerConnection player)
+        {
+            if (!room.TrackSelected || room.TrackData == null)
+                return;
+
+            var trackLength = (ushort)Math.Min(room.TrackData.Definitions.Length, ProtocolConstants.MaxMultiTrackLength);
+            SendStream(player, PacketSerializer.WriteLoadCustomTrack(new PacketLoadCustomTrack
+            {
+                NrOfLaps = room.TrackData.Laps,
+                TrackName = room.TrackData.UserDefined ? "custom" : room.TrackName,
+                TrackWeather = room.TrackData.Weather,
+                TrackAmbience = room.TrackData.Ambience,
+                TrackLength = trackLength,
+                Definitions = room.TrackData.Definitions
+            }), PacketStream.Room);
+        }
+
+    }
+}

@@ -120,6 +120,16 @@ namespace TopSpeed.Server.Protocol
             return buffer;
         }
 
+        public static byte[] WriteDisconnect(string message)
+        {
+            var buffer = WritePacketHeader(Command.Disconnect, ProtocolConstants.MaxProtocolDetailsLength);
+            var writer = new PacketWriter(buffer);
+            writer.WriteByte(ProtocolConstants.Version);
+            writer.WriteByte((byte)Command.Disconnect);
+            writer.WriteFixedString(message ?? string.Empty, ProtocolConstants.MaxProtocolDetailsLength);
+            return buffer;
+        }
+
         private static void WritePlayerDataFields(ref PacketWriter writer, PacketPlayerData data)
         {
             writer.WriteUInt32(data.PlayerId);

@@ -84,9 +84,7 @@ namespace TopSpeed.Network
             }
 
             var offset = ResponseMagic.Length;
-            var version = data[offset++];
-            if (version != ProtocolConstants.Version)
-                return false;
+            offset++;
 
             var port = (ushort)(data[offset] | (data[offset + 1] << 8));
             offset += 2;

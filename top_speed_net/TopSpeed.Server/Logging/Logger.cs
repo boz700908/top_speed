@@ -10,7 +10,7 @@ namespace TopSpeed.Server.Logging
         private readonly LogLevel _enabledLevels;
         private readonly object _lock = new object();
         private readonly StreamWriter? _writer;
-        private readonly bool _writeToConsole;
+        private bool _writeToConsole;
 
         public Logger(LogLevel enabledLevels, string? logFilePath, bool writeToConsole = true)
         {
@@ -45,16 +45,16 @@ namespace TopSpeed.Server.Logging
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
             var levelTag = level.ToString().ToLowerInvariant();
             var consoleLine = $"[{levelTag}] {message}";
-            var fileTimeLine = $"[{timestamp}]";
-            var fileMessageLine = $"[{levelTag}] {message}";
-            lock (_lock)
-            {
-                if (_writeToConsole)
-                    Console.WriteLine(consoleLine);
-                if (_writer != null)
+                var fileTimeLine = $"[{timestamp}]";
+                var fileMessageLine = $"[{levelTag}] {message}";
+                lock (_lock)
                 {
-                    _writer.WriteLine(fileTimeLine);
-                    _writer.WriteLine(fileMessageLine);
+                    if (_writeToConsole)
+                        _writeToConsole = ConsoleSink.WriteLine(consoleLine);
+                    if (_writer != null)
+                    {
+                        _writer.WriteLine(fileTimeLine);
+                        _writer.WriteLine(fileMessageLine);
                 }
             }
         }

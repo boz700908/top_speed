@@ -1,0 +1,123 @@
+using System;
+using TopSpeed.Protocol;
+
+namespace TopSpeed.Server.Protocol
+{
+    internal static partial class PacketSerializer
+    {
+        public static bool TryReadRoomCreate(byte[] data, out PacketRoomCreate packet)
+        {
+            packet = new PacketRoomCreate();
+            if (data.Length < 2 + ProtocolConstants.MaxRoomNameLength + 1 + 1)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.RoomName = reader.ReadFixedString(ProtocolConstants.MaxRoomNameLength);
+            packet.RoomType = (GameRoomType)reader.ReadByte();
+            packet.PlayersToStart = reader.ReadByte();
+            return true;
+        }
+
+        public static bool TryReadRoomJoin(byte[] data, out PacketRoomJoin packet)
+        {
+            packet = new PacketRoomJoin();
+            if (data.Length < 2 + 4)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.RoomId = reader.ReadUInt32();
+            return true;
+        }
+
+        public static bool TryReadRoomGetRequest(byte[] data, out PacketRoomGetRequest packet)
+        {
+            packet = new PacketRoomGetRequest();
+            if (data.Length < 2 + 4)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.RoomId = reader.ReadUInt32();
+            return true;
+        }
+
+        public static bool TryReadRoomSetTrack(byte[] data, out PacketRoomSetTrack packet)
+        {
+            packet = new PacketRoomSetTrack();
+            if (data.Length < 2 + 12)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.TrackName = reader.ReadFixedString(12);
+            return true;
+        }
+
+        public static bool TryReadRoomSetLaps(byte[] data, out PacketRoomSetLaps packet)
+        {
+            packet = new PacketRoomSetLaps();
+            if (data.Length < 2 + 1)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.Laps = reader.ReadByte();
+            return true;
+        }
+
+        public static bool TryReadRoomSetPlayersToStart(byte[] data, out PacketRoomSetPlayersToStart packet)
+        {
+            packet = new PacketRoomSetPlayersToStart();
+            if (data.Length < 2 + 1)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.PlayersToStart = reader.ReadByte();
+            return true;
+        }
+
+        public static bool TryReadRoomPlayerReady(byte[] data, out PacketRoomPlayerReady packet)
+        {
+            packet = new PacketRoomPlayerReady();
+            if (data.Length < 2 + 1 + 1)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.Car = (CarType)reader.ReadByte();
+            packet.AutomaticTransmission = reader.ReadBool();
+            return true;
+        }
+
+        public static bool TryReadRoomEvent(byte[] data, out PacketRoomEvent packet)
+        {
+            packet = new PacketRoomEvent();
+            if (data.Length < 2 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 12 + 1 + ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength)
+                return false;
+            var reader = new PacketReader(data);
+            reader.ReadByte();
+            reader.ReadByte();
+            packet.RoomId = reader.ReadUInt32();
+            packet.RoomVersion = reader.ReadUInt32();
+            packet.Kind = (RoomEventKind)reader.ReadByte();
+            packet.HostPlayerId = reader.ReadUInt32();
+            packet.RoomType = (GameRoomType)reader.ReadByte();
+            packet.PlayerCount = reader.ReadByte();
+            packet.PlayersToStart = reader.ReadByte();
+            packet.RaceStarted = reader.ReadBool();
+            packet.PreparingRace = reader.ReadBool();
+            packet.TrackName = reader.ReadFixedString(12);
+            packet.Laps = reader.ReadByte();
+            packet.RoomName = reader.ReadFixedString(ProtocolConstants.MaxRoomNameLength);
+            packet.SubjectPlayerId = reader.ReadUInt32();
+            packet.SubjectPlayerNumber = reader.ReadByte();
+            packet.SubjectPlayerState = (PlayerState)reader.ReadByte();
+            packet.SubjectPlayerName = reader.ReadFixedString(ProtocolConstants.MaxPlayerNameLength);
+            return true;
+        }
+
+    }
+}
