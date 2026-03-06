@@ -20,7 +20,7 @@ namespace TopSpeed.Protocol
         public const ushort ClientMaxYear = 2026;
         public const byte ClientMaxMonth = 3;
         public const byte ClientMaxDay = 6;
-        public const byte ClientMaxRevision = 1;
+        public const byte ClientMaxRevision = 2;
 
         // Server supported protocol range (explicit values by design).
         public const ushort ServerMinYear = 2026;
