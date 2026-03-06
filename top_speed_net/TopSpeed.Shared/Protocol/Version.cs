@@ -4,7 +4,7 @@ namespace TopSpeed.Protocol
 {
     public readonly struct ProtocolVer : IComparable<ProtocolVer>, IEquatable<ProtocolVer>
     {
-        public ProtocolVer(ushort year, byte month, byte day)
+        public ProtocolVer(ushort year, byte month, byte day, byte revision)
         {
             if (year < 2000 || year > 9999)
                 throw new ArgumentOutOfRangeException(nameof(year), "Year must be between 2000 and 9999.");
@@ -12,15 +12,19 @@ namespace TopSpeed.Protocol
                 throw new ArgumentOutOfRangeException(nameof(month), "Month must be between 1 and 12.");
             if (day < 1 || day > 31)
                 throw new ArgumentOutOfRangeException(nameof(day), "Day must be between 1 and 31.");
+            if (revision < 1)
+                throw new ArgumentOutOfRangeException(nameof(revision), "Revision must be at least 1.");
 
             Year = year;
             Month = month;
             Day = day;
+            Revision = revision;
         }
 
         public ushort Year { get; }
         public byte Month { get; }
         public byte Day { get; }
+        public byte Revision { get; }
 
         public int CompareTo(ProtocolVer other)
         {
@@ -32,12 +36,16 @@ namespace TopSpeed.Protocol
             if (monthCompare != 0)
                 return monthCompare;
 
-            return Day.CompareTo(other.Day);
+            var dayCompare = Day.CompareTo(other.Day);
+            if (dayCompare != 0)
+                return dayCompare;
+
+            return Revision.CompareTo(other.Revision);
         }
 
         public bool Equals(ProtocolVer other)
         {
-            return Year == other.Year && Month == other.Month && Day == other.Day;
+            return Year == other.Year && Month == other.Month && Day == other.Day && Revision == other.Revision;
         }
 
         public override bool Equals(object? obj)
@@ -52,13 +60,19 @@ namespace TopSpeed.Protocol
                 var hash = (int)Year;
                 hash = (hash * 397) ^ Month;
                 hash = (hash * 397) ^ Day;
+                hash = (hash * 397) ^ Revision;
                 return hash;
             }
         }
 
         public override string ToString()
         {
-            return $"{Year}.{Month}.{Day}";
+            return $"{Year}.{Month}.{Day} (r{Revision})";
+        }
+
+        public string ToMachineString()
+        {
+            return $"{Year}.{Month}.{Day}.{Revision}";
         }
 
         public static bool operator <(ProtocolVer left, ProtocolVer right) => left.CompareTo(right) < 0;

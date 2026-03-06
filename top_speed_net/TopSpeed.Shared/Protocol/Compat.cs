@@ -39,19 +39,19 @@ namespace TopSpeed.Protocol
     public static class ProtocolProfile
     {
         public static readonly ProtocolVer Current =
-            CreateVersion(ProtocolVersionInfo.CurrentYear, ProtocolVersionInfo.CurrentMonth, ProtocolVersionInfo.CurrentDay);
+            CreateVersion(ProtocolVersionInfo.CurrentYear, ProtocolVersionInfo.CurrentMonth, ProtocolVersionInfo.CurrentDay, ProtocolVersionInfo.CurrentRevision);
 
         public static readonly ProtocolRange ClientSupported = new ProtocolRange(
-            CreateVersion(ProtocolVersionInfo.ClientMinYear, ProtocolVersionInfo.ClientMinMonth, ProtocolVersionInfo.ClientMinDay),
-            CreateVersion(ProtocolVersionInfo.ClientMaxYear, ProtocolVersionInfo.ClientMaxMonth, ProtocolVersionInfo.ClientMaxDay));
+            CreateVersion(ProtocolVersionInfo.ClientMinYear, ProtocolVersionInfo.ClientMinMonth, ProtocolVersionInfo.ClientMinDay, ProtocolVersionInfo.ClientMinRevision),
+            CreateVersion(ProtocolVersionInfo.ClientMaxYear, ProtocolVersionInfo.ClientMaxMonth, ProtocolVersionInfo.ClientMaxDay, ProtocolVersionInfo.ClientMaxRevision));
 
         public static readonly ProtocolRange ServerSupported = new ProtocolRange(
-            CreateVersion(ProtocolVersionInfo.ServerMinYear, ProtocolVersionInfo.ServerMinMonth, ProtocolVersionInfo.ServerMinDay),
-            CreateVersion(ProtocolVersionInfo.ServerMaxYear, ProtocolVersionInfo.ServerMaxMonth, ProtocolVersionInfo.ServerMaxDay));
+            CreateVersion(ProtocolVersionInfo.ServerMinYear, ProtocolVersionInfo.ServerMinMonth, ProtocolVersionInfo.ServerMinDay, ProtocolVersionInfo.ServerMinRevision),
+            CreateVersion(ProtocolVersionInfo.ServerMaxYear, ProtocolVersionInfo.ServerMaxMonth, ProtocolVersionInfo.ServerMaxDay, ProtocolVersionInfo.ServerMaxRevision));
 
-        private static ProtocolVer CreateVersion(ushort year, byte month, byte day)
+        private static ProtocolVer CreateVersion(ushort year, byte month, byte day, byte revision)
         {
-            return new ProtocolVer(year, month, day);
+            return new ProtocolVer(year, month, day, revision);
         }
     }
 }

@@ -110,7 +110,7 @@ namespace TopSpeed.Game
             var update = _pendingUpdateInfo;
             _updatePromptShown = true;
             var caption =
-                $"A new version of Top Speed was detected. Your current version is {UpdateConfig.CurrentVersion}. The new version is {update.VersionText}. Would you like to download the update?";
+                $"A new version of Top Speed was detected. Your current version is {UpdateConfig.CurrentVersion}. The new version is {update.Version}. Would you like to download the update?";
             var changeItems = new List<DialogItem>();
             var hasChanges = false;
             if (update.Changes != null)

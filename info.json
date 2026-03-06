@@ -1,6 +1,6 @@
 {
-  "version": "2026.3.6",
-  "serverVersion": "2026.3.2",
+  "version": "2026.3.6.1",
+  "serverVersion": "2026.3.2.1",
   "changes": [
     "Release packaging now uses versioned zip names.",
     "Updater integration checks this file to detect new versions.",

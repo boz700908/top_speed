@@ -7,7 +7,7 @@ namespace TopSpeed.Server.Protocol
         public static bool TryReadProtocolHello(byte[] data, out PacketProtocolHello packet)
         {
             packet = new PacketProtocolHello();
-            if (data.Length < 2 + 4 + 4 + 4)
+            if (data.Length < 2 + 5 + 5 + 5)
                 return false;
 
             try
@@ -29,7 +29,7 @@ namespace TopSpeed.Server.Protocol
 
         public static byte[] WriteProtocolWelcome(PacketProtocolWelcome packet)
         {
-            var buffer = WritePacketHeader(Command.ProtocolWelcome, 1 + 4 + 4 + 4 + ProtocolConstants.MaxProtocolDetailsLength);
+            var buffer = WritePacketHeader(Command.ProtocolWelcome, 1 + 5 + 5 + 5 + ProtocolConstants.MaxProtocolDetailsLength);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
             writer.WriteByte((byte)Command.ProtocolWelcome);
@@ -46,7 +46,8 @@ namespace TopSpeed.Server.Protocol
             var year = reader.ReadUInt16();
             var month = reader.ReadByte();
             var day = reader.ReadByte();
-            return new ProtocolVer(year, month, day);
+            var revision = reader.ReadByte();
+            return new ProtocolVer(year, month, day, revision);
         }
 
         private static void WriteProtocolVer(ref PacketWriter writer, ProtocolVer version)
@@ -54,6 +55,7 @@ namespace TopSpeed.Server.Protocol
             writer.WriteUInt16(version.Year);
             writer.WriteByte(version.Month);
             writer.WriteByte(version.Day);
+            writer.WriteByte(version.Revision);
         }
     }
 }
