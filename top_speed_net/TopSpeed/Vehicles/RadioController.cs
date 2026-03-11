@@ -17,6 +17,7 @@ namespace TopSpeed.Vehicles
         private string? _ownedTempFile;
         private uint _mediaId;
         private int _volumePercent = 100;
+        private bool _loopPlayback = true;
 
         public VehicleRadioController(AudioManager audio)
         {
@@ -29,6 +30,7 @@ namespace TopSpeed.Vehicles
         public bool DesiredPlaying => _desiredPlaying;
         public string? MediaPath => _mediaPath;
         public int VolumePercent => _volumePercent;
+        public bool LoopPlayback => _loopPlayback;
 
         public void SetVolumePercent(int volumePercent)
         {
@@ -39,6 +41,16 @@ namespace TopSpeed.Vehicles
 
             _volumePercent = volumePercent;
             _source?.SetVolumePercent(_volumePercent);
+        }
+
+        public void SetLoopPlayback(bool loopPlayback)
+        {
+            _loopPlayback = loopPlayback;
+            if (_source == null || !_desiredPlaying || _pausedByGame || !_source.IsPlaying)
+                return;
+
+            _source.Stop();
+            _source.Play(loop: _loopPlayback);
         }
 
         public bool TryLoadFromFile(string path, uint mediaId, bool preservePlaybackState, out string error)
@@ -68,7 +80,7 @@ namespace TopSpeed.Vehicles
                 _mediaId = mediaId;
                 _desiredPlaying = wasPlaying;
                 if (_desiredPlaying && !_pausedByGame)
-                    _source.Play(loop: true);
+                    _source.Play(loop: _loopPlayback);
                 return true;
             }
             catch (IOException ex)
@@ -169,7 +181,7 @@ namespace TopSpeed.Vehicles
             if (playing)
             {
                 if (!_source.IsPlaying)
-                    _source.Play(loop: true);
+                    _source.Play(loop: _loopPlayback);
             }
             else if (_source.IsPlaying)
             {
@@ -193,7 +205,7 @@ namespace TopSpeed.Vehicles
         {
             _pausedByGame = false;
             if (_source != null && _desiredPlaying && !_source.IsPlaying)
-                _source.Play(loop: true);
+                _source.Play(loop: _loopPlayback);
         }
 
         public void ClearMedia()

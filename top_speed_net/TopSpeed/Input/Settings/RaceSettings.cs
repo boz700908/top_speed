@@ -81,6 +81,8 @@ namespace TopSpeed.Input
         public string MenuSoundPreset { get; set; } = "1";
         public bool MenuNavigatePanning { get; set; }
         public bool AutoCheckUpdates { get; set; }
+        public string RadioLastFolder { get; set; } = string.Empty;
+        public bool RadioShuffle { get; set; }
         public List<SavedServerEntry> SavedServers { get; set; } = new List<SavedServerEntry>();
 
         public bool UseJoystick
@@ -161,6 +163,8 @@ namespace TopSpeed.Input
             MenuSoundPreset = "1";
             MenuNavigatePanning = false;
             AutoCheckUpdates = true;
+            RadioLastFolder = string.Empty;
+            RadioShuffle = false;
             SavedServers = new List<SavedServerEntry>();
         }
 

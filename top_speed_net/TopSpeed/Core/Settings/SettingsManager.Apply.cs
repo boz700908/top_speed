@@ -40,6 +40,9 @@ namespace TopSpeed.Core.Settings
                 issues.Add(new SettingsIssue(SettingsIssueSeverity.Warning, "accessibility", "The accessibility section is missing. Defaults were used for accessibility settings."));
             else
                 ApplyAccessibility(settings, document.Accessibility, issues);
+
+            if (document.Radio != null)
+                ApplyRadio(settings, document.Radio, issues);
         }
 
         private static void ApplyAudio(RaceSettings settings, SettingsAudioDocument audio, List<SettingsIssue> issues)
@@ -311,6 +314,15 @@ namespace TopSpeed.Core.Settings
             {
                 issues.Add(new SettingsIssue(SettingsIssueSeverity.Warning, "accessibility.screenReaderRateMs", "Screen reader rate is not a valid number and was reset to default."));
             }
+        }
+
+        private static void ApplyRadio(RaceSettings settings, SettingsRadioDocument radio, List<SettingsIssue> issues)
+        {
+            if (radio.LastFolder != null)
+                settings.RadioLastFolder = radio.LastFolder.Trim();
+
+            if (radio.ShuffleEnabled.HasValue)
+                settings.RadioShuffle = radio.ShuffleEnabled.Value;
         }
     }
 }

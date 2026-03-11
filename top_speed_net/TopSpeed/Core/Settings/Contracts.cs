@@ -29,6 +29,9 @@ namespace TopSpeed.Core.Settings
 
         [DataMember(Name = "accessibility")]
         public SettingsAccessibilityDocument? Accessibility { get; set; }
+
+        [DataMember(Name = "radio")]
+        public SettingsRadioDocument? Radio { get; set; }
     }
 
     [DataContract]
@@ -211,5 +214,15 @@ namespace TopSpeed.Core.Settings
     {
         [DataMember(Name = "screenReaderRateMs")]
         public decimal? ScreenReaderRateMs { get; set; }
+    }
+
+    [DataContract]
+    internal sealed class SettingsRadioDocument
+    {
+        [DataMember(Name = "lastFolder")]
+        public string? LastFolder { get; set; }
+
+        [DataMember(Name = "shuffleEnabled")]
+        public bool? ShuffleEnabled { get; set; }
     }
 }

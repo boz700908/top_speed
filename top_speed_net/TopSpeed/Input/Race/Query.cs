@@ -84,11 +84,21 @@ namespace TopSpeed.Input
 
         public bool GetOpenRadioMediaRequest() => WasPressed(Key.O);
 
+        public bool GetOpenRadioFolderRequest() => WasPressed(Key.F);
+
         public bool GetToggleRadioPlaybackRequest() => WasPressed(Key.P);
 
         public bool GetRadioVolumeUpRequest() => WasPressed(Key.Up);
 
         public bool GetRadioVolumeDownRequest() => WasPressed(Key.Down);
+
+        public bool GetRadioNextTrackRequest() => WasPressed(Key.PageDown);
+
+        public bool GetRadioPreviousTrackRequest() => WasPressed(Key.PageUp);
+
+        public bool GetRadioToggleShuffleRequest() => WasPressed(Key.S);
+
+        public bool GetRadioToggleLoopRequest() => WasPressed(Key.L);
 
         private bool WasPressed(Key key)
         {

@@ -22,7 +22,8 @@ namespace TopSpeed.Core.Settings
             new KeyValuePair<string, string>("singleRaceCustomVehicles", "race.singleRaceCustomVehicles"),
             new KeyValuePair<string, string>("usageHints", "ui.usageHints"),
             new KeyValuePair<string, string>("menuWrapNavigation", "ui.menuWrapNavigation"),
-            new KeyValuePair<string, string>("menuNavigatePanning", "ui.menuNavigatePanning")
+            new KeyValuePair<string, string>("menuNavigatePanning", "ui.menuNavigatePanning"),
+            new KeyValuePair<string, string>("shuffleEnabled", "radio.shuffleEnabled")
         };
 
         private const string SettingsFileName = "settings.json";

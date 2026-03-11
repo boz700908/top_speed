@@ -258,6 +258,11 @@ namespace TopSpeed.Core.Settings
                 Accessibility = new SettingsAccessibilityDocument
                 {
                     ScreenReaderRateMs = Round3Decimal(settings.ScreenReaderRateMs)
+                },
+                Radio = new SettingsRadioDocument
+                {
+                    LastFolder = settings.RadioLastFolder,
+                    ShuffleEnabled = settings.RadioShuffle
                 }
             };
         }
