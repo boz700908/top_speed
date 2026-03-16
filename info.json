@@ -2,9 +2,7 @@
   "version": "2026.3.16.1",
   "serverVersion": "2026.3.11.4",
   "changes": [
-    "High-speed steering is now far more controlled, so quick left or right taps no longer cause sudden spin-outs.",
-    "Lane changes feel smoother at racing speeds while still preserving responsive directional movement.",
-    "Overall driving feel is calmer and easier to trust, especially on fast cars and motorcycles."
+    "High-speed steering is now far more controlled, so quick left or right taps no longer cause sudden spin-outs."
   ],
   "serverChanges": [
     "Added server support for race-preparation withdrawal, allowing a player to skip the current prep round without leaving the room.",
