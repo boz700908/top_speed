@@ -1,6 +1,6 @@
 {
   "version": "2026.3.17.1",
-  "serverVersion": "2026.3.17.1",
+  "serverVersion": "2026.3.17.2",
   "changes": [
     "Clients now carry a disconnect reason from the server. This is used when the host requests to shutdown the server.",
     "Add the ability to remap menu shortcuts, for example those are found in certain menus, such as online mode. You can find all shortcuts in settings, > controls, > map menu shortcuts."

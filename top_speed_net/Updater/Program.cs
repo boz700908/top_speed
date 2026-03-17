@@ -129,17 +129,65 @@ namespace TopSpeed.Updater
 
         private static void StartGame(UpdaterOptions options)
         {
-            var gamePath = Path.Combine(options.TargetDir, options.GameExeName);
-            if (!File.Exists(gamePath))
-                throw new FileNotFoundException("Updated game executable was not found.", gamePath);
+            var gamePath = ResolveGamePath(options.TargetDir, options.GameExeName);
+            if (string.IsNullOrWhiteSpace(gamePath) || !File.Exists(gamePath))
+                throw new FileNotFoundException("Updated game executable was not found.", Path.Combine(options.TargetDir, options.GameExeName));
+
+            var workingDirectory = Path.GetDirectoryName(gamePath);
+            if (string.IsNullOrWhiteSpace(workingDirectory))
+                workingDirectory = options.TargetDir;
 
             Process.Start(new ProcessStartInfo
             {
                 FileName = gamePath,
-                WorkingDirectory = options.TargetDir,
-                UseShellExecute = false
+                WorkingDirectory = workingDirectory,
+                UseShellExecute = true
             });
         }
+
+        private static string ResolveGamePath(string targetDir, string gameExeName)
+        {
+            var directPath = Path.Combine(targetDir, gameExeName);
+            if (File.Exists(directPath))
+                return directPath;
+
+            var matches = Directory.GetFiles(targetDir, gameExeName, SearchOption.AllDirectories);
+            if (matches.Length == 0)
+                return directPath;
+            if (matches.Length == 1)
+                return matches[0];
+
+            var bestMatch = matches[0];
+            var bestDepth = GetPathDepth(bestMatch);
+            for (var i = 1; i < matches.Length; i++)
+            {
+                var candidate = matches[i];
+                var candidateDepth = GetPathDepth(candidate);
+                if (candidateDepth < bestDepth)
+                {
+                    bestMatch = candidate;
+                    bestDepth = candidateDepth;
+                }
+            }
+
+            return bestMatch;
+        }
+
+        private static int GetPathDepth(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return int.MaxValue;
+
+            var fullPath = Path.GetFullPath(path);
+            var root = Path.GetPathRoot(fullPath) ?? string.Empty;
+            var relative = fullPath.Substring(root.Length);
+            if (relative.Length == 0)
+                return 0;
+
+            var segments = relative.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+            return segments.Length;
+        }
+
 
         private sealed class UpdaterOptions
         {

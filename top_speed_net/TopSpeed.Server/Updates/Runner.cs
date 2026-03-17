@@ -114,16 +114,23 @@ namespace TopSpeed.Server.Updates
             try
             {
                 var process = Process.GetCurrentProcess();
-                var args =
-                    $"--pid {process.Id} --zip \"{zipPath}\" --dir \"{root}\" --game \"{_config.ServerExeName}\" --skip \"{_config.UpdaterExeName}\"";
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = updaterPath,
-                    Arguments = args,
                     WorkingDirectory = root,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
+                startInfo.ArgumentList.Add("--pid");
+                startInfo.ArgumentList.Add(process.Id.ToString());
+                startInfo.ArgumentList.Add("--zip");
+                startInfo.ArgumentList.Add(zipPath);
+                startInfo.ArgumentList.Add("--dir");
+                startInfo.ArgumentList.Add(root);
+                startInfo.ArgumentList.Add("--game");
+                startInfo.ArgumentList.Add(_config.ServerExeName);
+                startInfo.ArgumentList.Add("--skip");
+                startInfo.ArgumentList.Add(_config.UpdaterExeName);
                 Process.Start(startInfo);
                 return true;
             }
