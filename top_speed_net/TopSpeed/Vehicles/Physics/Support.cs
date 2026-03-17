@@ -33,7 +33,7 @@ namespace TopSpeed.Vehicles
         private float ResolveForwardSafetySpeedKph()
         {
             var referenceTopSpeed = Math.Max(1f, _topSpeed);
-            var scaledSafetySpeed = referenceTopSpeed * 1.5f;
+            var scaledSafetySpeed = referenceTopSpeed * 1.08f;
             var safetySpeed = Math.Min(550f, scaledSafetySpeed);
             return Math.Max(5f, safetySpeed);
         }
