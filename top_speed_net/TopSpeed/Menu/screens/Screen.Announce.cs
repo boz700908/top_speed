@@ -7,6 +7,21 @@ namespace TopSpeed.Menu
 {
     internal sealed partial class MenuScreen
     {
+        public bool TrySpeakCurrentHintOnDemand()
+        {
+            if (_index == NoSelection)
+                return false;
+
+            var item = _items[_index];
+            var hint = item.GetHintText();
+            if (string.IsNullOrWhiteSpace(hint))
+                return false;
+
+            CancelHint();
+            _speech.Speak(hint!, SpeechService.SpeakFlag.Interruptable);
+            return true;
+        }
+
         public void AnnounceSelection()
         {
             AnnounceCurrent(!_justEntered);

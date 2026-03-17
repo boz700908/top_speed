@@ -32,13 +32,27 @@ namespace TopSpeed.Audio
             {
                 UseHrtf = useHrtf
             };
+
+            var outputConfig = new AudioOutputConfig
+            {
+                Name = "main"
+            };
+
             if (autoDetectDeviceFormat)
             {
                 config.Channels = 0;
                 config.SampleRate = 0;
+                outputConfig.Channels = 0;
+                outputConfig.SampleRate = 0;
             }
+            else
+            {
+                outputConfig.Channels = config.Channels;
+                outputConfig.SampleRate = config.SampleRate;
+            }
+
             _system = new AudioSystem(config);
-            _output = _system.CreateOutput(new AudioOutputConfig { Name = "main", Channels = 0, SampleRate = 0 });
+            _output = _system.CreateOutput(outputConfig);
         }
 
         public AudioSourceHandle CreateSource(string path, bool streamFromDisk = true, bool useHrtf = false)

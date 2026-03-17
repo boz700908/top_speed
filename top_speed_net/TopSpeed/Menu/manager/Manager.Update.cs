@@ -1,4 +1,5 @@
 using System;
+using SharpDX.DirectInput;
 using TopSpeed.Input;
 using TopSpeed.Shortcuts;
 
@@ -12,6 +13,9 @@ namespace TopSpeed.Menu
                 return MenuAction.None;
 
             var current = _stack.Peek();
+            if (input.WasPressed(Key.Space) && current.TrySpeakCurrentHintOnDemand())
+                return MenuAction.None;
+
             if (TryHandleShortcut(input, current))
                 return MenuAction.None;
 

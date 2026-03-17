@@ -1,7 +1,9 @@
 {
-  "version": "2026.3.17.3",
+  "version": "2026.3.17.4",
   "serverVersion": "2026.3.17.2",
   "changes": [
+    "Added the ability to manually read item usage hints for an item by pressing space.",
+    "Fixed an error with Steam Audio initialization where it was using a hard-coded sample-rate, which prevented the game from working on devices with different sample-rate other than 48k Hz.",
     "Motorcycles no longer have crazy top speeds.",
     "Fixed a regression for bots that was introduced from an earlier change.",
     "Clients now carry a disconnect reason from the server. This is used when the host requests to shutdown the server.",

@@ -121,6 +121,8 @@ namespace TS.Audio
                 if (resolved == 0)
                     resolved = ResolveAutoSampleRate();
                 if (resolved == 0)
+                    resolved = _config.SampleRate;
+                if (resolved == 0)
                     resolved = 44100;
                 _config.SampleRate = resolved;
             }
@@ -134,6 +136,7 @@ namespace TS.Audio
             {
                 throw new InvalidOperationException("Failed to initialize audio engine: " + engineInit);
             }
+            _config.SampleRate = ResolveRuntimeSampleRate(autoSampleRate);
 
             unsafe
             {
@@ -431,6 +434,29 @@ namespace TS.Audio
                     return 0;
                 return device->sampleRate;
             }
+        }
+
+        private uint ResolveRuntimeSampleRate(bool autoSampleRate)
+        {
+            var engineSampleRate = _engine.GetSampleRate();
+            if (engineSampleRate > 0)
+                return engineSampleRate;
+
+            if (!autoSampleRate && _config.SampleRate > 0)
+                return _config.SampleRate;
+
+            var deviceSampleRate = GetDeviceSampleRate();
+            if (deviceSampleRate > 0)
+                return deviceSampleRate;
+
+            var detectedSampleRate = ResolveAutoSampleRate();
+            if (detectedSampleRate > 0)
+                return detectedSampleRate;
+
+            if (_config.SampleRate > 0)
+                return _config.SampleRate;
+
+            return 44100;
         }
 
         private static void OnDeviceData(ma_device_ptr pDevice, IntPtr pOutput, IntPtr pInput, uint frameCount)
