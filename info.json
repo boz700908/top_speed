@@ -1,12 +1,14 @@
 {
-  "version": "2026.3.18.1",
-  "serverVersion": "2026.3.18.1",
+  "version": "2026.3.18.2",
+  "serverVersion": "2026.3.18.2",
   "changes": [
+    "Fixed some string formatting changes.",
     "Add a full localization system to the game.",
     "Add the ability to choose the language in the settings.",
     "Add a startup wizard when you run the game for the first time."
   ],
   "serverChanges": [
+    "Fixed some formatting changes.",
     "Add the ability to choose the language for the server. Important note: all server messages will follow that language even when sent to clients, messages such as room creation, chat messages and others will also follow if they are translated."
   ]
 }

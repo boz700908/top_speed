@@ -148,7 +148,7 @@ namespace TopSpeed.Menu
             {
                 var definition = action;
                 items.Add(new MenuItem(
-                    () => definition.Label + ": " + _mapping.FormatMappingValue(definition.Action, mode),
+                    () => $"{definition.Label}: {_mapping.FormatMappingValue(definition.Action, mode)}",
                     MenuAction.None,
                     onActivate: () => _mapping.BeginMapping(mode, definition.Action)));
             }
@@ -206,7 +206,7 @@ namespace TopSpeed.Menu
                 var displayName = binding.DisplayName;
                 var description = binding.Description;
                 items.Add(new MenuItem(
-                    () => displayName + ": " + GetShortcutKeyText(actionId, binding.Key),
+                    () => $"{displayName}: {GetShortcutKeyText(actionId, binding.Key)}",
                     MenuAction.None,
                     onActivate: () => _mapping.BeginShortcutMapping(_activeShortcutGroupId, actionId, displayName),
                     hint: description));

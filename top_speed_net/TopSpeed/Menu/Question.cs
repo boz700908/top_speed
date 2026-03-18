@@ -126,10 +126,7 @@ namespace TopSpeed.Menu
             }
 
             _menu.UpdateItems(MenuId, items);
-            var announcement = LocalizationService.Format(
-                LocalizationService.Mark("{0} dialog {1}"),
-                question.Title,
-                question.Caption);
+            var announcement = DialogAnnouncement.Compose(question.Title, question.Caption);
             _menu.Push(MenuId, announcement, defaultIndex);
         }
 

@@ -62,7 +62,7 @@ namespace TopSpeed.Localization
             return resolvedTemplate;
         }
 
-        public static string Format(string? context, string? template, params object[]? arguments)
+        public static string FormatWithContext(string? context, string? template, params object[]? arguments)
         {
             var sourceTemplate = template ?? string.Empty;
             if (string.IsNullOrWhiteSpace(sourceTemplate))

@@ -109,9 +109,9 @@ namespace TopSpeed.Core.Multiplayer
             var trackName = TryGetTrackDisplay(_state.Rooms.RoomOptionsTrackName, out var display)
                 ? display
                 : _state.Rooms.RoomOptionsTrackName;
-            return LocalizationService.Translate(LocalizationService.Mark("Track, currently "))
-                   + trackName
-                   + ".";
+            return LocalizationService.Format(
+                LocalizationService.Mark("Track, currently {0}."),
+                trackName);
         }
 
         private int GetRoomOptionsLapsIndex()

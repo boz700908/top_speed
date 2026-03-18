@@ -28,7 +28,9 @@ namespace TopSpeed.Server.Network
             {
                 SendProtocolMessageToRoom(
                     room,
-                    FormatBotJoinName(bot) + LocalizationService.Translate(LocalizationService.Mark(" is ready.")));
+                    LocalizationService.Format(
+                        LocalizationService.Mark("{0} is ready."),
+                        FormatBotJoinName(bot)));
             }
         }
 

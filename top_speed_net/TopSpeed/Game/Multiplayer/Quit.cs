@@ -68,9 +68,9 @@ namespace TopSpeed.Game
                 return true;
 
             _speech.Speak(
-                LocalizationService.Translate(LocalizationService.Mark("Failed to send "))
-                + action
-                + LocalizationService.Translate(LocalizationService.Mark(". Please check your connection.")));
+                LocalizationService.Format(
+                    LocalizationService.Mark("Failed to send {0}. Please check your connection."),
+                    action));
             return false;
         }
     }

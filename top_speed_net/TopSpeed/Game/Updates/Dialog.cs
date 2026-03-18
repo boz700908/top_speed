@@ -60,10 +60,10 @@ namespace TopSpeed.Game
                 return LocalizationService.Translate(LocalizationService.Mark("Unknown"));
             var units = new[]
             {
-                "B",
-                "KB",
-                "MB",
-                "GB"
+                LocalizationService.Mark("B"),
+                LocalizationService.Mark("KB"),
+                LocalizationService.Mark("MB"),
+                LocalizationService.Mark("GB")
             };
             var index = 0;
             var value = (double)bytes;
@@ -73,7 +73,10 @@ namespace TopSpeed.Game
                 index++;
             }
 
-            return value.ToString("0.##", CultureInfo.InvariantCulture) + " " + units[index];
+            return LocalizationService.Format(
+                LocalizationService.Mark("{0} {1}"),
+                value.ToString("0.##", CultureInfo.InvariantCulture),
+                LocalizationService.Translate(units[index]));
         }
     }
 }

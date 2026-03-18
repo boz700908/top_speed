@@ -45,7 +45,9 @@ namespace TopSpeed.Core.Multiplayer
                     new MenuView(
                         OnlinePlayersScreenId,
                         items,
-                        players.Length + " " + LocalizationService.Translate(LocalizationService.Mark("people are connected.")))
+                        LocalizationService.Format(
+                            LocalizationService.Mark("{0} people are connected."),
+                            players.Length))
                 },
                 OnlinePlayersScreenId);
         }
@@ -53,7 +55,7 @@ namespace TopSpeed.Core.Multiplayer
         private static string FormatOnlinePlayerLabel(OnlinePlayerInfo player)
         {
             var name = string.IsNullOrWhiteSpace(player.Name)
-                ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
+                ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), player.PlayerNumber + 1)
                 : player.Name;
             var roomName = string.IsNullOrWhiteSpace(player.RoomName)
                 ? LocalizationService.Translate(MainRoomName)
@@ -64,7 +66,7 @@ namespace TopSpeed.Core.Multiplayer
                 OnlinePresenceState.Racing => LocalizationService.Translate(LocalizationService.Mark("racing")),
                 _ => LocalizationService.Translate(LocalizationService.Mark("available"))
             };
-            return name + ", " + state + ": " + roomName;
+            return $"{name}, {state}: {roomName}";
         }
     }
 }

@@ -33,7 +33,7 @@ namespace TopSpeed.Race.Panels
 
             _radio.SetVolumePercent(target);
             if (target != previous)
-                _announce(target + "%");
+                _announce(LocalizationService.Format(LocalizationService.Mark("{0}%"), target));
             PlayFeedback(feedbackSound);
         }
 

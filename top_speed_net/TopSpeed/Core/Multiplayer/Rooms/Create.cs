@@ -37,8 +37,9 @@ namespace TopSpeed.Core.Multiplayer
                 new MenuItem(
                     () => string.IsNullOrWhiteSpace(_state.Rooms.CreateRoomName)
                         ? LocalizationService.Mark("Room name, currently automatic")
-                        : LocalizationService.Translate(LocalizationService.Mark("Room name, currently "))
-                          + _state.Rooms.CreateRoomName,
+                        : LocalizationService.Format(
+                            LocalizationService.Mark("Room name, currently {0}"),
+                            _state.Rooms.CreateRoomName),
                     MenuAction.None,
                     onActivate: UpdateCreateRoomName,
                     hint: LocalizationService.Mark("Press ENTER to enter a room name. Leave it empty to use an automatic name.")),
@@ -84,9 +85,9 @@ namespace TopSpeed.Core.Multiplayer
                     }
 
                     _speech.Speak(
-                        LocalizationService.Translate(LocalizationService.Mark("Room name set to "))
-                        + _state.Rooms.CreateRoomName
-                        + ".");
+                        LocalizationService.Format(
+                            LocalizationService.Mark("Room name set to {0}."),
+                            _state.Rooms.CreateRoomName));
                 });
         }
 

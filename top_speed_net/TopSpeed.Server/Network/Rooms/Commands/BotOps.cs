@@ -96,9 +96,9 @@ namespace TopSpeed.Server.Network
             SendProtocolMessage(
                 player,
                 ProtocolMessageCode.Ok,
-                LocalizationService.Translate(LocalizationService.Mark("Removed bot "))
-                + bot.Name
-                + ".");
+                LocalizationService.Format(
+                    LocalizationService.Mark("Removed bot {0}."),
+                    bot.Name));
             if (room.RaceStarted && CountActiveRaceParticipants(room) == 0)
                 StopRace(room);
             if (room.PreparingRace)

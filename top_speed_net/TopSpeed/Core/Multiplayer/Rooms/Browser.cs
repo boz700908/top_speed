@@ -68,19 +68,22 @@ namespace TopSpeed.Core.Multiplayer
                 _ => LocalizationService.Translate(LocalizationService.Mark("race with bots"))
             };
 
-            var label = typeText;
-            if (!string.IsNullOrWhiteSpace(room.RoomName))
-                label += ", " + room.RoomName;
-            label += LocalizationService.Translate(LocalizationService.Mark(" game with "))
-                     + room.PlayerCount
-                     + LocalizationService.Translate(LocalizationService.Mark(" people"));
-            label += LocalizationService.Translate(LocalizationService.Mark(", maximum "))
-                     + room.PlayersToStart
-                     + LocalizationService.Translate(LocalizationService.Mark(" players"));
+            var label = string.IsNullOrWhiteSpace(room.RoomName)
+                ? LocalizationService.Format(
+                    LocalizationService.Mark("{0} game with {1} people, maximum {2} players"),
+                    typeText,
+                    room.PlayerCount,
+                    room.PlayersToStart)
+                : LocalizationService.Format(
+                    LocalizationService.Mark("{0}, {1} game with {2} people, maximum {3} players"),
+                    typeText,
+                    room.RoomName,
+                    room.PlayerCount,
+                    room.PlayersToStart);
             if (room.RaceStarted)
-                label += LocalizationService.Mark(", in progress");
+                label = LocalizationService.Format(LocalizationService.Mark("{0}, in progress"), label);
             else if (room.PlayerCount >= room.PlayersToStart)
-                label += LocalizationService.Mark(", room is full");
+                label = LocalizationService.Format(LocalizationService.Mark("{0}, room is full"), label);
             return label;
         }
     }

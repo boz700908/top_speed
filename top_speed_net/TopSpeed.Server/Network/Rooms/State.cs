@@ -140,7 +140,7 @@ namespace TopSpeed.Server.Network
                     PlayerNumber = p.PlayerNumber,
                     State = p.State,
                     Name = string.IsNullOrWhiteSpace(p.Name)
-                        ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (p.PlayerNumber + 1)
+                        ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), p.PlayerNumber + 1)
                         : p.Name
                 })
                 .Concat(room.Bots.Select(bot => new PacketRoomPlayer

@@ -25,10 +25,13 @@ namespace TopSpeed.Server.Localization
             get
             {
                 if (IsOriginal)
-                    return "English (Original)";
+                    return LocalizationService.Translate(LocalizationService.Mark("English (Original)"));
                 if (string.Equals(EnglishName, NativeName, StringComparison.CurrentCultureIgnoreCase))
                     return EnglishName;
-                return EnglishName + " (" + NativeName + ")";
+                return LocalizationService.Format(
+                    LocalizationService.Mark("{0} ({1})"),
+                    EnglishName,
+                    NativeName);
             }
         }
     }

@@ -17,7 +17,10 @@ namespace TopSpeed.Core.Multiplayer
             {
                 var index = i - min;
                 var unit = i == 1 ? singularUnit : pluralUnit;
-                options[index] = i + " " + LocalizationService.Translate(unit);
+                options[index] = LocalizationService.Format(
+                    LocalizationService.Mark("{0} {1}"),
+                    i,
+                    LocalizationService.Translate(unit));
             }
 
             return options;
@@ -49,9 +52,9 @@ namespace TopSpeed.Core.Multiplayer
                 return true;
 
             _speech.Speak(
-                LocalizationService.Translate(LocalizationService.Mark("Failed to send "))
-                + action
-                + LocalizationService.Translate(LocalizationService.Mark(". Please check your connection.")));
+                LocalizationService.Format(
+                    LocalizationService.Mark("Failed to send {0}. Please check your connection."),
+                    action));
             return false;
         }
     }

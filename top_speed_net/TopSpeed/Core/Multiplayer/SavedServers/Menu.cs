@@ -17,8 +17,8 @@ namespace TopSpeed.Core.Multiplayer
                 var index = i;
                 var server = servers[i];
                 var displayName = string.IsNullOrWhiteSpace(server.Name)
-                    ? server.Host + ":" + ResolveSavedServerPort(server)
-                    : server.Name + ", " + server.Host + ":" + ResolveSavedServerPort(server);
+                    ? $"{server.Host}:{ResolveSavedServerPort(server)}"
+                    : $"{server.Name}, {server.Host}:{ResolveSavedServerPort(server)}";
 
                 items.Add(new MenuItem(
                     displayName,

@@ -142,10 +142,10 @@ namespace TopSpeed.Core.Multiplayer
                 foreach (var player in players)
                 {
                     var name = string.IsNullOrWhiteSpace(player.Name)
-                        ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
+                        ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), player.PlayerNumber + 1)
                         : player.Name;
                     var label = player.PlayerId == _state.Rooms.CurrentRoom.HostPlayerId
-                        ? name + LocalizationService.Translate(LocalizationService.Mark(", host"))
+                        ? LocalizationService.Format(LocalizationService.Mark("{0}, host"), name)
                         : name;
                     items.Add(new MenuItem(label, MenuAction.None));
                 }

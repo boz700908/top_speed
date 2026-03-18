@@ -120,14 +120,7 @@ namespace TopSpeed.Menu
             }
 
             _menu.UpdateItems(MenuId, items);
-            var announcement = string.IsNullOrWhiteSpace(dialog.Caption)
-                ? LocalizationService.Format(
-                    LocalizationService.Mark("{0} dialog"),
-                    dialog.Title)
-                : LocalizationService.Format(
-                    LocalizationService.Mark("{0} dialog {1}"),
-                    dialog.Title,
-                    dialog.Caption);
+            var announcement = DialogAnnouncement.Compose(dialog.Title, dialog.Caption);
             _menu.Push(MenuId, announcement, firstChoiceIndex);
         }
 

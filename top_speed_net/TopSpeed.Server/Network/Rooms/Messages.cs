@@ -3,6 +3,7 @@ using System.Linq;
 using LiteNetLib;
 using TopSpeed.Bots;
 using TopSpeed.Data;
+using TopSpeed.Localization;
 using TopSpeed.Protocol;
 using TopSpeed.Server.Protocol;
 using TopSpeed.Server.Tracks;
@@ -55,9 +56,12 @@ namespace TopSpeed.Server.Network
                 return;
 
             var senderName = string.IsNullOrWhiteSpace(sender.Name)
-                ? $"Player {sender.PlayerNumber + 1}"
+                ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), sender.PlayerNumber + 1)
                 : sender.Name.Trim();
-            var formatted = $"{senderName} says: {trimmed}";
+            var formatted = LocalizationService.Format(
+                LocalizationService.Mark("{0} says: {1}"),
+                senderName,
+                trimmed);
 
             var payload = PacketSerializer.WriteProtocolMessage(new PacketProtocolMessage
             {
@@ -81,14 +85,17 @@ namespace TopSpeed.Server.Network
 
             if (!sender.RoomId.HasValue || !_rooms.TryGetValue(sender.RoomId.Value, out var room))
             {
-                SendProtocolMessage(sender, ProtocolMessageCode.NotInRoom, "You are not in a game room.");
+                SendProtocolMessage(sender, ProtocolMessageCode.NotInRoom, LocalizationService.Translate(LocalizationService.Mark("You are not in a game room.")));
                 return;
             }
 
             var senderName = string.IsNullOrWhiteSpace(sender.Name)
-                ? $"Player {sender.PlayerNumber + 1}"
+                ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), sender.PlayerNumber + 1)
                 : sender.Name.Trim();
-            var formatted = $"[room]: {senderName} says: {trimmed}";
+            var formatted = LocalizationService.Format(
+                LocalizationService.Mark("[room]: {0} says: {1}"),
+                senderName,
+                trimmed);
 
             var payload = PacketSerializer.WriteProtocolMessage(new PacketProtocolMessage
             {
@@ -110,7 +117,7 @@ namespace TopSpeed.Server.Network
         {
             if (!string.IsNullOrWhiteSpace(player.Name))
                 return player.Name;
-            return "A player";
+            return LocalizationService.Translate(LocalizationService.Mark("A player"));
         }
 
     }

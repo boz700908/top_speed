@@ -41,7 +41,7 @@ namespace TopSpeed.Core.Multiplayer
             foreach (var server in servers)
             {
                 var info = server;
-                var label = info.Address + ":" + info.Port;
+                var label = $"{info.Address}:{info.Port}";
                 items.Add(new MenuItem(label, MenuAction.None, onActivate: () => SelectDiscoveredServer(info), suppressPostActivateAnnouncement: true));
             }
 

@@ -16,7 +16,7 @@ namespace TopSpeed.Server.Network
         {
             var roomName = (packet.RoomName ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(roomName))
-                roomName = LocalizationService.Translate(LocalizationService.Mark("Game ")) + _nextRoomId;
+                roomName = LocalizationService.Format(LocalizationService.Mark("Game {0}"), _nextRoomId);
             if (roomName.Length > ProtocolConstants.MaxRoomNameLength)
                 roomName = roomName.Substring(0, ProtocolConstants.MaxRoomNameLength);
 
@@ -32,11 +32,10 @@ namespace TopSpeed.Server.Network
             SetTrack(room, room.TrackName);
             JoinRoom(player, room);
             EmitRoomLifecycleEvent(room, RoomEventKind.RoomCreated);
-            BroadcastLobbyAnnouncement(
-                DescribePlayer(player)
-                + LocalizationService.Translate(LocalizationService.Mark(" created game room "))
-                + room.Name
-                + ".");
+            BroadcastLobbyAnnouncement(LocalizationService.Format(
+                LocalizationService.Mark("{0} created game room {1}."),
+                DescribePlayer(player),
+                room.Name));
             _logger.Info(LocalizationService.Format(
                 LocalizationService.Mark("Room created: room={0} \"{1}\", host={2}, type={3}, playersToStart={4}."),
                 room.Id,
@@ -123,7 +122,9 @@ namespace TopSpeed.Server.Network
                 SendToRoomOnStream(room, PacketSerializer.WritePlayer(Command.PlayerDisconnected, player.Id, oldNumber), stream);
                 SendProtocolMessageToRoom(
                     room,
-                    leftName + LocalizationService.Translate(LocalizationService.Mark(" has left the game.")));
+                    LocalizationService.Format(
+                        LocalizationService.Mark("{0} has left the game."),
+                        leftName));
             }
 
             SendRoomState(player, null);
@@ -185,11 +186,11 @@ namespace TopSpeed.Server.Network
                 player.PlayerNumber,
                 player.State,
                 string.IsNullOrWhiteSpace(player.Name)
-                    ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
+                    ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), player.PlayerNumber + 1)
                     : player.Name);
 
             var joinedName = string.IsNullOrWhiteSpace(player.Name)
-                ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
+                ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), player.PlayerNumber + 1)
                 : player.Name;
             var joined = new PacketPlayerJoined { PlayerId = player.Id, PlayerNumber = player.PlayerNumber, Name = joinedName };
             SendToRoomExceptOnStream(room, player.Id, PacketSerializer.WritePlayerJoined(joined), PacketStream.Room);

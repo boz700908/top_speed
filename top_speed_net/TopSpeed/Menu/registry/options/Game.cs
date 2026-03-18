@@ -58,11 +58,9 @@ namespace TopSpeed.Menu
 
         private string BuildLanguageOptionText()
         {
-            var prefix = LocalizationService.Translate(LocalizationService.Mark("Language"));
-            if (string.IsNullOrWhiteSpace(prefix))
-                prefix = "Language";
-
-            return prefix + ": " + _settingsActions.GetLanguageName();
+            return LocalizationService.Format(
+                LocalizationService.Mark("Language: {0}"),
+                _settingsActions.GetLanguageName());
         }
 
         private MenuItem BuildMenuSoundPresetItem()
