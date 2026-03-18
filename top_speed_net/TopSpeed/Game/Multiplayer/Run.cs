@@ -100,7 +100,7 @@ namespace TopSpeed.Game
 
             if (_session != null)
             {
-                TrySendSession(_session.SendPlayerState(PlayerState.NotReady));
+                TrySendSession(_session.SendPlayerState(PlayerState.NotReady), LocalizationService.Mark("not-ready state"));
                 _state = AppState.Menu;
                 _multiplayerCoordinator.ShowMultiplayerMenuAfterRace();
             }

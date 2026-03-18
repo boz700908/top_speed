@@ -46,7 +46,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            if (!TrySend(session.SendRoomLeave()))
+            if (!TrySend(session.SendRoomLeave(), LocalizationService.Mark("room leave request")))
                 return;
             _speech.Speak(LocalizationService.Mark("Leaving game room."));
             _menu.ShowRoot(MultiplayerMenuKeys.Lobby);
@@ -67,7 +67,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomStartRace());
+            TrySend(session.SendRoomStartRace(), LocalizationService.Mark("race start request"));
         }
 
         private void AddBotToRoom()
@@ -85,7 +85,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomAddBot());
+            TrySend(session.SendRoomAddBot(), LocalizationService.Mark("add bot request"));
         }
 
         private void RemoveLastBotFromRoom()
@@ -103,7 +103,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomRemoveBot());
+            TrySend(session.SendRoomRemoveBot(), LocalizationService.Mark("remove bot request"));
         }
 
         private void SubmitLoadoutReady(bool automaticTransmission)
@@ -124,7 +124,7 @@ namespace TopSpeed.Core.Multiplayer
             var vehicleIndex = Math.Max(0, Math.Min(VehicleCatalog.VehicleCount - 1, _state.Rooms.PendingLoadoutVehicleIndex));
             var selectedCar = (CarType)vehicleIndex;
             _setLocalMultiplayerLoadout(vehicleIndex, automaticTransmission);
-            if (!TrySend(session.SendRoomPlayerReady(selectedCar, automaticTransmission)))
+            if (!TrySend(session.SendRoomPlayerReady(selectedCar, automaticTransmission), LocalizationService.Mark("ready state")))
                 return;
             _speech.Speak(LocalizationService.Mark("Ready. Waiting for other players."));
             _menu.ShowRoot(MultiplayerMenuKeys.RoomControls);
@@ -168,7 +168,7 @@ namespace TopSpeed.Core.Multiplayer
 
             if (_state.Rooms.CurrentRoom.PreparingRace)
             {
-                if (!TrySend(session.SendRoomPlayerWithdraw()))
+                if (!TrySend(session.SendRoomPlayerWithdraw(), LocalizationService.Mark("race preparation withdrawal")))
                     return;
                 _speech.Speak(LocalizationService.Mark("You left race preparation and returned to room controls."));
             }

@@ -26,7 +26,9 @@ namespace TopSpeed.Server.Network
         {
             foreach (var bot in room.Bots.OrderBy(b => b.PlayerNumber))
             {
-                SendProtocolMessageToRoom(room, LocalizationService.Format(LocalizationService.Mark("{0} is ready."), FormatBotJoinName(bot)));
+                SendProtocolMessageToRoom(
+                    room,
+                    FormatBotJoinName(bot) + LocalizationService.Translate(LocalizationService.Mark(" is ready.")));
             }
         }
 

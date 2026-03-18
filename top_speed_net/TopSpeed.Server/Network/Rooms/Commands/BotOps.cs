@@ -93,7 +93,12 @@ namespace TopSpeed.Server.Network
             TouchRoomVersion(room);
             EmitRoomParticipantEvent(room, RoomEventKind.BotRemoved, bot.Id, bot.PlayerNumber, bot.State, FormatBotDisplayName(bot));
             EmitRoomLifecycleEvent(room, RoomEventKind.RoomSummaryUpdated);
-            SendProtocolMessage(player, ProtocolMessageCode.Ok, LocalizationService.Format(LocalizationService.Mark("Removed bot {0}."), bot.Name));
+            SendProtocolMessage(
+                player,
+                ProtocolMessageCode.Ok,
+                LocalizationService.Translate(LocalizationService.Mark("Removed bot "))
+                + bot.Name
+                + ".");
             if (room.RaceStarted && CountActiveRaceParticipants(room) == 0)
                 StopRace(room);
             if (room.PreparingRace)

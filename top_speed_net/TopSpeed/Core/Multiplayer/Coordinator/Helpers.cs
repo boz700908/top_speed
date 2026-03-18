@@ -43,12 +43,15 @@ namespace TopSpeed.Core.Multiplayer
             return tracks.ToArray();
         }
 
-        private bool TrySend(bool sent)
+        private bool TrySend(bool sent, string action)
         {
             if (sent)
                 return true;
 
-            _speech.Speak(LocalizationService.Mark("Failed to send data. Please check your connection."));
+            _speech.Speak(
+                LocalizationService.Translate(LocalizationService.Mark("Failed to send "))
+                + action
+                + LocalizationService.Translate(LocalizationService.Mark(". Please check your connection.")));
             return false;
         }
     }

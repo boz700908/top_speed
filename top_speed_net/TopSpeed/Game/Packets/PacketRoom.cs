@@ -29,9 +29,11 @@ namespace TopSpeed.Game
                 if (joined.PlayerNumber != session.PlayerNumber)
                 {
                     var name = string.IsNullOrWhiteSpace(joined.Name)
-                        ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), joined.PlayerNumber + 1)
+                        ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (joined.PlayerNumber + 1)
                         : joined.Name;
-                    _speech.Speak(LocalizationService.Format(LocalizationService.Mark("{0} has joined the game."), name));
+                    _speech.Speak(
+                        name
+                        + LocalizationService.Translate(LocalizationService.Mark(" has joined the game.")));
                 }
             }
 

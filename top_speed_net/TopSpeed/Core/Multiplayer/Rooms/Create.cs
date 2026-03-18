@@ -37,9 +37,8 @@ namespace TopSpeed.Core.Multiplayer
                 new MenuItem(
                     () => string.IsNullOrWhiteSpace(_state.Rooms.CreateRoomName)
                         ? LocalizationService.Mark("Room name, currently automatic")
-                        : LocalizationService.Format(
-                            LocalizationService.Mark("Room name, currently {0}"),
-                            _state.Rooms.CreateRoomName),
+                        : LocalizationService.Translate(LocalizationService.Mark("Room name, currently "))
+                          + _state.Rooms.CreateRoomName,
                     MenuAction.None,
                     onActivate: UpdateCreateRoomName,
                     hint: LocalizationService.Mark("Press ENTER to enter a room name. Leave it empty to use an automatic name.")),
@@ -84,9 +83,10 @@ namespace TopSpeed.Core.Multiplayer
                         return;
                     }
 
-                    _speech.Speak(LocalizationService.Format(
-                        LocalizationService.Mark("Room name set to {0}."),
-                        _state.Rooms.CreateRoomName));
+                    _speech.Speak(
+                        LocalizationService.Translate(LocalizationService.Mark("Room name set to "))
+                        + _state.Rooms.CreateRoomName
+                        + ".");
                 });
         }
 
@@ -105,7 +105,9 @@ namespace TopSpeed.Core.Multiplayer
             if (_state.Rooms.CreateRoomType == GameRoomType.OneOnOne)
                 playersToStart = 2;
 
-            if (!TrySend(session.SendRoomCreate(_state.Rooms.CreateRoomName, _state.Rooms.CreateRoomType, playersToStart)))
+            if (!TrySend(
+                    session.SendRoomCreate(_state.Rooms.CreateRoomName, _state.Rooms.CreateRoomType, playersToStart),
+                    LocalizationService.Mark("room create request")))
                 return;
             _menu.ShowRoot(MultiplayerMenuKeys.Lobby);
         }

@@ -85,11 +85,9 @@ namespace TopSpeed.Race.Panels
             if (!LoadPlaylistEntry(_playlistIndex, preservePlaybackState: true, announceLoaded: true))
                 return;
 
-            _announce(LocalizationService.Format(
-                LocalizationService.Mark("Shuffle mode {0}."),
-                _shuffleMode
-                    ? LocalizationService.Translate(LocalizationService.Mark("on"))
-                    : LocalizationService.Translate(LocalizationService.Mark("off"))));
+            _announce(_shuffleMode
+                ? LocalizationService.Mark("Shuffle mode on.")
+                : LocalizationService.Mark("Shuffle mode off."));
         }
 
         private void HandlePlaybackEndAdvance()

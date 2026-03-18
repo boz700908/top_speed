@@ -7,6 +7,7 @@ using TopSpeed.Protocol;
 using TopSpeed.Server.Config;
 using TopSpeed.Server.Logging;
 using TopSpeed.Server.Network;
+using TopSpeed.Server.Localization;
 using TopSpeed.Server.Updates;
 
 namespace TopSpeed.Server.Commands
@@ -168,18 +169,21 @@ namespace TopSpeed.Server.Commands
                 switch (choiceIndex)
                 {
                     case 0:
-                        EditMotd();
+                        EditLanguage();
                         break;
                     case 1:
-                        EditServerPort();
+                        EditMotd();
                         break;
                     case 2:
-                        EditDiscoveryPort();
+                        EditServerPort();
                         break;
                     case 3:
-                        EditMaxPlayers();
+                        EditDiscoveryPort();
                         break;
                     case 4:
+                        EditMaxPlayers();
+                        break;
+                    case 5:
                         ToggleCheckForUpdatesOnStartup();
                         break;
                     default:
@@ -192,13 +196,59 @@ namespace TopSpeed.Server.Commands
         {
             return new[]
             {
-                LocalizationService.Format(LocalizationService.Mark("Message of the day: {0}"), FormatMotd(_settings.Motd)),
+                BuildOptionLine(LocalizationService.Mark("Language"), CurrentLanguageLabel()),
+                BuildOptionLine(LocalizationService.Mark("Message of the day"), FormatMotd(_settings.Motd)),
                 LocalizationService.Format(LocalizationService.Mark("Server port: {0}"), _settings.Port),
                 LocalizationService.Format(LocalizationService.Mark("Discovery port: {0}"), _settings.DiscoveryPort),
                 LocalizationService.Format(LocalizationService.Mark("Max players: {0}"), _settings.MaxPlayers),
-                LocalizationService.Format(LocalizationService.Mark("Check for updates on startup: {0}"), CommandInput.FormatOnOff(_settings.CheckForUpdatesOnStartup)),
+                BuildOptionLine(LocalizationService.Mark("Check for updates on startup"), CommandInput.FormatOnOff(_settings.CheckForUpdatesOnStartup)),
                 LocalizationService.Translate(LocalizationService.Mark("Back"))
             };
+        }
+
+        private string CurrentLanguageLabel()
+        {
+            var languages = ServerLanguages.Load();
+            return ServerLanguages.ResolveDisplayLabel(_settings.Language, languages);
+        }
+
+        private void EditLanguage()
+        {
+            var languages = ServerLanguages.Load();
+            if (languages.Count == 0)
+            {
+                ConsoleSink.WriteLine(LocalizationService.Mark("No languages are available."));
+                return;
+            }
+
+            var options = new List<string>(languages.Count + 1);
+            for (var i = 0; i < languages.Count; i++)
+                options.Add(languages[i].ListLabel);
+            options.Add(LocalizationService.Translate(LocalizationService.Mark("Back")));
+
+            if (!CommandInput.TryPromptMenuChoice(LocalizationService.Mark("Choose server language:"), options, out var choiceIndex))
+            {
+                DisableCommands(LocalizationService.Mark("Standard input is no longer available. Server commands are disabled."));
+                return;
+            }
+
+            if (choiceIndex < 0 || choiceIndex >= languages.Count)
+                return;
+
+            var selected = languages[choiceIndex];
+            var resolvedCode = ServerLanguages.ResolveCode(selected.Code, languages);
+            var changed = !string.Equals(_settings.Language, resolvedCode, StringComparison.OrdinalIgnoreCase);
+            _settings.Language = resolvedCode;
+            LocalizationBootstrap.Configure(_settings.Language, LocalizationBootstrap.ServerCatalogGroup);
+            SaveSettings();
+
+            if (changed)
+            {
+                ConsoleSink.WriteLineFormat(LocalizationService.Mark("Server language set to {0}."), selected.ListLabel);
+                return;
+            }
+
+            ConsoleSink.WriteLineFormat(LocalizationService.Mark("Server language remains {0}."), selected.ListLabel);
         }
 
         private void EditMotd()
@@ -262,7 +312,7 @@ namespace TopSpeed.Server.Commands
         {
             _settings.CheckForUpdatesOnStartup = !_settings.CheckForUpdatesOnStartup;
             SaveSettings();
-            ConsoleSink.WriteLineFormat(LocalizationService.Mark("Check for updates on startup: {0}"), CommandInput.FormatOnOff(_settings.CheckForUpdatesOnStartup));
+            ConsoleSink.WriteLine(BuildOptionLine(LocalizationService.Mark("Check for updates on startup"), CommandInput.FormatOnOff(_settings.CheckForUpdatesOnStartup)));
         }
 
         private void SaveSettings()
@@ -310,6 +360,13 @@ namespace TopSpeed.Server.Commands
             {
                 return false;
             }
+        }
+
+        private static string BuildOptionLine(string labelMessageId, string value)
+        {
+            var label = LocalizationService.Translate(labelMessageId);
+            var safeValue = value ?? string.Empty;
+            return label + ": " + safeValue;
         }
     }
 }

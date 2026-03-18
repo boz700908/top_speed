@@ -46,9 +46,8 @@ namespace TopSpeed.Core.Multiplayer
         {
             if (!string.IsNullOrWhiteSpace(name))
                 return name;
-            return LocalizationService.Format(
-                LocalizationService.Mark("Player {0}"),
-                playerNumber + 1);
+            return LocalizationService.Translate(LocalizationService.Mark("Player "))
+                   + (playerNumber + 1);
         }
 
         private static string ResolveRoomName(string roomName)

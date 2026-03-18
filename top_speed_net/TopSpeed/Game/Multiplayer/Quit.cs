@@ -51,7 +51,7 @@ namespace TopSpeed.Game
 
             _multiplayerRaceQuitConfirmActive = false;
             if (_session != null)
-                TrySendSession(_session.SendRoomLeave());
+                TrySendSession(_session.SendRoomLeave(), LocalizationService.Mark("room leave request"));
 
             _multiplayerRace?.FinalizeMultiplayerMode();
             _multiplayerRace?.Dispose();
@@ -62,12 +62,15 @@ namespace TopSpeed.Game
             _menu.ShowRoot("multiplayer_lobby");
         }
 
-        private bool TrySendSession(bool sent)
+        private bool TrySendSession(bool sent, string action)
         {
             if (sent)
                 return true;
 
-            _speech.Speak(LocalizationService.Mark("Failed to send data. Please check your connection."));
+            _speech.Speak(
+                LocalizationService.Translate(LocalizationService.Mark("Failed to send "))
+                + action
+                + LocalizationService.Translate(LocalizationService.Mark(". Please check your connection.")));
             return false;
         }
     }

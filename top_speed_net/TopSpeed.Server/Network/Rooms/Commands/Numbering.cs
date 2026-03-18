@@ -68,7 +68,7 @@ namespace TopSpeed.Server.Network
                     player.PlayerNumber,
                     player.State,
                     string.IsNullOrWhiteSpace(player.Name)
-                        ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), player.PlayerNumber + 1)
+                        ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
                         : player.Name);
             }
 

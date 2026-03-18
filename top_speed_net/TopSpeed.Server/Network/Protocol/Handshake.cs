@@ -96,6 +96,8 @@ namespace TopSpeed.Server.Network
         private void RejectHandshake(PlayerConnection player, string message)
         {
             var serverRange = ProtocolProfile.ServerSupported;
+            var clientSupportedRange = player.ClientSupportedRange?.ToString()
+                                       ?? LocalizationService.Translate(LocalizationService.Mark("unknown"));
             var welcome = new PacketProtocolWelcome
             {
                 Status = ProtocolCompatStatus.NoCommonVersion,
@@ -110,7 +112,7 @@ namespace TopSpeed.Server.Network
                     player.Id,
                     player.EndPoint,
                     player.ClientVersion,
-                    player.ClientSupportedRange,
+                    clientSupportedRange,
                     serverRange,
                     welcome.Message));
 

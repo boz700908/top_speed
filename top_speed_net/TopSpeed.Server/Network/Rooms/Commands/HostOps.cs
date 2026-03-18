@@ -84,7 +84,9 @@ namespace TopSpeed.Server.Network
                 SendProtocolMessage(
                     player,
                     ProtocolMessageCode.Failed,
-                    LocalizationService.Format(LocalizationService.Mark("Not enough players. {0} required to start."), minimumParticipants));
+                    LocalizationService.Translate(LocalizationService.Mark("Not enough players. "))
+                    + minimumParticipants
+                    + LocalizationService.Translate(LocalizationService.Mark(" required to start.")));
                 return;
             }
 
@@ -118,9 +120,8 @@ namespace TopSpeed.Server.Network
 
             SendProtocolMessageToRoom(
                 room,
-                LocalizationService.Format(
-                    LocalizationService.Mark("{0} is about to start the game. Choose your vehicle and transmission mode."),
-                    DescribePlayer(player)));
+                DescribePlayer(player)
+                + LocalizationService.Translate(LocalizationService.Mark(" is about to start the game. Choose your vehicle and transmission mode.")));
             EmitRoomLifecycleEvent(room, RoomEventKind.PrepareStarted);
             TryStartRaceAfterLoadout(room);
         }

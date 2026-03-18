@@ -59,22 +59,18 @@ namespace TopSpeed.Race.Panels
             if (!string.IsNullOrWhiteSpace(lastFolder))
                 BuildPlaylistFromFolder(lastFolder, preserveCurrentMedia: true, announceErrors: false);
 
-            _announce(LocalizationService.Format(
-                LocalizationService.Mark("Shuffle mode {0}."),
-                _shuffleMode
-                    ? LocalizationService.Translate(LocalizationService.Mark("on"))
-                    : LocalizationService.Translate(LocalizationService.Mark("off"))));
+            _announce(_shuffleMode
+                ? LocalizationService.Mark("Shuffle mode on.")
+                : LocalizationService.Mark("Shuffle mode off."));
         }
 
         private void ToggleLoop()
         {
             _loopMode = !_loopMode;
             ApplyLoopMode();
-            _announce(LocalizationService.Format(
-                LocalizationService.Mark("Loop mode {0}."),
-                _loopMode
-                    ? LocalizationService.Translate(LocalizationService.Mark("on"))
-                    : LocalizationService.Translate(LocalizationService.Mark("off"))));
+            _announce(_loopMode
+                ? LocalizationService.Mark("Loop mode on.")
+                : LocalizationService.Mark("Loop mode off."));
         }
 
         private bool LoadPlaylistEntry(int index, bool preservePlaybackState, bool announceLoaded, bool announceNameOnly = false)

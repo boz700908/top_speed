@@ -45,7 +45,9 @@ namespace TopSpeed.Server.Network
                 ready.AutomaticTransmission,
                 room.PendingLoadouts.Count,
                 room.PlayerIds.Count));
-            SendProtocolMessageToRoom(room, LocalizationService.Format(LocalizationService.Mark("{0} is ready."), DescribePlayer(player)));
+            SendProtocolMessageToRoom(
+                room,
+                DescribePlayer(player) + LocalizationService.Translate(LocalizationService.Mark(" is ready.")));
             TryStartRaceAfterLoadout(room);
         }
 
@@ -80,9 +82,11 @@ namespace TopSpeed.Server.Network
                 player.PlayerNumber,
                 player.State,
                 string.IsNullOrWhiteSpace(player.Name)
-                    ? LocalizationService.Format(LocalizationService.Mark("Player {0}"), player.PlayerNumber + 1)
+                    ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
                     : player.Name);
-            SendProtocolMessageToRoom(room, LocalizationService.Format(LocalizationService.Mark("{0} left race preparation."), DescribePlayer(player)));
+            SendProtocolMessageToRoom(
+                room,
+                DescribePlayer(player) + LocalizationService.Translate(LocalizationService.Mark(" left race preparation.")));
             TryStartRaceAfterLoadout(room);
         }
 

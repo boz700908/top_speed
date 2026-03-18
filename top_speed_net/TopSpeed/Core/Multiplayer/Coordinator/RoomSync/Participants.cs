@@ -14,9 +14,8 @@ namespace TopSpeed.Core.Multiplayer
             var players = new List<RoomParticipant>(_state.Rooms.CurrentRoom.Players ?? Array.Empty<RoomParticipant>());
             var index = players.FindIndex(p => p.PlayerId == roomEvent.SubjectPlayerId);
             var name = string.IsNullOrWhiteSpace(roomEvent.SubjectPlayerName)
-                ? LocalizationService.Format(
-                    LocalizationService.Mark("Player {0}"),
-                    roomEvent.SubjectPlayerNumber + 1)
+                ? LocalizationService.Translate(LocalizationService.Mark("Player "))
+                  + (roomEvent.SubjectPlayerNumber + 1)
                 : roomEvent.SubjectPlayerName;
             var item = new RoomParticipant
             {

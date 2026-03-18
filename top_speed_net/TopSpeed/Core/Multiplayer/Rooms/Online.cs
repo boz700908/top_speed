@@ -24,7 +24,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
 
             _state.Rooms.IsOnlinePlayersOpenPending = true;
-            if (!TrySend(session.SendOnlinePlayersRequest()))
+            if (!TrySend(session.SendOnlinePlayersRequest(), LocalizationService.Mark("online players request")))
                 _state.Rooms.IsOnlinePlayersOpenPending = false;
         }
 
@@ -45,9 +45,7 @@ namespace TopSpeed.Core.Multiplayer
                     new MenuView(
                         OnlinePlayersScreenId,
                         items,
-                        LocalizationService.Format(
-                            LocalizationService.Mark("{0} people are connected."),
-                            players.Length))
+                        players.Length + " " + LocalizationService.Translate(LocalizationService.Mark("people are connected.")))
                 },
                 OnlinePlayersScreenId);
         }
@@ -55,9 +53,7 @@ namespace TopSpeed.Core.Multiplayer
         private static string FormatOnlinePlayerLabel(OnlinePlayerInfo player)
         {
             var name = string.IsNullOrWhiteSpace(player.Name)
-                ? LocalizationService.Format(
-                    LocalizationService.Mark("Player {0}"),
-                    player.PlayerNumber + 1)
+                ? LocalizationService.Translate(LocalizationService.Mark("Player ")) + (player.PlayerNumber + 1)
                 : player.Name;
             var roomName = string.IsNullOrWhiteSpace(player.RoomName)
                 ? LocalizationService.Translate(MainRoomName)

@@ -8,13 +8,31 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 04:38+0200\n"
+"POT-Creation-Date: 2026-03-18 06:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:74
+#, csharp-format
+msgid " game with {0} people"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:77
+msgid ", in progress"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:75
+#, csharp-format
+msgid ", maximum {0} players"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:79
+msgid ", room is full"
+msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Controls.cs:97
 msgid "2 degrees"
@@ -758,7 +776,7 @@ msgstr ""
 msgid "Failed to load custom vehicle '{0}'. {1}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:93
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:89
 #, csharp-format
 msgid "Failed to load radio media. {0}"
 msgstr ""
@@ -785,11 +803,6 @@ msgstr ""
 msgid "Failed to send chat message."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Coordinator\Helpers.cs:51
-#: D:\top_speed\top_speed_net\TopSpeed\Game\Multiplayer\Quit.cs:70
-msgid "Failed to send data. Please check your connection."
-msgstr ""
-
 #: D:\top_speed\top_speed_net\TopSpeed\Network\Connect\Connector\Helpers.cs:174
 msgid "Failed to send handshake."
 msgstr ""
@@ -802,6 +815,12 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Coordinator\Chat\Input.cs:99
 msgid "Failed to send room chat message."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Coordinator\Helpers.cs:52
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Multiplayer\Quit.cs:71
+#, csharp-format
+msgid "Failed to send {0}. Please check your connection."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Controls.cs:34
@@ -872,8 +891,8 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:130
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:154
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Online.cs:40
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:181
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:198
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:180
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:197
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Form.cs:45
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Menu.cs:35
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:263
@@ -1169,9 +1188,12 @@ msgstr ""
 msgid "Live streaming stopped because media decoding failed."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:74
-#, csharp-format
-msgid "Loop mode {0}."
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:73
+msgid "Loop mode off."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:72
+msgid "Loop mode on."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Helpers.cs:35
@@ -1384,7 +1406,7 @@ msgstr ""
 msgid "No messages yet."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:97
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:96
 msgid "No option changes to apply."
 msgstr ""
 
@@ -1477,7 +1499,7 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:57
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:98
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Online.cs:19
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:56
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:55
 msgid "Not connected to a server."
 msgstr ""
 
@@ -1524,8 +1546,8 @@ msgid "Online server event sounds"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:64
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:23
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:62
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:22
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:61
 msgid "Only the host can change game options."
 msgstr ""
 
@@ -1598,7 +1620,7 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Domain\OnlineMap.cs:50
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:145
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Online.cs:59
-#: D:\top_speed\top_speed_net\TopSpeed\Game\Packets\PacketRoom.cs:32
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Packets\PacketRoom.cs:33
 #, csharp-format
 msgid "Player {0}"
 msgstr ""
@@ -1713,7 +1735,7 @@ msgstr ""
 msgid "Race time {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:178
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:177
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Multiplayer.cs:137
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:28
 msgid "Race track"
@@ -1735,7 +1757,7 @@ msgstr ""
 msgid "Radio"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:104
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:100
 #, csharp-format
 msgid "Radio loaded {0}."
 msgstr ""
@@ -1763,8 +1785,8 @@ msgstr ""
 msgid "Rally hills"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:180
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:197
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:179
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:196
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:31
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:49
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:83
@@ -1822,7 +1844,7 @@ msgstr ""
 msgid "Restore default settings"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:78
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:58
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:33
 msgid "Return to multiplayer lobby"
 msgstr ""
@@ -1868,7 +1890,7 @@ msgstr ""
 msgid "Room name, currently {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:96
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:95
 msgid "Room options updated."
 msgstr ""
 
@@ -1977,11 +1999,11 @@ msgstr ""
 msgid "Select input device"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:120
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:118
 msgid "Select radio media file"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:155
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:153
 msgid "Select radio media folder"
 msgstr ""
 
@@ -2130,10 +2152,14 @@ msgstr ""
 msgid "Shortcut mapping cancelled."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:64
+#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:90
+msgid "Shuffle mode off."
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:63
 #: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:89
-#, csharp-format
-msgid "Shuffle mode {0}."
+msgid "Shuffle mode on."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:143
@@ -2230,7 +2256,7 @@ msgstr ""
 msgid "Stereo widening for own car"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:179
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:178
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:29
 msgid "Street adventure"
 msgstr ""
@@ -2492,11 +2518,11 @@ msgstr ""
 msgid "Track path must point to a .tsm file inside a track folder: {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:107
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:106
 msgid "Track, currently random chosen."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:114
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:113
 #, csharp-format
 msgid "Track, currently {0}."
 msgstr ""
@@ -2796,7 +2822,7 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:32
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:56
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:129
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:17
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:16
 msgid "You are not currently inside a game room."
 msgstr ""
 
@@ -2838,6 +2864,10 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Connection\Connect.cs:129
 #, csharp-format
 msgid "Your client protocol version: {0}"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:88
+msgid "add bot request"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Chat\Buffers.cs:87
@@ -2950,6 +2980,10 @@ msgstr ""
 msgid "lap"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:76
+msgid "lap count change request"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Coordinator\Core.cs:36
 msgid "laps"
 msgstr ""
@@ -2991,23 +3025,25 @@ msgstr ""
 msgid "not checked"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Multiplayer\Run.cs:103
+msgid "not-ready state"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Race.cs:17
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Race.cs:33
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:66
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:77
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:92
 msgid "off"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Race.cs:35
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:65
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Playback.cs:76
-#: D:\top_speed\top_speed_net\TopSpeed\Race\Panels\RadioVehiclePanel\Selection.cs:91
 msgid "on"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:55
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:66
 msgid "one-on-one"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Online.cs:27
+msgid "online players request"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Race\Core\Mode\Panels.cs:80
@@ -3018,19 +3054,35 @@ msgstr ""
 msgid "peak_torque_rpm must be between idle_rpm and rev_limiter."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Connection\Ping.cs:26
+msgid "ping request"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Coordinator\Core.cs:30
 msgid "player"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:86
+msgid "player count change request"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Coordinator\Core.cs:31
 msgid "players"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:57
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:171
+msgid "race preparation withdrawal"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:70
+msgid "race start request"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:68
 msgid "race with bots"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:56
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:67
 msgid "race without bots"
 msgstr ""
 
@@ -3042,6 +3094,14 @@ msgstr ""
 msgid "radio button"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:127
+msgid "ready state"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:106
+msgid "remove bot request"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Parsing\Build\Core.cs:144
 msgid "rev_limiter must be between idle_rpm and max_rpm."
 msgstr ""
@@ -3050,8 +3110,25 @@ msgstr ""
 msgid "room chat"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:110
+msgid "room create request"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Chat\Buffers.cs:86
 msgid "room events"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:37
+msgid "room join request"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:49
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Multiplayer\Quit.cs:54
+msgid "room leave request"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:24
+msgid "room list request"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Parsing\Build\Core.cs:154
@@ -3097,6 +3174,10 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Parsing\Policy\Core.cs:23
 #, csharp-format
 msgid "top_speed_gear must be within 1..{0}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:69
+msgid "track change request"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Settings\Issues.cs:26
@@ -3158,12 +3239,7 @@ msgstr ""
 msgid "{0} dialog {1}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:63
-#, csharp-format
-msgid "{0} game with {1} people"
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed\Game\Packets\PacketRoom.cs:34
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Packets\PacketRoom.cs:37
 #, csharp-format
 msgid "{0} has joined the game."
 msgstr ""
@@ -3240,22 +3316,7 @@ msgstr ""
 msgid "{0} set to {1}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:71
-#, csharp-format
-msgid "{0}, in progress"
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:67
-#, csharp-format
-msgid "{0}, maximum {1} players"
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Browser.cs:73
-#, csharp-format
-msgid "{0}, room is full"
-msgstr ""
-
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:148
 #, csharp-format
-msgid "{0}: host"
+msgid "{0}, host"
 msgstr ""

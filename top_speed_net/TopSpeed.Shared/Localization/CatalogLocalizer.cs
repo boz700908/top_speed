@@ -9,12 +9,10 @@ namespace TopSpeed.Localization
     internal sealed class CatalogLocalizer : ITextLocalizer
     {
         private readonly Catalog _primaryCatalog;
-        private readonly Catalog? _fallbackCatalog;
 
-        private CatalogLocalizer(Catalog primaryCatalog, Catalog? fallbackCatalog)
+        private CatalogLocalizer(Catalog primaryCatalog)
         {
             _primaryCatalog = primaryCatalog;
-            _fallbackCatalog = fallbackCatalog;
         }
 
         public static ITextLocalizer Create(string? languageCode, string languagesRoot)
@@ -22,25 +20,14 @@ namespace TopSpeed.Localization
             if (string.IsNullOrWhiteSpace(languagesRoot))
                 return PassthroughLocalizer.Instance;
 
-            var primaryCatalog = TryLoadCatalog(languageCode, languagesRoot);
-            var fallbackCatalog = TryLoadCatalog("en", languagesRoot);
-
-            if (primaryCatalog == null && fallbackCatalog == null)
+            if (IsSourceLanguage(languageCode))
                 return PassthroughLocalizer.Instance;
 
-            if (primaryCatalog == null && fallbackCatalog != null)
-                return new CatalogLocalizer(fallbackCatalog, null);
-
+            var primaryCatalog = TryLoadCatalog(languageCode, languagesRoot);
             if (primaryCatalog == null)
                 return PassthroughLocalizer.Instance;
 
-            if (fallbackCatalog == null)
-                return new CatalogLocalizer(primaryCatalog, null);
-
-            if (string.Equals(GetCultureCode(primaryCatalog.CultureInfo), "en", StringComparison.OrdinalIgnoreCase))
-                return new CatalogLocalizer(primaryCatalog, null);
-
-            return new CatalogLocalizer(primaryCatalog, fallbackCatalog);
+            return new CatalogLocalizer(primaryCatalog);
         }
 
         public string Translate(string messageId)
@@ -52,9 +39,6 @@ namespace TopSpeed.Localization
             if (!string.Equals(resolved, messageId, StringComparison.Ordinal))
                 return resolved;
 
-            if (_fallbackCatalog != null)
-                return _fallbackCatalog.GetStringDefault(messageId, messageId);
-
             return messageId;
         }
 
@@ -64,9 +48,6 @@ namespace TopSpeed.Localization
                 return string.Empty;
 
             if (TryGetContextTranslation(_primaryCatalog, context, messageId, out var translated))
-                return translated;
-
-            if (_fallbackCatalog != null && TryGetContextTranslation(_fallbackCatalog, context, messageId, out translated))
                 return translated;
 
             return Translate(messageId);
@@ -114,75 +95,27 @@ namespace TopSpeed.Localization
 
         private static IEnumerable<string> BuildLanguageCandidates(string? languageCode)
         {
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (!string.IsNullOrWhiteSpace(languageCode))
-            {
-                var normalized = NormalizeCode(languageCode!);
-                if (normalized.Length > 0 && seen.Add(normalized))
-                    yield return normalized;
-
-                var splitDash = normalized.IndexOf('-');
-                if (splitDash > 0)
-                {
-                    var parentDash = normalized.Substring(0, splitDash);
-                    if (seen.Add(parentDash))
-                        yield return parentDash;
-                }
-
-                var splitUnderscore = normalized.IndexOf('_');
-                if (splitUnderscore > 0)
-                {
-                    var parentUnderscore = normalized.Substring(0, splitUnderscore);
-                    if (seen.Add(parentUnderscore))
-                        yield return parentUnderscore;
-                }
-            }
-
-            if (seen.Add("en"))
-                yield return "en";
+            var normalized = LanguageCode.Normalize(languageCode);
+            if (normalized.Length > 0)
+                yield return normalized;
         }
 
-        private static string NormalizeCode(string code)
+        private static bool IsSourceLanguage(string? languageCode)
         {
-            return code.Trim().Replace('\\', '-').Replace('/', '-');
+            var normalized = LanguageCode.Normalize(languageCode);
+            if (string.IsNullOrWhiteSpace(normalized))
+                return true;
+
+            if (string.Equals(normalized, "en", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return normalized.StartsWith("en-", StringComparison.OrdinalIgnoreCase);
         }
 
         private static CultureInfo ResolveCulture(string languageCode)
         {
-            if (string.IsNullOrWhiteSpace(languageCode))
-                return CultureInfo.InvariantCulture;
-
-            try
-            {
-                return CultureInfo.GetCultureInfo(languageCode);
-            }
-            catch (CultureNotFoundException)
-            {
-                var normalized = languageCode.Replace('_', '-');
-                var splitIndex = normalized.IndexOf('-');
-                if (splitIndex > 0)
-                {
-                    var parent = normalized.Substring(0, splitIndex);
-                    try
-                    {
-                        return CultureInfo.GetCultureInfo(parent);
-                    }
-                    catch (CultureNotFoundException)
-                    {
-                        return CultureInfo.InvariantCulture;
-                    }
-                }
-
-                return CultureInfo.InvariantCulture;
-            }
+            return LanguageCode.TryResolveCulture(languageCode) ?? CultureInfo.InvariantCulture;
         }
 
-        private static string GetCultureCode(CultureInfo culture)
-        {
-            if (culture == null)
-                return string.Empty;
-
-            return culture.Name ?? string.Empty;
-        }
     }
 }

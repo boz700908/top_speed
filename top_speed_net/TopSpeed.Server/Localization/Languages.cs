@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TopSpeed.Localization;
 
-namespace TopSpeed.Localization
+namespace TopSpeed.Server.Localization
 {
-    internal sealed class ClientLanguage
+    internal sealed class ServerLanguage
     {
-        public ClientLanguage(string code, string englishName, string nativeName, bool isOriginal = false)
+        public ServerLanguage(string code, string englishName, string nativeName, bool isOriginal = false)
         {
             Code = string.IsNullOrWhiteSpace(code) ? "en" : code;
             EnglishName = string.IsNullOrWhiteSpace(englishName) ? Code : englishName;
@@ -27,22 +28,20 @@ namespace TopSpeed.Localization
                     return "English (Original)";
                 if (string.Equals(EnglishName, NativeName, StringComparison.CurrentCultureIgnoreCase))
                     return EnglishName;
-                return $"{EnglishName} ({NativeName})";
+                return EnglishName + " (" + NativeName + ")";
             }
         }
-
-        public string SettingsLabel => IsOriginal ? "English (Original)" : NativeName;
     }
 
-    internal static class ClientLanguages
+    internal static class ServerLanguages
     {
         private const string DefaultCode = "en";
 
-        public static IReadOnlyList<ClientLanguage> Load()
+        public static IReadOnlyList<ServerLanguage> Load()
         {
-            var languages = new List<ClientLanguage>();
+            var languages = new List<ServerLanguage>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var root = Path.Combine(AppContext.BaseDirectory, "languages", LocalizationBootstrap.ClientCatalogGroup);
+            var root = Path.Combine(AppContext.BaseDirectory, "languages", LocalizationBootstrap.ServerCatalogGroup);
             if (Directory.Exists(root))
             {
                 foreach (var directory in Directory.GetDirectories(root))
@@ -71,7 +70,7 @@ namespace TopSpeed.Localization
             return languages;
         }
 
-        public static string ResolveCode(string? languageCode, IReadOnlyList<ClientLanguage>? availableLanguages)
+        public static string ResolveCode(string? languageCode, IReadOnlyList<ServerLanguage>? availableLanguages)
         {
             var match = ResolveLanguage(languageCode, availableLanguages);
             if (match != null)
@@ -80,7 +79,7 @@ namespace TopSpeed.Localization
             return DefaultCode;
         }
 
-        public static ClientLanguage? ResolveLanguage(string? languageCode, IReadOnlyList<ClientLanguage>? availableLanguages)
+        public static ServerLanguage? ResolveLanguage(string? languageCode, IReadOnlyList<ServerLanguage>? availableLanguages)
         {
             if (availableLanguages == null || availableLanguages.Count == 0)
                 return null;
@@ -108,16 +107,16 @@ namespace TopSpeed.Localization
             return availableLanguages[0];
         }
 
-        public static string ResolveSettingsLabel(string? languageCode, IReadOnlyList<ClientLanguage>? availableLanguages)
+        public static string ResolveDisplayLabel(string? languageCode, IReadOnlyList<ServerLanguage>? availableLanguages)
         {
             var language = ResolveLanguage(languageCode, availableLanguages);
             if (language != null)
-                return language.SettingsLabel;
+                return language.ListLabel;
 
-            return BuildOriginalEnglishLanguage().SettingsLabel;
+            return BuildOriginalEnglishLanguage().ListLabel;
         }
 
-        private static ClientLanguage? FindByCode(IReadOnlyList<ClientLanguage> languages, string languageCode)
+        private static ServerLanguage? FindByCode(IReadOnlyList<ServerLanguage> languages, string languageCode)
         {
             for (var i = 0; i < languages.Count; i++)
             {
@@ -129,7 +128,7 @@ namespace TopSpeed.Localization
             return null;
         }
 
-        private static int CompareLanguages(ClientLanguage left, ClientLanguage right)
+        private static int CompareLanguages(ServerLanguage left, ServerLanguage right)
         {
             if (ReferenceEquals(left, right))
                 return 0;
@@ -144,7 +143,7 @@ namespace TopSpeed.Localization
             return string.Compare(left.Code, right.Code, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static ClientLanguage BuildLanguage(string languageCode)
+        private static ServerLanguage BuildLanguage(string languageCode)
         {
             var code = LanguageCode.Normalize(languageCode);
             var englishName = code;
@@ -157,12 +156,12 @@ namespace TopSpeed.Localization
                 nativeName = string.IsNullOrWhiteSpace(culture.NativeName) ? englishName : culture.NativeName;
             }
 
-            return new ClientLanguage(code, englishName, nativeName);
+            return new ServerLanguage(code, englishName, nativeName);
         }
 
-        private static ClientLanguage BuildOriginalEnglishLanguage()
+        private static ServerLanguage BuildOriginalEnglishLanguage()
         {
-            return new ClientLanguage(DefaultCode, "English", "English", isOriginal: true);
+            return new ServerLanguage(DefaultCode, "English", "English", isOriginal: true);
         }
 
         private static string NormalizeCode(string? languageCode) => LanguageCode.Normalize(languageCode);
