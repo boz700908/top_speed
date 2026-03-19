@@ -20,6 +20,8 @@ namespace TopSpeed.Speech
         private readonly Stopwatch _watch = new Stopwatch();
         private readonly JawsClient _jaws;
         private readonly NvdaClient _nvda;
+        private readonly ZdsrClient _zdsr;
+        private readonly BoyCtrlClient _boyCtrl;
         private SpeechSynthesizer? _sapi;
         private long _timeRequiredMs;
         private string _lastSpoken = string.Empty;
@@ -30,9 +32,11 @@ namespace TopSpeed.Speech
             _isInputHeld = isInputHeld;
             _jaws = new JawsClient();
             _nvda = new NvdaClient();
+            _zdsr = new ZdsrClient();
+            _boyCtrl = new BoyCtrlClient();
         }
 
-        public bool IsAvailable => _jaws.IsAvailable || _nvda.IsAvailable || _sapi != null;
+        public bool IsAvailable => _jaws.IsAvailable || _nvda.IsAvailable || _zdsr.IsAvailable || _boyCtrl.IsAvailable || _sapi != null;
 
         public float ScreenReaderRateMs { get; set; }
 
@@ -69,6 +73,20 @@ namespace TopSpeed.Speech
             if (!spoke && _nvda.IsAvailable)
             {
                 spoke = _nvda.Speak(text);
+                if (spoke)
+                    StartSpeakTimer(text);
+            }
+
+            if (!spoke && _zdsr.IsAvailable)
+            {
+                spoke = _zdsr.Speak(text, flag == SpeakFlag.NoInterruptButStop || flag == SpeakFlag.InterruptableButStop);
+                if (spoke)
+                    StartSpeakTimer(text);
+            }
+
+            if (!spoke && _boyCtrl.IsAvailable)
+            {
+                spoke = _boyCtrl.Speak(text, flag == SpeakFlag.NoInterruptButStop || flag == SpeakFlag.InterruptableButStop);
                 if (spoke)
                     StartSpeakTimer(text);
             }
@@ -131,6 +149,8 @@ namespace TopSpeed.Speech
             }
             _jaws.Stop();
             _nvda.Cancel();
+            _zdsr.Stop();
+            _boyCtrl.Stop();
         }
 
         public void Dispose()
@@ -138,6 +158,8 @@ namespace TopSpeed.Speech
             Purge();
             _sapi?.Dispose();
             _nvda.Dispose();
+            _zdsr.Dispose();
+            _boyCtrl.Dispose();
         }
 
         private void EnsureSapi()
