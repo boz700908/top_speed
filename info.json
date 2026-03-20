@@ -1,11 +1,9 @@
 {
-  "version": "2026.3.19.2",
+  "version": "2026.3.20.1",
   "serverVersion": "2026.3.19.2",
   "changes": [
-    "Add severity for collisions. If severity is high, speed loss will be much stronger and bump movement will be constrained at the wall direction.",
-    "Reworked vehicle collision handling with shared physics for single race and multiplayer.",
-    "Improved bump behavior with mass-weighted speed transfer and better lateral response.",
-    "Fixed multiplayer room and request feedback behavior for cleaner announcements."
+    "Add support for ZDSR and BOY screen-readers.",
+    "Engine sounds now follow rpm, not speed."
   ],
   "serverChanges": [
     "Added the ability to override server architecture used by the update.",

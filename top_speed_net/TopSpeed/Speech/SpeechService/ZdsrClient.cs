@@ -10,6 +10,7 @@ namespace TopSpeed.Speech
             private IntPtr _module;
             private bool _initialized;
             private bool _available;
+            private bool _firstSpeak = true;
 
             public bool IsAvailable => EnsureInitialized();
 
@@ -34,6 +35,22 @@ namespace TopSpeed.Speech
                 {
                     if (stop)
                         StopSpeak();
+
+                    // 首次调用时，先发送空格文本激活TTS引擎
+                    if (_firstSpeak && !string.IsNullOrEmpty(text))
+                    {
+                        _firstSpeak = false;
+                        try
+                        {
+                            // 发送空格文本激活引擎（不打断模式）
+                            // 使用空格而不是空字符串，避免API拒绝
+                            SpeakText(" ", false);
+                        }
+                        catch
+                        {
+                            // 忽略激活错误
+                        }
+                    }
 
                     return SpeakText(text, true) == 0;
                 }
