@@ -32,6 +32,10 @@
 [4.4 `[engine]` Section](#sec-4-4-engine-section)
 [4.4.1 `[torque]` Section](#sec-4-4-1-torque-section)
 [4.4.2 `[torque_curve]` Section](#sec-4-4-2-torque-curve-section)
+[4.4.3 `[transmission]` Section](#sec-4-4-3-transmission-section)
+[4.4.4 `[transmission_atc]` Section](#sec-4-4-4-transmission-atc-section)
+[4.4.5 `[transmission_dct]` Section](#sec-4-4-5-transmission-dct-section)
+[4.4.6 `[transmission_cvt]` Section](#sec-4-4-6-transmission-cvt-section)
 [4.5 `[drivetrain]` Section](#sec-4-5-drivetrain-section)
 [4.6 `[gears]` Section](#sec-4-6-gears-section)
 [4.7 `[steering]` Section](#sec-4-7-steering-section)
@@ -70,7 +74,9 @@ This is why two vehicles with similar top speed targets can feel very different.
 
 The game also runs a separate steering and lateral movement model. Steering is influenced by `steering_response`, `max_steer_deg`, `wheelbase`, and high-speed window values, while actual sideways response is limited and shaped by `[tire_model]` and `[dynamics]` values. At high speed, the shared steering model now applies built-in attenuation first, then applies `high_speed_steer_gain` only as a bounded boost to that attenuated baseline. This keeps high-speed steering stable while still allowing class tuning.
 
-Automatic transmission behavior is also part of the overall physics feel. The game now uses a transmission policy system. The policy decides shift timing, delays in certain gears, and anti-hunting behavior. Policy can improve shift decisions, but it cannot create engine power that is not there.
+Transmission behavior is now split into two layers. The first layer is vehicle definition (`[transmission]` plus type-specific `[transmission_*]` sections), which defines what transmission family the vehicle supports and how that family couples engine RPM to wheel RPM. The second layer is automatic shift policy (`[policy]`), which decides *when* automatic mode shifts. Policy improves decisions, but it cannot create engine power that is not there.
+
+Manual and automatic families now follow different driveline physics. Manual mode uses clutch state and can stall at low speed/high load when clutch is engaged in an unsuitable gear. Automatic families use type-specific coupling models (ATC, DCT, CVT), including launch coupling behavior, lock thresholds, and in ATC/CVT the low-speed creep behavior.
 
 <a id="sec-2-2-units-used-by-the-game"></a>
 ## 2.2 Units Used by the Game
@@ -86,7 +92,7 @@ The new custom vehicle format does not use encoded legacy values. You write the 
 
 The game uses a sequence of calculations each frame while throttle is applied.
 
-The first step is determining the engine RPM for the current vehicle speed and gear. RPM depends on road speed, tire circumference, current gear ratio, and final drive ratio. At low speed under throttle, a launch RPM floor can help prevent the engine from dropping too low and feeling weak right off the line.
+The first step is determining the engine RPM for the current vehicle speed and gear. RPM depends on road speed, tire circumference, current gear ratio, final drive ratio, and driveline coupling mode (locked, blended, or disengaged). At low speed under throttle, a launch RPM floor can help prevent the engine from dropping too low and feeling weak right off the line.
 
 The next step is reading engine torque from the engine torque curve. The torque curve can be built from a preset shape plus overrides in `[torque_curve]`, or from direct per-RPM points. It still works with the core torque values (`idle_torque`, `peak_torque`, `peak_torque_rpm`, and `redline_torque`) and the RPM range between `idle_rpm` and `rev_limiter`.
 
@@ -193,15 +199,24 @@ Also remember that surfaces amplify or expose weaknesses in your tune. A vehicle
 <a id="sec-2-11-manual-vs-automatic-transmission"></a>
 ## 2.11 Manual vs Automatic Transmission
 
-Manual mode allows the player to shift whenever they choose. RPM dropping after an upshift is normal. The important question is whether the next gear still has enough pull to recover speed and continue accelerating.
+Transmission type now has explicit families:
 
-Automatic mode now uses a policy-driven system. It looks at RPM, predicted acceleration in neighboring gears, shift cooldowns, and special rules for high gears and top-speed pursuit. Top-speed pursuit uses `max_speed` as a reference target for gear decisions, not as a strict forward hard cap. This improves behavior in vehicles with many gears, especially 7-speed and 8-speed vehicles with overdrive gears.
+- `manual`: player clutch + player shifts.
+- `atc`: automatic torque-converter style family.
+- `dct`: automatic dual-clutch style family.
+- `cvt`: automatic continuously variable ratio family.
+
+Each vehicle declares a `primary_type` and `supported_types` in `[transmission]`. The parser allows either one type, or two types where one is `manual` and the other is exactly one automatic family (`atc` or `dct` or `cvt`).
+
+Manual mode allows the player to shift whenever they choose, but the clutch and stall logic now matter. With clutch released (high driveline coupling), the engine is mechanically tied to wheel speed. With clutch pressed, coupling drops and engine RPM can move more freely. At low speed with high load and insufficient throttle in manual, the engine can stall.
+
+Automatic mode uses the selected family's coupling model and the policy system. The family model controls how coupling behaves (launch slip, lock behavior, creep, CVT ratio logic). The policy controls shift timing, delays, top-speed gear intent, and anti-hunting behavior.
+
+ATC behavior emphasizes smoother launch and creep. It uses launch coupling bounds at very low speed, can release coupling during shifts, and can hard-lock only when lock criteria are met (speed, throttle, and low enough RPM slip). DCT behaves more directly with fast coupling and no creep, plus shift overlap coupling during shifts. CVT keeps ratio inside a configured ratio window and targets an RPM band (`target_rpm_low` to `target_rpm_high`) based on throttle.
 
 Policy improves shift decisions, but it does not fix weak physics. If a gear cannot physically pull because torque, drag, or gearing are wrong, policy can only avoid that gear or delay entry into it.
 
-For tuning work, manual mode is usually the best diagnostic tool because it exposes the raw powertrain behavior. If a vehicle stalls after a manual upshift, that is a physics or gearing problem. If manual mode feels good but automatic mode shifts too early, hunts between gears, or enters overdrive too soon, that is usually a policy problem.
-
-A practical workflow is to tune the vehicle so manual shifting feels healthy first, especially in the upper gears. After that, use `[policy]` to control automatic timing, overdrive behavior, and anti-hunting. This order prevents you from using policy to hide a powertrain problem that will still exist underneath.
+For tuning work, manual mode is still the best diagnostic tool because it exposes raw powertrain behavior. If manual feels healthy but automatic shifts too early, hunts, or enters overdrive too soon, tune `[policy]` and the relevant `[transmission_*]` section for that automatic family.
 
 <a id="sec-3-creating-a-custom-vehicle-package"></a>
 ## 3. Creating a Custom Vehicle Package
@@ -245,7 +260,15 @@ The format uses `key=value` lines inside sections, and comments start with `;` o
 
 The following sections are supported by the parser.
 
-`[meta]`, `[sounds]`, `[general]`, `[engine]`, `[torque]`, `[torque_curve]`, `[drivetrain]`, `[gears]`, `[steering]`, `[tire_model]`, `[dynamics]`, `[dimensions]`, and `[tires]` are required. `[policy]` is optional.
+`[meta]`, `[sounds]`, `[general]`, `[engine]`, `[torque]`, `[torque_curve]`, `[transmission]`, `[drivetrain]`, `[gears]`, `[steering]`, `[tire_model]`, `[dynamics]`, `[dimensions]`, and `[tires]` are always required. `[policy]` is optional.
+
+`[transmission_atc]`, `[transmission_dct]`, and `[transmission_cvt]` are conditionally required based on `supported_types`:
+
+- If `supported_types` contains `atc`, `[transmission_atc]` is required.
+- If `supported_types` contains `dct`, `[transmission_dct]` is required.
+- If `supported_types` contains `cvt`, `[transmission_cvt]` is required.
+
+If one of these sections exists but the matching type is not in `supported_types`, the parser reports a warning that the section is unused.
 
 If a required section is missing, the file fails to load and the vehicle is skipped from custom vehicle discovery.
 
@@ -274,6 +297,7 @@ backfire=backfire1.wav,backfire2.wav
 idle_freq=9000
 top_freq=42000
 shift_freq=30000
+pitch_curve_exponent=0.85
 
 [general]
 surface_traction_factor=0.10
@@ -310,6 +334,20 @@ preset=diesel_suv
 1800rpm=240
 3800rpm=260
 5000rpm=220
+
+[transmission]
+primary_type=atc
+supported_types=atc,manual
+
+[transmission_atc]
+creep_accel_kphps=0.70
+launch_coupling_min=0.22
+launch_coupling_max=0.80
+lock_speed_kph=38
+lock_throttle_min=0.30
+shift_release_coupling=0.38
+engage_rate=3.5
+disengage_rate=6.0
 
 [drivetrain]
 final_drive=3.20
@@ -397,6 +435,10 @@ If a file has a mistake, the parser produces line-aware errors. For example, it 
 \"Line-aware\" means the error points at the line where the problem was found, not just a generic failure message. This is especially helpful when a file is large or when a screen reader user wants to move directly to the problem area and correct one value at a time.
 
 The parser also validates cross-parameter relationships. For example, `rev_limiter` must be between `idle_rpm` and `max_rpm`, and `peak_torque_rpm` must be between `idle_rpm` and `rev_limiter`. `shift_freq` must stay between `idle_freq` and `top_freq`. `gear_ratios` must be non-increasing from gear 1 to the last gear.
+
+Transmission relationships are also validated. `primary_type` must exist in `supported_types`. `supported_types` must contain either one type, or exactly two types where one is manual and one is automatic family. Only one automatic family is allowed in a vehicle file. Required type-specific sections must exist for supported automatic types, while unused type-specific sections generate warnings.
+
+Inside type-specific sections, additional consistency checks are enforced. For example, `launch_coupling_max` must be greater than or equal to `launch_coupling_min`; in CVT, `ratio_max` must be greater than or equal to `ratio_min`, and `target_rpm_high` must be greater than or equal to `target_rpm_low`.
 
 For `[torque_curve]`, the parser also validates section-specific rules. You must provide at least two RPM points overall, either directly or through preset plus overrides. RPM keys must use the `NNNNrpm` format (for example `2500rpm=210`), and both RPM and torque values are range-checked.
 
@@ -515,6 +557,14 @@ Intermediate audio frequency anchor used in engine pitch/shift-related sound beh
 Allowed range is 100 to 200000, and it must be between `idle_freq` and `top_freq`.
 
 It does not change acceleration or top speed, but poor values can make the vehicle sound inconsistent or unnatural. As a beginner rule, keep `shift_freq` somewhere between the other two values in a way that matches the vehicle character, then adjust by listening during real shifts.
+
+### `pitch_curve_exponent`
+
+RPM-to-pitch curve shape exponent for engine sound pitch mapping.
+
+Allowed range is 0.5 to 1.5. If omitted, default is `0.85`.
+
+`1.0` gives linear mapping over normalized RPM. Lower than `1.0` raises pitch earlier at lower RPM (more aggressive early rise). Higher than `1.0` delays pitch rise until later RPM.
 
 <a id="sec-4-3-general-section"></a>
 ## 4.3 `[general]` Section
@@ -772,6 +822,228 @@ RPM key range is 300 to 25000. Torque value range is 0 to 5000 Nm.
 You must end with at least two total points in `[torque_curve]`. If you only use `preset`, that requirement is satisfied by preset points. If you do not use a preset, you must provide at least two explicit RPM lines.
 
 When preset and explicit points are both present, explicit points win at matching RPM and add new points where no preset point exists.
+
+<a id="sec-4-4-3-transmission-section"></a>
+## 4.4.3 `[transmission]` Section
+
+The `[transmission]` section defines transmission families available to the vehicle and which one starts as default.
+
+### `primary_type`
+
+Default active transmission type for the vehicle.
+
+Allowed values are `atc`, `cvt`, `dct`, `manual`.
+
+This value must also appear inside `supported_types`.
+
+### `supported_types`
+
+Comma-separated list of supported transmission types.
+
+Allowed tokens are `atc`, `cvt`, `dct`, `manual`.
+
+Validation rules:
+
+- At least one type is required.
+- At most two types are allowed.
+- If two types are provided, they must be exactly one manual type plus exactly one automatic family type.
+- Only one automatic family is allowed per vehicle.
+- Duplicate types are rejected.
+
+If `supported_types` includes an automatic family, the matching type-specific section becomes required:
+
+- `atc` requires `[transmission_atc]`.
+- `dct` requires `[transmission_dct]`.
+- `cvt` requires `[transmission_cvt]`.
+
+<a id="sec-4-4-4-transmission-atc-section"></a>
+## 4.4.4 `[transmission_atc]` Section
+
+ATC (automatic torque-converter style) driveline coupling parameters. This section is required when `supported_types` includes `atc`.
+
+### `creep_accel_kphps`
+
+Low-speed creep acceleration in km/h per second when throttle is near zero and brake is not pressed.
+
+Allowed range is 0.0 to 12.0.
+
+### `launch_coupling_min`
+
+Minimum coupling factor used at launch-region speed with zero throttle.
+
+Allowed range is 0.0 to 1.0.
+
+### `launch_coupling_max`
+
+Maximum coupling factor used at launch-region speed with full throttle.
+
+Allowed range is 0.0 to 1.0 and must be greater than or equal to `launch_coupling_min`.
+
+### `lock_speed_kph`
+
+Speed threshold where ATC may request full lock coupling.
+
+Allowed range is 2.0 to 300.0.
+
+### `lock_throttle_min`
+
+Minimum throttle needed for ATC full-lock request above lock speed.
+
+Allowed range is 0.0 to 1.0.
+
+### `shift_release_coupling`
+
+Coupling target while a shift is in progress.
+
+Allowed range is 0.0 to 1.0.
+
+### `engage_rate`
+
+Rate limit for coupling increase toward target.
+
+Allowed range is 0.1 to 80.0.
+
+### `disengage_rate`
+
+Rate limit for coupling decrease toward target.
+
+Allowed range is 0.1 to 80.0.
+
+ATC notes: ATC can creep, and it uses controlled pre-lock coupling before hard lock criteria are satisfied. In runtime, hard lock is still gated by speed/throttle/coupling/slip conditions to avoid abrupt RPM behavior.
+
+<a id="sec-4-4-5-transmission-dct-section"></a>
+## 4.4.5 `[transmission_dct]` Section
+
+DCT (dual-clutch automatic) driveline coupling parameters. This section is required when `supported_types` includes `dct`.
+
+### `launch_coupling_min`
+
+Minimum coupling factor used at launch-region speed with zero throttle.
+
+Allowed range is 0.0 to 1.0.
+
+### `launch_coupling_max`
+
+Maximum coupling factor used at launch-region speed with full throttle.
+
+Allowed range is 0.0 to 1.0 and must be greater than or equal to `launch_coupling_min`.
+
+### `lock_speed_kph`
+
+Speed threshold where DCT may request full lock coupling.
+
+Allowed range is 2.0 to 300.0.
+
+### `lock_throttle_min`
+
+Minimum throttle needed for DCT full-lock request above lock speed.
+
+Allowed range is 0.0 to 1.0.
+
+### `shift_overlap_coupling`
+
+Coupling target while shifting to model overlap behavior.
+
+Allowed range is 0.0 to 1.0.
+
+### `engage_rate`
+
+Rate limit for coupling increase toward target.
+
+Allowed range is 0.1 to 80.0.
+
+### `disengage_rate`
+
+Rate limit for coupling decrease toward target.
+
+Allowed range is 0.1 to 80.0.
+
+DCT notes: DCT has no automatic creep in this model and generally behaves more directly than ATC at low speed.
+
+<a id="sec-4-4-6-transmission-cvt-section"></a>
+## 4.4.6 `[transmission_cvt]` Section
+
+CVT driveline and ratio-control parameters. This section is required when `supported_types` includes `cvt`.
+
+### `ratio_min`
+
+Minimum effective CVT ratio.
+
+Allowed range is 0.1 to 8.0.
+
+### `ratio_max`
+
+Maximum effective CVT ratio.
+
+Allowed range is 0.2 to 10.0 and must be greater than or equal to `ratio_min`.
+
+### `target_rpm_low`
+
+Low end of the CVT RPM target band.
+
+Allowed range is `idle_rpm` to `rev_limiter`.
+
+### `target_rpm_high`
+
+High end of the CVT RPM target band.
+
+Allowed range is `idle_rpm` to `rev_limiter` and must be greater than or equal to `target_rpm_low`.
+
+### `ratio_change_rate`
+
+How quickly CVT ratio moves toward target ratio.
+
+Allowed range is 0.1 to 20.0.
+
+### `launch_coupling_min`
+
+Minimum coupling factor used at launch-region speed with zero throttle.
+
+Allowed range is 0.0 to 1.0.
+
+### `launch_coupling_max`
+
+Maximum coupling factor used at launch-region speed with full throttle.
+
+Allowed range is 0.0 to 1.0 and must be greater than or equal to `launch_coupling_min`.
+
+### `lock_speed_kph`
+
+Speed threshold where CVT may request full lock coupling.
+
+Allowed range is 2.0 to 300.0.
+
+### `lock_throttle_min`
+
+Minimum throttle needed for CVT full-lock request above lock speed.
+
+Allowed range is 0.0 to 1.0.
+
+### `creep_accel_kphps`
+
+Low-speed creep acceleration in km/h per second when throttle is near zero and brake is not pressed.
+
+Allowed range is 0.0 to 12.0.
+
+### `shift_hold_coupling`
+
+Coupling target used while shifting/transitioning.
+
+Allowed range is 0.0 to 1.0.
+
+### `engage_rate`
+
+Rate limit for coupling increase toward target.
+
+Allowed range is 0.1 to 80.0.
+
+### `disengage_rate`
+
+Rate limit for coupling decrease toward target.
+
+Allowed range is 0.1 to 80.0.
+
+CVT notes: CVT dynamically selects ratio inside `[ratio_min, ratio_max]` to hold engine RPM in the target band according to throttle demand.
 
 <a id="sec-4-5-drivetrain-section"></a>
 ## 4.5 `[drivetrain]` Section

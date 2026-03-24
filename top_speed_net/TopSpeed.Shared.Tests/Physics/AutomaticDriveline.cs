@@ -28,6 +28,49 @@ namespace TopSpeed.Shared.Tests.Physics
         }
 
         [Fact]
+        public void Step_AtcBelowLockSpeed_DoesNotHardLockCoupling()
+        {
+            var output = AutomaticDrivelineModel.Step(
+                TransmissionType.Atc,
+                AutomaticDrivelineTuning.Default,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 20f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 700f,
+                    revLimiter: 6000f),
+                new AutomaticDrivelineState(couplingFactor: 0.50f, cvtRatio: 0f));
+
+            Assert.True(output.CouplingFactor < 0.98f);
+            Assert.True(output.CouplingFactor > 0.90f);
+        }
+
+        [Fact]
+        public void Step_AtcAtLockSpeed_AllowsFullCoupling()
+        {
+            var output = AutomaticDrivelineModel.Step(
+                TransmissionType.Atc,
+                AutomaticDrivelineTuning.Default,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 40f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 700f,
+                    revLimiter: 6000f),
+                new AutomaticDrivelineState(couplingFactor: 0.50f, cvtRatio: 0f));
+
+            Assert.Equal(1f, output.CouplingFactor, 3);
+        }
+
+        [Fact]
         public void Step_DctShift_DropsCouplingWithoutCreep()
         {
             var output = AutomaticDrivelineModel.Step(

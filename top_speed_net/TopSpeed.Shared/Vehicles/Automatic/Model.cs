@@ -58,7 +58,8 @@ namespace TopSpeed.Vehicles
                 return Lerp(tuning.LaunchCouplingMin, tuning.LaunchCouplingMax, throttle);
             if (speedKph >= tuning.LockSpeedKph && throttle >= tuning.LockThrottleMin)
                 return 1f;
-            return 0.82f + (0.18f * throttle);
+            // Keep ATC below hard-lock until lock-speed criteria are met.
+            return 0.82f + (0.14f * throttle);
         }
 
         private static float ResolveDctTargetCoupling(DctDrivelineTuning tuning, float speedKph, float throttle, bool shifting)

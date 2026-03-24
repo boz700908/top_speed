@@ -25,7 +25,7 @@ namespace TopSpeed.Vehicles
         private static readonly AutomaticDrivelineTuning AtcTune = AutomaticDrivelineTuning.Default;
         private static readonly AutomaticDrivelineTuning AtcHeavyTune = new AutomaticDrivelineTuning(
             new AtcDrivelineTuning(
-                creepAccelKphPerSecond: 1.1f,
+                creepAccelKphPerSecond: 0.70f,
                 launchCouplingMin: 0.24f,
                 launchCouplingMax: 0.86f,
                 lockSpeedKph: 44f,

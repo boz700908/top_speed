@@ -183,14 +183,56 @@ namespace TopSpeed.Vehicles
                 _drivelineCouplingFactor,
                 _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null);
             if (couplingMode == EngineCouplingMode.Blended
+                && _switchingGear == 0
                 && _drivelineCouplingFactor > 0.65f
                 && _lastDriveRpm > 0f
                 && _lastDriveRpm > _engine.Rpm)
                 _engine.OverrideRpm(_lastDriveRpm);
         }
 
+        private float ResolveCoupledDriveRpm()
+        {
+            var wheelCircumference = _wheelRadiusM * 2.0f * (float)Math.PI;
+            if (wheelCircumference <= 0.001f)
+                return _idleRpm;
+
+            var speedMps = _speed / 3.6f;
+            var gearRatio = _gear == ReverseGear
+                ? _reverseGearRatio
+                : (_effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : _engine.GetGearRatio(GetDriveGear()));
+            var coupledRpm = (speedMps / wheelCircumference) * 60f * gearRatio * _finalDriveRatio;
+            return Math.Max(_idleRpm, Math.Min(_revLimiter, coupledRpm));
+        }
+
         private EngineCouplingMode ResolveEngineCouplingMode()
         {
+            var type = EffectiveTransmissionType();
+            if (TransmissionTypes.IsAutomaticFamily(type))
+            {
+                if (_drivelineState == DrivelineState.Disengaged)
+                    return EngineCouplingMode.Disengaged;
+
+                if (type == TransmissionType.Cvt)
+                    return EngineCouplingMode.Blended;
+
+                if (type == TransmissionType.Atc)
+                {
+                    var throttle = Math.Max(0f, Math.Min(100f, _currentThrottle)) / 100f;
+                    var lockEligible = _switchingGear == 0
+                        && _speed >= _automaticTuning.Atc.LockSpeedKph
+                        && throttle >= _automaticTuning.Atc.LockThrottleMin
+                        && _drivelineCouplingFactor >= 0.93f;
+                    if (!lockEligible)
+                        return EngineCouplingMode.Blended;
+
+                    var coupledRpm = ResolveCoupledDriveRpm();
+                    var slipRpm = Math.Abs(coupledRpm - _engine.Rpm);
+                    var lockSlipWindowRpm = Math.Max(300f, (_revLimiter - _idleRpm) * 0.07f);
+                    if (slipRpm > lockSlipWindowRpm)
+                        return EngineCouplingMode.Blended;
+                }
+            }
+
             switch (_drivelineState)
             {
                 case DrivelineState.Locked:

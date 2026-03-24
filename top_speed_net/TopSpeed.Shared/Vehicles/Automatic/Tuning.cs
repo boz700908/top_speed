@@ -112,7 +112,7 @@ namespace TopSpeed.Vehicles
     {
         public static AutomaticDrivelineTuning Default => new AutomaticDrivelineTuning(
             new AtcDrivelineTuning(
-                creepAccelKphPerSecond: 1.6f,
+                creepAccelKphPerSecond: 0.70f,
                 launchCouplingMin: 0.22f,
                 launchCouplingMax: 0.80f,
                 lockSpeedKph: 38f,
@@ -138,7 +138,7 @@ namespace TopSpeed.Vehicles
                 launchCouplingMax: 0.85f,
                 lockSpeedKph: 24f,
                 lockThrottleMin: 0.12f,
-                creepAccelKphPerSecond: 1.5f,
+                creepAccelKphPerSecond: 0.70f,
                 shiftHoldCoupling: 0.75f,
                 engageRate: 4.5f,
                 disengageRate: 8.5f));
