@@ -175,6 +175,8 @@ namespace TopSpeed.Vehicles
         private TransmissionType _primaryTransmissionType = TransmissionType.Atc;
         private TransmissionType[] _supportedTransmissionTypes = new[] { TransmissionType.Atc };
         private TransmissionType _activeTransmissionType = TransmissionType.Atc;
+        private bool _shiftOnDemandSupported;
+        private bool _shiftOnDemandEnabled;
         private DrivelineState _drivelineState = DrivelineState.Locked;
     }
 }

@@ -13,7 +13,7 @@ namespace TopSpeed.Race
             var previousGear = _car.Gear;
             UpdateVehiclePanels(elapsed);
             _car.Run(elapsed);
-            TryAnnounceManualGearShift(previousGear);
+            TryAnnounceGearShift(previousGear);
             _track.Run(_car.PositionY);
             afterTrackUpdate?.Invoke();
             var road = _track.RoadAtPosition(_car.PositionY);
@@ -24,9 +24,9 @@ namespace TopSpeed.Race
                 CallNextRoad(nextRoad);
         }
 
-        private void TryAnnounceManualGearShift(int previousGear)
+        private void TryAnnounceGearShift(int previousGear)
         {
-            if (!_manualTransmission || !_started || _finished)
+            if (!_started || _finished)
                 return;
 
             var currentGear = _car.Gear;
@@ -36,18 +36,7 @@ namespace TopSpeed.Race
             if (!_input.GetGearUp() && !_input.GetGearDown())
                 return;
 
-            if (currentGear < 0)
-            {
-                SpeakText("R");
-            }
-            else if (currentGear == 0)
-            {
-                SpeakText("N");
-            }
-            else
-            {
-                SpeakText(currentGear.ToString());
-            }
+            SpeakText(GetGearAnnouncementCode());
         }
 
         private void HandleTurnEndCue(Track.Road road)

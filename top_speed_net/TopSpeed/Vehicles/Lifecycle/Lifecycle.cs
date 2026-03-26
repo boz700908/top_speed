@@ -112,6 +112,24 @@ namespace TopSpeed.Vehicles
             _vibration?.PlayEffect(VibrationEffectType.Engine);
         }
 
+        public virtual void ShutdownEngine()
+        {
+            _currentThrottle = 0;
+            _currentBrake = 0;
+            _thrust = 0;
+            _switchingGear = 0;
+            _autoShiftCooldown = 0f;
+            _throttleVolume = 0f;
+            _prevThrottleVolume = 0f;
+            _engine.StopEngine();
+            _soundEngine.Stop();
+            _soundThrottle?.Stop();
+            _vibration?.StopEffect(VibrationEffectType.Engine);
+
+            if (_state == CarState.Running || _state == CarState.Starting)
+                SetState(CarState.Stopping);
+        }
+
         public virtual void Crash()
         {
             _speed = 0;

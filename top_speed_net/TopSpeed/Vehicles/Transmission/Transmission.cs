@@ -35,6 +35,12 @@ namespace TopSpeed.Vehicles
                 return;
             }
 
+            if (IsShiftOnDemandActive())
+            {
+                _autoShiftCooldown = 0f;
+                return;
+            }
+
             if (_autoShiftCooldown > 0f)
             {
                 _autoShiftCooldown -= elapsed;

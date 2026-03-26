@@ -139,6 +139,20 @@ namespace TopSpeed.Vehicles.Parsing
             return false;
         }
 
+        private static bool? OptionalBoolInt(Section section, string key, List<VehicleTsvIssue> issues)
+        {
+            if (!section.Entries.TryGetValue(key, out var entry))
+                return null;
+
+            if (TryParseBool(entry.Value, out var boolValue))
+                return boolValue;
+            if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                return intValue != 0;
+
+            issues.Add(new VehicleTsvIssue(VehicleTsvIssueSeverity.Error, entry.Line, Localized("Key '{0}' must be a boolean or 0/1 integer.", key)));
+            return null;
+        }
+
         private static List<float>? RequireFloatCsv(Section section, string key, List<VehicleTsvIssue> issues)
         {
             if (!section.Entries.TryGetValue(key, out var entry))

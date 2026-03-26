@@ -91,6 +91,8 @@ namespace TopSpeed.Vehicles
             _cvtRatio = 0f;
             _effectiveDriveRatioOverride = 0f;
             _automaticCreepAccelMps2 = 0f;
+            _shiftOnDemandSupported = false;
+            _shiftOnDemandEnabled = false;
             _factor1 = 100;
             _lateralVelocityMps = 0f;
             _yawRateRad = 0f;
@@ -178,6 +180,8 @@ namespace TopSpeed.Vehicles
             _supportedTransmissionTypes = definition.SupportedTransmissionTypes == null || definition.SupportedTransmissionTypes.Length == 0
                 ? new[] { _primaryTransmissionType }
                 : (TransmissionType[])definition.SupportedTransmissionTypes.Clone();
+            _shiftOnDemandSupported = definition.ShiftOnDemand;
+            _shiftOnDemandEnabled = false;
             _automaticTuning = definition.AutomaticTuning;
             _activeTransmissionType = _primaryTransmissionType;
             _drivelineState = DrivelineState.Locked;

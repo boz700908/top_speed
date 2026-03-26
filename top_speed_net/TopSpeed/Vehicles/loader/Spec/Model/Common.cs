@@ -15,6 +15,7 @@ namespace TopSpeed.Vehicles.Loader
             public float Steering { get; set; }
             public TransmissionType PrimaryTransmissionType { get; set; } = TransmissionType.Atc;
             public TransmissionType[] SupportedTransmissionTypes { get; set; } = new[] { TransmissionType.Atc };
+            public bool ShiftOnDemand { get; set; }
             public AutomaticDrivelineTuning AutomaticTuning { get; set; } = AutomaticDrivelineTuning.Default;
             public int HasWipers { get; set; }
             public float IdleRpm { get; set; }

@@ -161,7 +161,16 @@ namespace TopSpeed.Vehicles
             }
             else
             {
-                UpdateAutomaticGear(elapsed, _speed / 3.6f, throttle, surfaceTractionMod, longitudinalGripFactor);
+                if (IsShiftOnDemandActive() && _gear >= FirstForwardGear)
+                {
+                    var gearMax = _engine.GetGearMaxSpeedKmh(_gear);
+                    if (_speed > gearMax)
+                        _speed = gearMax;
+                }
+                else
+                {
+                    UpdateAutomaticGear(elapsed, _speed / 3.6f, throttle, surfaceTractionMod, longitudinalGripFactor);
+                }
             }
         }
 

@@ -36,6 +36,7 @@ namespace TopSpeed.Race
         protected void HandleCoreRaceMetricsRequests(bool includeFinishedRaceTime)
         {
             HandleEngineStartRequest();
+            HandleShiftOnDemandToggleRequest();
             HandleCurrentGearRequest();
             HandleCurrentLapNumberRequest();
             HandleCurrentRacePercentageRequest();

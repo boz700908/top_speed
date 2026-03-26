@@ -19,6 +19,7 @@ namespace TopSpeed.Vehicles.Loader
             def.SupportedTransmissionTypes = spec.SupportedTransmissionTypes == null
                 ? Array.Empty<TransmissionType>()
                 : (TransmissionType[])spec.SupportedTransmissionTypes.Clone();
+            def.ShiftOnDemand = spec.ShiftOnDemand;
             def.AutomaticTuning = spec.AutomaticTuning;
             def.HasWipers = spec.HasWipers;
             def.IdleRpm = spec.IdleRpm;

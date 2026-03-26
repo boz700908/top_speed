@@ -17,6 +17,12 @@ namespace TopSpeed.Vehicles
                 return;
             }
 
+            if (IsShiftOnDemandActive())
+            {
+                HandleShiftOnDemandShift(intent.GearUp, intent.GearDown);
+                return;
+            }
+
             HandleAutomaticDirectionShift(intent.GearUp, intent.GearDown);
         }
 
@@ -104,6 +110,72 @@ namespace TopSpeed.Vehicles
         private static bool CanShiftManual(int clutch)
         {
             return clutch >= 90;
+        }
+
+        private void HandleShiftOnDemandShift(bool gearUp, bool gearDown)
+        {
+            if (gearDown && _stickReleased)
+            {
+                _stickReleased = false;
+
+                if (_gear > FirstForwardGear)
+                {
+                    _switchingGear = -1;
+                    --_gear;
+                    if (!AnyBackfirePlaying() && Algorithm.RandomInt(5) == 1)
+                        PlayRandomBackfire();
+                    PushEvent(EventType.InGear, 0.2f);
+                    return;
+                }
+
+                if (_gear == FirstForwardGear)
+                {
+                    _switchingGear = -1;
+                    _gear = NeutralGear;
+                    PushEvent(EventType.InGear, 0.2f);
+                    return;
+                }
+
+                if (_gear == NeutralGear)
+                {
+                    if (_speed <= ReverseShiftMaxSpeedKmh)
+                    {
+                        _switchingGear = -1;
+                        _gear = ReverseGear;
+                        PushEvent(EventType.InGear, 0.2f);
+                    }
+                    else
+                    {
+                        _currentThrottle = 0;
+                        _currentBrake = -100;
+                        _soundBadSwitch.Play(loop: false);
+                    }
+                }
+            }
+            else if (gearUp && _stickReleased)
+            {
+                _stickReleased = false;
+                if (_gear == ReverseGear)
+                {
+                    _switchingGear = 1;
+                    _gear = NeutralGear;
+                    PushEvent(EventType.InGear, 0.2f);
+                }
+                else if (_gear == NeutralGear)
+                {
+                    _switchingGear = 1;
+                    _gear = FirstForwardGear;
+                    PushEvent(EventType.InGear, 0.2f);
+                }
+                else if (_gear < _gears)
+                {
+                    _switchingGear = 1;
+                    ++_gear;
+                    if (!AnyBackfirePlaying() && Algorithm.RandomInt(5) == 1)
+                        PlayRandomBackfire();
+                    PushEvent(EventType.InGear, 0.2f);
+                }
+            }
         }
 
         private void HandleAutomaticDirectionShift(bool gearUp, bool gearDown)

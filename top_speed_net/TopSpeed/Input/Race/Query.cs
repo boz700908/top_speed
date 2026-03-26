@@ -15,6 +15,8 @@ namespace TopSpeed.Input
 
         public bool GetCurrentGear() => IsActionTriggered(InputAction.CurrentGear);
 
+        public bool GetToggleShiftOnDemand() => _allowAuxiliaryInput && WasPressed(Key.M);
+
         public bool GetCurrentLapNr() => IsActionTriggered(InputAction.CurrentLapNr);
 
         public bool GetCurrentRacePerc() => IsActionTriggered(InputAction.CurrentRacePerc);

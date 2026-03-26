@@ -11,48 +11,53 @@ namespace TopSpeed.Race
     {
         protected void HandleEngineStartRequest()
         {
-            if (_input.GetStartEngine() && _started && !_finished)
+            if (_input.GetStartEngine() && _started)
             {
-                var restartFromStall = !_car.EngineRunning && _car.State == CarState.Running;
-                var canStart = !_engineStarted || _car.State == CarState.Crashed || restartFromStall;
-                if (canStart)
+                if (_car.EngineRunning)
                 {
-                    _engineStarted = true;
-                    if (_car.State == CarState.Crashed)
-                        _car.RestartAfterCrash();
-                    else if (restartFromStall)
-                        _car.RestartFromStall();
-                    else
-                        _car.Start();
+                    _car.ShutdownEngine();
+                    return;
                 }
+
+                _engineStarted = true;
+                if (_car.State == CarState.Crashed)
+                    _car.RestartAfterCrash();
+                else if (_car.State == CarState.Stopped && _lap <= _nrOfLaps)
+                    _car.Start();
+                else
+                    _car.RestartFromStall();
             }
+        }
+
+        protected void HandleShiftOnDemandToggleRequest()
+        {
+            if (!_input.GetToggleShiftOnDemand() || !_started || _lap > _nrOfLaps)
+                return;
+
+            if (!_car.ToggleShiftOnDemand())
+                return;
+
+            SpeakText(_car.ShiftOnDemandEnabled ? "shift on demand" : "automatic");
         }
 
         protected void HandleCurrentGearRequest()
         {
             if (_input.GetCurrentGear() && _started && _lap <= _nrOfLaps)
             {
-                var gear = _car.Gear;
-                string code;
-                if (_car.InReverseGear)
-                {
-                    code = "R";
-                }
-                else if (gear == 0)
-                {
-                    code = "N";
-                }
-                else if (_car.ManualTransmission)
-                {
-                    code = gear.ToString();
-                }
-                else
-                {
-                    code = "D";
-                }
-
-                SpeakText(LocalizationService.Format(LocalizationService.Mark("Gear {0}"), code));
+                SpeakText(LocalizationService.Format(LocalizationService.Mark("Gear {0}"), GetGearAnnouncementCode()));
             }
+        }
+
+        protected string GetGearAnnouncementCode()
+        {
+            var gear = _car.Gear;
+            if (_car.InReverseGear)
+                return "R";
+            if (gear == 0)
+                return "N";
+            if (_car.ManualTransmission)
+                return gear.ToString();
+            return "D " + Math.Max(1, gear);
         }
 
         protected void HandleCurrentLapNumberRequest()

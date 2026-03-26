@@ -18,6 +18,8 @@ namespace TopSpeed.Vehicles
         int Gear { get; }
         bool InReverseGear { get; }
         bool ManualTransmission { get; set; }
+        bool ShiftOnDemandSupported { get; }
+        bool ShiftOnDemandEnabled { get; }
         CarType CarType { get; }
         ICarListener? Listener { get; set; }
         bool EngineRunning { get; }
@@ -42,6 +44,7 @@ namespace TopSpeed.Vehicles
         void Start();
         void RestartFromStall();
         void RestartAfterCrash();
+        void ShutdownEngine();
         void Crash();
         void MiniCrash(float newPosition);
         void Bump(float bumpX, float bumpY, float speedDeltaKph);
@@ -60,5 +63,6 @@ namespace TopSpeed.Vehicles
         void SetControlArbiter(IControlArbiter arbiter);
         void SetModifiers(IReadOnlyList<ICarModifier>? modifiers);
         void SetPhysicsModel(IModel model);
+        bool ToggleShiftOnDemand();
     }
 }

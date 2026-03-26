@@ -60,6 +60,7 @@ namespace TopSpeed.Vehicles.Parsing
             var gearRatios = RequireFloatCsv(gears, "gear_ratios", issues);
             var primaryTransmissionType = RequireTransmissionType(transmission, "primary_type", issues);
             var supportedTransmissionTypes = RequireTransmissionTypes(transmission, "supported_types", issues);
+            var shiftOnDemand = OptionalBoolInt(transmission, "shift_on_demand", issues) ?? false;
 
             var idleRpm = RequireFloatRange(engine, "idle_rpm", 300f, 3000f, issues);
             var maxRpm = RequireFloatRange(engine, "max_rpm", 1000f, 20000f, issues);
@@ -160,6 +161,29 @@ namespace TopSpeed.Vehicles.Parsing
                 primaryTransmissionType,
                 supportedTransmissionTypes,
                 issues);
+            if (shiftOnDemand)
+            {
+                var hasAutomaticFamily = false;
+                for (var i = 0; i < supportedTransmissionTypes.Count; i++)
+                {
+                    if (!TransmissionTypes.IsAutomaticFamily(supportedTransmissionTypes[i]))
+                        continue;
+
+                    hasAutomaticFamily = true;
+                    break;
+                }
+
+                if (!hasAutomaticFamily)
+                {
+                    var line = transmission.Line;
+                    if (transmission.Entries.TryGetValue("shift_on_demand", out var shiftOnDemandEntry))
+                        line = shiftOnDemandEntry.Line;
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Warning,
+                        line,
+                        Localized("shift_on_demand is ignored because supported_types does not include an automatic transmission type.")));
+                }
+            }
 
             if (maxRpm < idleRpm)
                 issues.Add(new VehicleTsvIssue(VehicleTsvIssueSeverity.Error, engine.Entries["max_rpm"].Line, Localized("max_rpm must be greater than or equal to idle_rpm.")));
@@ -267,6 +291,7 @@ namespace TopSpeed.Vehicles.Parsing
                 GearRatios = gearRatios!.ToArray(),
                 PrimaryTransmissionType = primaryTransmissionType,
                 SupportedTransmissionTypes = supportedTransmissionTypes.ToArray(),
+                ShiftOnDemand = shiftOnDemand,
                 AutomaticTuning = automaticTuning,
                 IdleRpm = idleRpm,
                 MaxRpm = maxRpm,

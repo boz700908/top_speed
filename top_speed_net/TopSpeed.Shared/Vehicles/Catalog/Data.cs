@@ -68,6 +68,7 @@ namespace TopSpeed.Vehicles
                 cornerStiffnessFront: 1.15f, cornerStiffnessRear: 1.08f, yawInertiaScale: 1.20f, steeringCurve: 1.06f, transientDamping: 1.35f,
                 primaryTransmissionType: TransmissionType.Dct, supportedTransmissionTypes: DctOnly,
                 automaticTuning: DctTune,
+                shiftOnDemand: true,
                 transmissionPolicy: Policy(5, true, Auto6Upshifts, upshiftRpmFraction: 0.88f)),
 
             new OfficialVehicleSpec(
@@ -89,6 +90,7 @@ namespace TopSpeed.Vehicles
                 cornerStiffnessFront: 1.20f, cornerStiffnessRear: 1.12f, yawInertiaScale: 1.18f, steeringCurve: 1.05f, transientDamping: 1.35f,
                 primaryTransmissionType: TransmissionType.Dct, supportedTransmissionTypes: DctOnly,
                 automaticTuning: DctTune,
+                shiftOnDemand: true,
                 transmissionPolicy: Policy(5, true, Auto7Upshifts, upshiftRpmFraction: 0.85f)),
 
             new OfficialVehicleSpec(
@@ -170,6 +172,7 @@ namespace TopSpeed.Vehicles
                 cornerStiffnessFront: 0.90f, cornerStiffnessRear: 0.86f, yawInertiaScale: 1.46f, steeringCurve: 1.30f, transientDamping: 2.40f,
                 primaryTransmissionType: TransmissionType.Atc, supportedTransmissionTypes: AtcOnly,
                 automaticTuning: AtcTune,
+                shiftOnDemand: true,
                 transmissionPolicy: Policy(6, true, Auto8Upshifts, upshiftRpmFraction: 0.84f, minUpshiftNetAccelerationMps2: -0.12f)),
 
             new OfficialVehicleSpec(
@@ -191,6 +194,7 @@ namespace TopSpeed.Vehicles
                 cornerStiffnessFront: 1.18f, cornerStiffnessRear: 1.10f, yawInertiaScale: 1.24f, steeringCurve: 1.05f, transientDamping: 1.40f,
                 primaryTransmissionType: TransmissionType.Dct, supportedTransmissionTypes: DctOnly,
                 automaticTuning: DctTune,
+                shiftOnDemand: true,
                 transmissionPolicy: Policy(5, true, Auto7Upshifts, upshiftRpmFraction: 0.90f)),
 
             new OfficialVehicleSpec(
@@ -212,6 +216,7 @@ namespace TopSpeed.Vehicles
                 cornerStiffnessFront: 0.98f, cornerStiffnessRear: 0.93f, yawInertiaScale: 1.38f, steeringCurve: 1.24f, transientDamping: 2.10f,
                 primaryTransmissionType: TransmissionType.Atc, supportedTransmissionTypes: AtcOnly,
                 automaticTuning: AtcTune,
+                shiftOnDemand: true,
                 transmissionPolicy: Policy(6, true, Auto8Upshifts, upshiftRpmFraction: 0.80f, minUpshiftNetAccelerationMps2: -0.20f)),
 
             new OfficialVehicleSpec(
@@ -233,6 +238,7 @@ namespace TopSpeed.Vehicles
                 cornerStiffnessFront: 0.74f, cornerStiffnessRear: 0.66f, yawInertiaScale: 1.74f, steeringCurve: 1.32f, transientDamping: 2.90f,
                 primaryTransmissionType: TransmissionType.Atc, supportedTransmissionTypes: AtcOnly,
                 automaticTuning: AtcHeavyTune,
+                shiftOnDemand: true,
                 transmissionPolicy: Policy(5, true, Auto7Upshifts, upshiftRpmFraction: 0.72f, minUpshiftNetAccelerationMps2: -0.30f)),
 
             new OfficialVehicleSpec(

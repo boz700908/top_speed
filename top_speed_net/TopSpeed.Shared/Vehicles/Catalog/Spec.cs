@@ -70,6 +70,7 @@ namespace TopSpeed.Vehicles
             string? torqueCurvePreset = null,
             TransmissionType primaryTransmissionType = TransmissionType.Atc,
             TransmissionType[]? supportedTransmissionTypes = null,
+            bool shiftOnDemand = false,
             AutomaticDrivelineTuning? automaticTuning = null,
             TransmissionPolicy? transmissionPolicy = null)
         {
@@ -140,6 +141,7 @@ namespace TopSpeed.Vehicles
                 throw new ArgumentException(validationError, nameof(supportedTransmissionTypes));
             PrimaryTransmissionType = primaryTransmissionType;
             SupportedTransmissionTypes = (TransmissionType[])supportedTransmissionTypes.Clone();
+            ShiftOnDemand = shiftOnDemand;
             AutomaticTuning = automaticTuning ?? AutomaticDrivelineTuning.Default;
             TransmissionPolicy = transmissionPolicy ?? TransmissionPolicy.Default;
         }
@@ -208,6 +210,7 @@ namespace TopSpeed.Vehicles
         public string? TorqueCurvePreset { get; }
         public TransmissionType PrimaryTransmissionType { get; }
         public TransmissionType[] SupportedTransmissionTypes { get; }
+        public bool ShiftOnDemand { get; }
         public AutomaticDrivelineTuning AutomaticTuning { get; }
         public TransmissionPolicy TransmissionPolicy { get; }
     }

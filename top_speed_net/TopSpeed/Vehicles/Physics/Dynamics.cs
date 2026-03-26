@@ -1,4 +1,5 @@
 using System;
+using TopSpeed.Physics.Powertrain;
 using TopSpeed.Vehicles.Control;
 
 namespace TopSpeed.Vehicles
@@ -72,9 +73,29 @@ namespace TopSpeed.Vehicles
 
         private void RunStoppingDynamics(float elapsed)
         {
+            _currentThrottle = 0;
+            _currentBrake = 0;
             _speed -= (elapsed * 100f * _deceleration);
             if (_speed < 0f)
                 _speed = 0f;
+
+            if (_soundEngine.IsPlaying)
+            {
+                _engine.SyncFromSpeed(
+                    _speed,
+                    GetDriveGear(),
+                    elapsed,
+                    throttleInput: 0,
+                    inReverse: _gear == ReverseGear,
+                    reverseGearRatio: _reverseGearRatio,
+                    couplingMode: EngineCouplingMode.Locked,
+                    couplingFactor: 1f,
+                    driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null);
+            }
+            else
+            {
+                _engine.UpdateKinematicsOnly(_speed, elapsed);
+            }
 
             UpdateEngineFreq();
 

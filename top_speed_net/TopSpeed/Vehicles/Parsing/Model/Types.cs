@@ -78,6 +78,7 @@ namespace TopSpeed.Vehicles.Parsing
         public float[] GearRatios { get; set; } = Array.Empty<float>();
         public TransmissionType PrimaryTransmissionType { get; set; } = TransmissionType.Atc;
         public TransmissionType[] SupportedTransmissionTypes { get; set; } = new[] { TransmissionType.Atc };
+        public bool ShiftOnDemand { get; set; }
         public AutomaticDrivelineTuning AutomaticTuning { get; set; } = AutomaticDrivelineTuning.Default;
 
         public float IdleRpm { get; set; }

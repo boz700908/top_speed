@@ -165,7 +165,8 @@ namespace TopSpeed.Vehicles.Parsing
                 ["torque_curve"] = Set("preset"),
                 ["transmission"] = Set(
                     "primary_type",
-                    "supported_types"),
+                    "supported_types",
+                    "shift_on_demand"),
                 ["transmission_atc"] = Set(
                     "creep_accel_kphps",
                     "launch_coupling_min",

@@ -24,6 +24,7 @@ namespace TopSpeed.Data
         public float Steering { get; }
         public TransmissionType PrimaryTransmissionType { get; }
         public TransmissionType[] SupportedTransmissionTypes { get; }
+        public bool ShiftOnDemand { get; }
         public AutomaticDrivelineTuning AutomaticTuning { get; }
         // Engine simulation parameters
         public float IdleRpm { get; }
@@ -152,7 +153,8 @@ namespace TopSpeed.Data
             float[]? torqueCurveTorqueNm = null,
             string? torqueCurvePreset = null,
             float brakeStrength = 1.0f,
-            TransmissionPolicy? transmissionPolicy = null)
+            TransmissionPolicy? transmissionPolicy = null,
+            bool shiftOnDemand = false)
         {
             Name = name;
             _sounds[(int)VehicleAction.Engine] = engineSound;
@@ -178,6 +180,7 @@ namespace TopSpeed.Data
                 throw new ArgumentException(validationError, nameof(supportedTransmissionTypes));
             PrimaryTransmissionType = primaryTransmissionType;
             SupportedTransmissionTypes = (TransmissionType[])normalizedSupportedTypes.Clone();
+            ShiftOnDemand = shiftOnDemand;
             AutomaticTuning = automaticTuning;
             IdleRpm = idleRpm;
             MaxRpm = maxRpm;
@@ -317,7 +320,8 @@ namespace TopSpeed.Data
                 spec.TorqueCurveTorqueNm,
                 spec.TorqueCurvePreset,
                 spec.BrakeStrength,
-                spec.TransmissionPolicy);
+                spec.TransmissionPolicy,
+                spec.ShiftOnDemand);
         }
     }
 }

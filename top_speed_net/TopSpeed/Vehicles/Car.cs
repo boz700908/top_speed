@@ -21,6 +21,8 @@ namespace TopSpeed.Vehicles
             get => _manualTransmission;
             set => ApplyTransmissionRequest(value);
         }
+        public bool ShiftOnDemandSupported => _shiftOnDemandSupported && TransmissionTypes.IsAutomaticFamily(_activeTransmissionType);
+        public bool ShiftOnDemandEnabled => IsShiftOnDemandActive();
         public CarType CarType => _carType;
         public ICarListener? Listener
         {
@@ -112,6 +114,24 @@ namespace TopSpeed.Vehicles
 
             _activeTransmissionType = resolved;
             _manualTransmission = resolved == TransmissionType.Manual;
+            _shiftOnDemandEnabled = false;
+        }
+
+        public bool ToggleShiftOnDemand()
+        {
+            if (!ShiftOnDemandSupported)
+                return false;
+
+            _shiftOnDemandEnabled = !_shiftOnDemandEnabled;
+            return true;
+        }
+
+        private bool IsShiftOnDemandActive()
+        {
+            return _shiftOnDemandEnabled
+                && _shiftOnDemandSupported
+                && !_manualTransmission
+                && TransmissionTypes.IsAutomaticFamily(_activeTransmissionType);
         }
     }
 }
