@@ -49,6 +49,7 @@ namespace TopSpeed.Bots
             var driveRatioOverride = 0f;
             if (automaticFamily)
             {
+                var currentEngineRpmEstimate = Calculator.RpmAtSpeed(config.Powertrain, speedMpsCurrent, state.Gear);
                 autoOutput = AutomaticDrivelineModel.Step(
                     activeTransmissionType,
                     config.AutomaticTuning,
@@ -61,7 +62,9 @@ namespace TopSpeed.Bots
                         wheelCircumferenceM: config.WheelRadiusM * 2f * (float)Math.PI,
                         finalDriveRatio: config.FinalDriveRatio,
                         idleRpm: config.IdleRpm,
-                        revLimiter: config.RevLimiter),
+                        revLimiter: config.RevLimiter,
+                        launchRpm: config.LaunchRpm,
+                        currentEngineRpm: currentEngineRpmEstimate),
                     new AutomaticDrivelineState(state.AutomaticCouplingFactor, state.CvtRatio));
                 state.AutomaticCouplingFactor = autoOutput.CouplingFactor;
                 state.CvtRatio = autoOutput.CvtRatio;

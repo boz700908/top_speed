@@ -56,6 +56,8 @@ namespace TopSpeed.Vehicles
 
     public static class AutomaticTransmissionLogic
     {
+        private const float DownshiftReentryBandFraction = 0.70f;
+
         public static AutomaticShiftDecision Decide(in AutomaticShiftInput input, TransmissionPolicy? policy)
         {
             var p = policy ?? TransmissionPolicy.Default;
@@ -68,6 +70,8 @@ namespace TopSpeed.Vehicles
                 : float.MaxValue;
             var nearTopSpeed = input.SpeedMps >= topSpeedPursuitThreshold;
             var upshiftRpm = p.ResolveUpshiftRpm(input.IdleRpm, input.RevLimiter);
+            var downshiftRpm = p.ResolveDownshiftRpm(input.IdleRpm, input.RevLimiter);
+            var performanceDownshiftReentryRpm = ResolvePerformanceDownshiftReentryRpm(downshiftRpm, upshiftRpm);
 
             var bestGear = input.CurrentGear;
             var bestAccel = input.CurrentAccel;
@@ -83,33 +87,48 @@ namespace TopSpeed.Vehicles
                 }
             }
 
-            if (input.CurrentGear > 1 && input.DownAccel > bestAccel)
-            {
-                bestAccel = input.DownAccel;
-                bestGear = input.CurrentGear - 1;
-            }
-
             if (input.CurrentGear < input.Gears && input.CurrentRpm >= input.RevLimiter * 0.995f)
             {
                 if (CanForceUpshiftAtLimiter(in input, p, intendedTopSpeedGear, nearTopSpeed))
                     return UpshiftDecision(input.CurrentGear, input.Gears, p);
             }
 
-            var downshiftRpm = p.ResolveDownshiftRpm(input.IdleRpm, input.RevLimiter);
             if (input.CurrentGear > 1 && input.CurrentRpm < downshiftRpm)
             {
                 return new AutomaticShiftDecision(true, input.CurrentGear - 1, p.BaseAutoShiftCooldownSeconds);
             }
 
-            if (bestGear != input.CurrentGear && bestAccel > input.CurrentAccel * (1f + p.UpshiftHysteresis))
+            if (CanConsiderPerformanceDownshift(in input, performanceDownshiftReentryRpm) &&
+                input.DownAccel > input.CurrentAccel * (1f + p.UpshiftHysteresis))
             {
-                if (bestGear > input.CurrentGear)
-                    return UpshiftDecision(input.CurrentGear, input.Gears, p);
+                return new AutomaticShiftDecision(true, input.CurrentGear - 1, p.BaseAutoShiftCooldownSeconds);
+            }
 
-                return new AutomaticShiftDecision(true, bestGear, p.BaseAutoShiftCooldownSeconds);
+            if (bestGear > input.CurrentGear && bestAccel > input.CurrentAccel * (1f + p.UpshiftHysteresis))
+            {
+                return UpshiftDecision(input.CurrentGear, input.Gears, p);
             }
 
             return new AutomaticShiftDecision(false, input.CurrentGear, 0f);
+        }
+
+        private static float ResolvePerformanceDownshiftReentryRpm(float downshiftRpm, float upshiftRpm)
+        {
+            if (upshiftRpm <= downshiftRpm)
+                return downshiftRpm;
+            var reentryRpm = downshiftRpm + ((upshiftRpm - downshiftRpm) * DownshiftReentryBandFraction);
+            return Math.Max(downshiftRpm, Math.Min(upshiftRpm, reentryRpm));
+        }
+
+        private static bool CanConsiderPerformanceDownshift(in AutomaticShiftInput input, float performanceDownshiftReentryRpm)
+        {
+            if (input.CurrentGear <= 1)
+                return false;
+            if (input.CurrentRpm > performanceDownshiftReentryRpm)
+                return false;
+            if (float.IsNaN(input.DownAccel) || float.IsInfinity(input.DownAccel))
+                return false;
+            return true;
         }
 
         private static bool CanConsiderUpshift(

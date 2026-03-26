@@ -20,7 +20,7 @@ namespace TopSpeed.Vehicles
             {
                 case TransmissionType.Atc:
                 {
-                    var target = ResolveAtcTargetCoupling(tuning.Atc, speedKph, throttle, input.Shifting);
+                    var target = ResolveAtcTargetCoupling(tuning.Atc, in input, speedKph, throttle, input.Shifting);
                     var coupling = MoveToward(currentCoupling, target, elapsed, tuning.Atc.EngageRate, tuning.Atc.DisengageRate);
                     var creepMps2 = ResolveCreepAccelerationMps2(tuning.Atc.CreepAccelKphPerSecond, throttle, brake);
                     return new AutomaticDrivelineOutput(coupling, cvtRatio: 0f, effectiveDriveRatio: 0f, creepMps2);
@@ -50,16 +50,60 @@ namespace TopSpeed.Vehicles
             }
         }
 
-        private static float ResolveAtcTargetCoupling(AtcDrivelineTuning tuning, float speedKph, float throttle, bool shifting)
+        private static float ResolveAtcTargetCoupling(
+            AtcDrivelineTuning tuning,
+            in AutomaticDrivelineInput input,
+            float speedKph,
+            float throttle,
+            bool shifting)
         {
+            const float LaunchControlThrottleMin = 0.35f;
+            const float LaunchTransitionSpeedMinKph = 4f;
+            const float LaunchTransitionSpeedMaxKph = 10f;
+            const float LaunchBlendWindowKph = 10f;
+            const float LaunchRpmWindowFloor = 250f;
+            const float LaunchCouplingFeedbackGain = 0.22f;
+
             if (shifting)
                 return Clamp01(tuning.ShiftReleaseCoupling);
-            if (speedKph < 2.5f)
-                return Lerp(tuning.LaunchCouplingMin, tuning.LaunchCouplingMax, throttle);
+
+            var launchTarget = Lerp(tuning.LaunchCouplingMin, tuning.LaunchCouplingMax, throttle);
+            var cruiseTarget = 0.82f + (0.14f * throttle);
+            var launchHoldSpeedKph = Lerp(LaunchTransitionSpeedMinKph, LaunchTransitionSpeedMaxKph, throttle);
+            if (speedKph <= launchHoldSpeedKph)
+            {
+                if (throttle < LaunchControlThrottleMin)
+                    return launchTarget;
+
+                var launchRpm = ResolveLaunchRpm(input);
+                var currentRpm = Math.Max(input.IdleRpm, input.CurrentEngineRpm > 0f ? input.CurrentEngineRpm : launchRpm);
+                var launchRpmWindow = Math.Max(LaunchRpmWindowFloor, launchRpm * 0.20f);
+                var normalizedRpmError = Clamp((currentRpm - launchRpm) / launchRpmWindow, -1f, 1f);
+                var correctedLaunchTarget = launchTarget + (normalizedRpmError * LaunchCouplingFeedbackGain);
+                var launchCouplingMin = Math.Max(0f, tuning.LaunchCouplingMin * 0.60f);
+                var launchCouplingMax = Math.Min(0.95f, tuning.LaunchCouplingMax + 0.08f);
+                return Clamp(correctedLaunchTarget, launchCouplingMin, launchCouplingMax);
+            }
+
             if (speedKph >= tuning.LockSpeedKph && throttle >= tuning.LockThrottleMin)
                 return 1f;
-            // Keep ATC below hard-lock until lock-speed criteria are met.
-            return 0.82f + (0.14f * throttle);
+
+            var transitionEndSpeedKph = Math.Max(
+                launchHoldSpeedKph + 0.1f,
+                Math.Min(tuning.LockSpeedKph, launchHoldSpeedKph + LaunchBlendWindowKph));
+            if (speedKph >= transitionEndSpeedKph)
+                return cruiseTarget;
+
+            var transitionT = (speedKph - launchHoldSpeedKph) / (transitionEndSpeedKph - launchHoldSpeedKph);
+            return Lerp(launchTarget, cruiseTarget, transitionT);
+        }
+
+        private static float ResolveLaunchRpm(in AutomaticDrivelineInput input)
+        {
+            var fallback = input.IdleRpm + ((input.RevLimiter - input.IdleRpm) * 0.26f);
+            if (input.LaunchRpm <= 0f)
+                return fallback;
+            return Clamp(input.LaunchRpm, input.IdleRpm, input.RevLimiter);
         }
 
         private static float ResolveDctTargetCoupling(DctDrivelineTuning tuning, float speedKph, float throttle, bool shifting)

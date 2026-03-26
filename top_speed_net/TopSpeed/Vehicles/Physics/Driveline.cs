@@ -84,7 +84,9 @@ namespace TopSpeed.Vehicles
                     wheelCircumferenceM: _wheelRadiusM * 2f * (float)Math.PI,
                     finalDriveRatio: _finalDriveRatio,
                     idleRpm: _idleRpm,
-                    revLimiter: _revLimiter),
+                    revLimiter: _revLimiter,
+                    launchRpm: _launchRpm,
+                    currentEngineRpm: _engine.Rpm),
                 new AutomaticDrivelineState(_drivelineCouplingFactor, _cvtRatio));
 
             _drivelineCouplingFactor = output.CouplingFactor;

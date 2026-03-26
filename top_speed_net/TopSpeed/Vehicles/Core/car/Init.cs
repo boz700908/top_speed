@@ -67,6 +67,7 @@ namespace TopSpeed.Vehicles
             _engineStalled = false;
             _hasWipers = 0;
             _switchingGear = 0;
+            _autoShiftCooldown = 0f;
             _speed = 0;
             _frame = 1;
             _throttleVolume = 0.0f;

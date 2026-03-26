@@ -55,6 +55,7 @@ namespace TopSpeed.Vehicles
             _prevSurfaceFrequency = 0;
             _surfaceFrequency = 0;
             _switchingGear = 0;
+            _autoShiftCooldown = 0f;
             _throttleVolume = 0.0f;
             ClearStallState();
             _soundAsphalt.SetFrequency(_surfaceFrequency);
@@ -75,6 +76,7 @@ namespace TopSpeed.Vehicles
             PushEvent(EventType.CarStart, delay);
             _soundStart.Restart(loop: false);
             _switchingGear = 0;
+            _autoShiftCooldown = 0f;
             _throttleVolume = 0.0f;
             _vibration?.PlayEffect(VibrationEffectType.Start);
             _vibration?.PlayEffect(VibrationEffectType.Engine);
@@ -98,6 +100,7 @@ namespace TopSpeed.Vehicles
             _prevSurfaceFrequency = 0;
             _surfaceFrequency = 0;
             _switchingGear = 0;
+            _autoShiftCooldown = 0f;
             _throttleVolume = 0.0f;
             ClearStallState();
             _soundAsphalt.SetFrequency(_surfaceFrequency);
@@ -189,6 +192,7 @@ namespace TopSpeed.Vehicles
             _soundHorn.SetPanPercent(0);
             _gear = NeutralGear;
             _switchingGear = 0;
+            _autoShiftCooldown = 0f;
             ClearStallState();
             SetState(CarState.Crashing);
             PushEvent(EventType.CrashComplete, _soundCrash.GetLengthSeconds() + 1.25f);

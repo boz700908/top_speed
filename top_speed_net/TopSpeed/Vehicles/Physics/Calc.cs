@@ -245,19 +245,9 @@ namespace TopSpeed.Vehicles
 
                 if (type == TransmissionType.Atc)
                 {
-                    var throttle = Math.Max(0f, Math.Min(100f, _currentThrottle)) / 100f;
-                    var lockEligible = _switchingGear == 0
-                        && _speed >= _automaticTuning.Atc.LockSpeedKph
-                        && throttle >= _automaticTuning.Atc.LockThrottleMin
-                        && _drivelineCouplingFactor >= 0.93f;
-                    if (!lockEligible)
-                        return EngineCouplingMode.Blended;
-
-                    var coupledRpm = ResolveCoupledDriveRpm();
-                    var slipRpm = Math.Abs(coupledRpm - _engine.Rpm);
-                    var lockSlipWindowRpm = Math.Max(300f, (_revLimiter - _idleRpm) * 0.07f);
-                    if (slipRpm > lockSlipWindowRpm)
-                        return EngineCouplingMode.Blended;
+                    // ATC lockup is modeled as near-locked blended coupling to avoid abrupt
+                    // RPM snaps when entering or leaving converter-clutch conditions.
+                    return EngineCouplingMode.Blended;
                 }
             }
 

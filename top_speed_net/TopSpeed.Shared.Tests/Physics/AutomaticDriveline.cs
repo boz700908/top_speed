@@ -71,6 +71,93 @@ namespace TopSpeed.Shared.Tests.Physics
         }
 
         [Fact]
+        public void Step_AtcLaunchTransition_AvoidsAbruptCouplingJump()
+        {
+            var tuning = AutomaticDrivelineTuning.Default;
+
+            var launchSpeedOutput = AutomaticDrivelineModel.Step(
+                TransmissionType.Atc,
+                tuning,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 2.4f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 700f,
+                    revLimiter: 6000f),
+                new AutomaticDrivelineState(couplingFactor: 0f, cvtRatio: 0f));
+
+            var justAboveLaunchOutput = AutomaticDrivelineModel.Step(
+                TransmissionType.Atc,
+                tuning,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 2.6f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 700f,
+                    revLimiter: 6000f),
+                new AutomaticDrivelineState(couplingFactor: 0f, cvtRatio: 0f));
+
+            Assert.True(justAboveLaunchOutput.CouplingFactor >= launchSpeedOutput.CouplingFactor);
+            Assert.True(justAboveLaunchOutput.CouplingFactor - launchSpeedOutput.CouplingFactor < 0.05f);
+        }
+
+        [Fact]
+        public void Step_AtcLaunchFeedback_LowersCouplingWhenRpmBelowLaunchTarget()
+        {
+            var tuning = AutomaticDrivelineTuning.Default;
+            var output = AutomaticDrivelineModel.Step(
+                TransmissionType.Atc,
+                tuning,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 4f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 700f,
+                    revLimiter: 6000f,
+                    launchRpm: 2000f,
+                    currentEngineRpm: 900f),
+                new AutomaticDrivelineState(couplingFactor: 1f, cvtRatio: 0f));
+
+            Assert.True(output.CouplingFactor < tuning.Atc.LaunchCouplingMax);
+        }
+
+        [Fact]
+        public void Step_AtcLaunchFeedback_RaisesCouplingWhenRpmAboveLaunchTarget()
+        {
+            var tuning = AutomaticDrivelineTuning.Default;
+            var output = AutomaticDrivelineModel.Step(
+                TransmissionType.Atc,
+                tuning,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 4f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 700f,
+                    revLimiter: 6000f,
+                    launchRpm: 2000f,
+                    currentEngineRpm: 2800f),
+                new AutomaticDrivelineState(couplingFactor: 0f, cvtRatio: 0f));
+
+            Assert.True(output.CouplingFactor > tuning.Atc.LaunchCouplingMax);
+        }
+
+        [Fact]
         public void Step_DctShift_DropsCouplingWithoutCreep()
         {
             var output = AutomaticDrivelineModel.Step(

@@ -11,7 +11,9 @@ namespace TopSpeed.Vehicles
             float wheelCircumferenceM,
             float finalDriveRatio,
             float idleRpm,
-            float revLimiter)
+            float revLimiter,
+            float launchRpm = 0f,
+            float currentEngineRpm = 0f)
         {
             ElapsedSeconds = elapsedSeconds;
             SpeedMps = speedMps;
@@ -22,6 +24,8 @@ namespace TopSpeed.Vehicles
             FinalDriveRatio = finalDriveRatio;
             IdleRpm = idleRpm;
             RevLimiter = revLimiter;
+            LaunchRpm = launchRpm;
+            CurrentEngineRpm = currentEngineRpm;
         }
 
         public float ElapsedSeconds { get; }
@@ -33,6 +37,8 @@ namespace TopSpeed.Vehicles
         public float FinalDriveRatio { get; }
         public float IdleRpm { get; }
         public float RevLimiter { get; }
+        public float LaunchRpm { get; }
+        public float CurrentEngineRpm { get; }
     }
 
     public readonly struct AutomaticDrivelineState
