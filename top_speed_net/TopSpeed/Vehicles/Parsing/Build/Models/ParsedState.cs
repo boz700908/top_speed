@@ -11,6 +11,7 @@ namespace TopSpeed.Vehicles.Parsing
             public Section Sounds { get; set; } = null!;
             public Section General { get; set; } = null!;
             public Section Engine { get; set; } = null!;
+            public Section? Resistance { get; set; }
             public Section Torque { get; set; } = null!;
             public Section TorqueCurve { get; set; } = null!;
             public Section Transmission { get; set; } = null!;
@@ -68,7 +69,20 @@ namespace TopSpeed.Vehicles.Parsing
             public float DragCoefficient { get; set; }
             public float FrontalArea { get; set; }
             public float RollingResistance { get; set; }
+            public float AirDensityKgPerM3 { get; set; }
+            public float RollingResistanceSpeedGainPerMps { get; set; }
+            public float DrivelineCoastTorqueNm { get; set; }
+            public float DrivelineCoastViscousNmPerRadS { get; set; }
+            public float CoastStopSpeedKph { get; set; }
+            public float CoastStopDecelKphps { get; set; }
             public float LaunchRpm { get; set; }
+            public string PhysicsModel { get; set; } = global::TopSpeed.Vehicles.VehicleDefinition.LegacyPhysicsModel;
+            public bool UseStrictEngineClutchModel { get; set; }
+            public float IdleTargetRpm { get; set; }
+            public float IdleMaxCorrectionTorqueNm { get; set; }
+            public float IdleControlKp { get; set; }
+            public float IdleControlKi { get; set; }
+            public float LaunchTargetSlipRpm { get; set; }
 
             public float EngineBrakingTorque { get; set; }
             public float PeakTorque { get; set; }
@@ -79,6 +93,14 @@ namespace TopSpeed.Vehicles.Parsing
             public float EngineInertiaKgm2 { get; set; }
             public float EngineFrictionTorqueNm { get; set; }
             public float DrivelineCouplingRate { get; set; }
+            public float EngineFrictionCoulombNm { get; set; }
+            public float EngineFrictionViscousNmPerRadS { get; set; }
+            public float EnginePumpingLossNmAtClosedThrottle { get; set; }
+            public float EngineAccessoryTorqueNm { get; set; }
+            public float ClutchCapacityNm { get; set; }
+            public float ClutchEngageRatePerS { get; set; }
+            public float ClutchReleaseRatePerS { get; set; }
+            public float ClutchDragTorqueNm { get; set; }
 
             public float FinalDrive { get; set; }
             public float ReverseMaxSpeed { get; set; }

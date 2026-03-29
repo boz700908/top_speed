@@ -62,6 +62,83 @@ namespace TopSpeed.Vehicles.Parsing
                     Localized("launch_rpm must not exceed rev_limiter.")));
             }
 
+            if (values.UseStrictEngineClutchModel)
+            {
+                var idleTargetLine = sections.Engine.Entries.TryGetValue("idle_target_rpm", out var idleTargetEntry)
+                    ? idleTargetEntry.Line
+                    : sections.Engine.Line;
+                var launchSlipLine = sections.Engine.Entries.TryGetValue("launch_target_slip_rpm", out var launchSlipEntry)
+                    ? launchSlipEntry.Line
+                    : sections.Engine.Line;
+                var clutchDragLine = sections.Torque.Entries.TryGetValue("clutch_drag_torque_nm", out var clutchDragEntry)
+                    ? clutchDragEntry.Line
+                    : sections.Torque.Line;
+                var resistanceLine = sections.Resistance?.Line ?? 0;
+
+                if (values.IdleTargetRpm < values.IdleRpm || values.IdleTargetRpm > values.RevLimiter)
+                {
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        idleTargetLine,
+                        Localized("idle_target_rpm must be between idle_rpm and rev_limiter when physics_model is strict.")));
+                }
+
+                if (values.LaunchTargetSlipRpm > (values.RevLimiter - values.IdleRpm))
+                {
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        launchSlipLine,
+                        Localized("launch_target_slip_rpm must not exceed rev_limiter - idle_rpm.")));
+                }
+
+                if (values.ClutchDragTorqueNm > values.ClutchCapacityNm)
+                {
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        clutchDragLine,
+                        Localized("clutch_drag_torque_nm must be less than or equal to clutch_capacity_nm.")));
+                }
+
+                if (sections.Resistance == null)
+                {
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        0,
+                        Localized("Missing required section [resistance] for strict physics model.")));
+                }
+
+                AddLegacyResistanceEngineKeyError("drag_coefficient");
+                AddLegacyResistanceEngineKeyError("frontal_area");
+                AddLegacyResistanceEngineKeyError("rolling_resistance");
+
+                if (values.AirDensityKgPerM3 <= 0f)
+                {
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        resistanceLine,
+                        Localized("air_density_kg_per_m3 must be greater than 0.")));
+                }
+
+                if (values.CoastStopDecelKphps > 0f && values.CoastStopSpeedKph <= 0f)
+                {
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        resistanceLine,
+                        Localized("coast_stop_speed_kph must be greater than 0 when coast_stop_decel_kphps is set.")));
+                }
+
+                void AddLegacyResistanceEngineKeyError(string key)
+                {
+                    if (!sections.Engine.Entries.TryGetValue(key, out var entry))
+                        return;
+
+                    issues.Add(new VehicleTsvIssue(
+                        VehicleTsvIssueSeverity.Error,
+                        entry.Line,
+                        Localized("Key '{0}' in [engine] is not allowed for strict physics. Move resistance values to [resistance].", key)));
+                }
+            }
+
             if (values.TopFreq < values.IdleFreq)
             {
                 issues.Add(new VehicleTsvIssue(

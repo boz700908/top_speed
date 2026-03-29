@@ -79,6 +79,26 @@ namespace TopSpeed.Data
         public string? TorqueCurvePreset { get; }
         public float BrakeStrength { get; }
         public TransmissionPolicy TransmissionPolicy { get; }
+        public string PhysicsModel { get; }
+        public float EngineFrictionCoulombNm { get; }
+        public float EngineFrictionViscousNmPerRadS { get; }
+        public float EnginePumpingLossNmAtClosedThrottle { get; }
+        public float EngineAccessoryTorqueNm { get; }
+        public float IdleTargetRpm { get; }
+        public float IdleMaxCorrectionTorqueNm { get; }
+        public float IdleControlKp { get; }
+        public float IdleControlKi { get; }
+        public float ClutchCapacityNm { get; }
+        public float ClutchEngageRatePerS { get; }
+        public float ClutchReleaseRatePerS { get; }
+        public float ClutchDragTorqueNm { get; }
+        public float LaunchTargetSlipRpm { get; }
+        public float AirDensityKgPerM3 { get; }
+        public float RollingResistanceSpeedGainPerMps { get; }
+        public float DrivelineCoastTorqueNm { get; }
+        public float DrivelineCoastViscousNmPerRadS { get; }
+        public float CoastStopSpeedKph { get; }
+        public float CoastStopDecelKphps { get; }
 
         public VehicleParameters(
             string name,
@@ -154,7 +174,27 @@ namespace TopSpeed.Data
             string? torqueCurvePreset = null,
             float brakeStrength = 1.0f,
             TransmissionPolicy? transmissionPolicy = null,
-            bool shiftOnDemand = false)
+            bool shiftOnDemand = false,
+            string physicsModel = VehicleDefinition.LegacyPhysicsModel,
+            float engineFrictionCoulombNm = 20f,
+            float engineFrictionViscousNmPerRadS = 0.01f,
+            float enginePumpingLossNmAtClosedThrottle = 70f,
+            float engineAccessoryTorqueNm = 8f,
+            float idleTargetRpm = 800f,
+            float idleMaxCorrectionTorqueNm = 160f,
+            float idleControlKp = 0.08f,
+            float idleControlKi = 0.22f,
+            float clutchCapacityNm = 1200f,
+            float clutchEngageRatePerS = 12f,
+            float clutchReleaseRatePerS = 18f,
+            float clutchDragTorqueNm = 30f,
+            float launchTargetSlipRpm = 350f,
+            float airDensityKgPerM3 = 1.225f,
+            float rollingResistanceSpeedGainPerMps = 0f,
+            float drivelineCoastTorqueNm = 0f,
+            float drivelineCoastViscousNmPerRadS = 0f,
+            float coastStopSpeedKph = 3f,
+            float coastStopDecelKphps = 0.7f)
         {
             Name = name;
             _sounds[(int)VehicleAction.Engine] = engineSound;
@@ -234,6 +274,26 @@ namespace TopSpeed.Data
             TorqueCurvePreset = torqueCurvePreset;
             BrakeStrength = brakeStrength;
             TransmissionPolicy = transmissionPolicy ?? TransmissionPolicy.Default;
+            PhysicsModel = string.IsNullOrWhiteSpace(physicsModel) ? VehicleDefinition.LegacyPhysicsModel : physicsModel;
+            EngineFrictionCoulombNm = engineFrictionCoulombNm;
+            EngineFrictionViscousNmPerRadS = engineFrictionViscousNmPerRadS;
+            EnginePumpingLossNmAtClosedThrottle = enginePumpingLossNmAtClosedThrottle;
+            EngineAccessoryTorqueNm = engineAccessoryTorqueNm;
+            IdleTargetRpm = idleTargetRpm;
+            IdleMaxCorrectionTorqueNm = idleMaxCorrectionTorqueNm;
+            IdleControlKp = idleControlKp;
+            IdleControlKi = idleControlKi;
+            ClutchCapacityNm = clutchCapacityNm;
+            ClutchEngageRatePerS = clutchEngageRatePerS;
+            ClutchReleaseRatePerS = clutchReleaseRatePerS;
+            ClutchDragTorqueNm = clutchDragTorqueNm;
+            LaunchTargetSlipRpm = launchTargetSlipRpm;
+            AirDensityKgPerM3 = airDensityKgPerM3;
+            RollingResistanceSpeedGainPerMps = rollingResistanceSpeedGainPerMps;
+            DrivelineCoastTorqueNm = drivelineCoastTorqueNm;
+            DrivelineCoastViscousNmPerRadS = drivelineCoastViscousNmPerRadS;
+            CoastStopSpeedKph = coastStopSpeedKph;
+            CoastStopDecelKphps = coastStopDecelKphps;
         }
     }
 
@@ -321,7 +381,27 @@ namespace TopSpeed.Data
                 spec.TorqueCurvePreset,
                 spec.BrakeStrength,
                 spec.TransmissionPolicy,
-                spec.ShiftOnDemand);
+                spec.ShiftOnDemand,
+                spec.PhysicsModel,
+                spec.EngineFrictionCoulombNm,
+                spec.EngineFrictionViscousNmPerRadS,
+                spec.EnginePumpingLossNmAtClosedThrottle,
+                spec.EngineAccessoryTorqueNm,
+                spec.IdleTargetRpm,
+                spec.IdleMaxCorrectionTorqueNm,
+                spec.IdleControlKp,
+                spec.IdleControlKi,
+                spec.ClutchCapacityNm,
+                spec.ClutchEngageRatePerS,
+                spec.ClutchReleaseRatePerS,
+                spec.ClutchDragTorqueNm,
+                spec.LaunchTargetSlipRpm,
+                spec.AirDensityKgPerM3,
+                spec.RollingResistanceSpeedGainPerMps,
+                spec.DrivelineCoastTorqueNm,
+                spec.DrivelineCoastViscousNmPerRadS,
+                spec.CoastStopSpeedKph,
+                spec.CoastStopDecelKphps);
         }
     }
 }

@@ -16,10 +16,26 @@ namespace TopSpeed.Vehicles.Parsing
                 ["general"] = Set("surface_traction_factor", "deceleration", "max_speed", "has_wipers"),
                 ["engine"] = Set(
                     "idle_rpm", "max_rpm", "rev_limiter", "auto_shift_rpm", "engine_braking", "mass_kg", "drivetrain_efficiency",
-                    "drag_coefficient", "frontal_area", "rolling_resistance", "launch_rpm"),
+                    "drag_coefficient", "frontal_area", "rolling_resistance", "launch_rpm", "physics_model",
+                    "idle_target_rpm", "idle_max_correction_torque_nm", "idle_control_kp", "idle_control_ki",
+                    "launch_target_slip_rpm"),
+                ["resistance"] = Set(
+                    "drag_coefficient",
+                    "frontal_area_m2",
+                    "air_density_kg_per_m3",
+                    "rolling_resistance_base",
+                    "rolling_resistance_speed_gain_per_mps",
+                    "driveline_coast_torque_nm",
+                    "driveline_coast_viscous_nm_per_rad_s",
+                    "coast_stop_speed_kph",
+                    "coast_stop_decel_kphps"),
                 ["torque"] = Set(
                     "engine_braking_torque", "peak_torque", "peak_torque_rpm", "idle_torque", "redline_torque",
-                    "power_factor", "engine_inertia_kgm2", "engine_friction_torque_nm", "driveline_coupling_rate"),
+                    "power_factor", "engine_inertia_kgm2", "engine_friction_torque_nm", "driveline_coupling_rate",
+                    "engine_friction_coulomb_nm", "engine_friction_viscous_nm_per_rad_s",
+                    "engine_pumping_loss_nm_at_closed_throttle", "engine_accessory_torque_nm",
+                    "clutch_capacity_nm", "clutch_engage_rate_per_s", "clutch_release_rate_per_s",
+                    "clutch_drag_torque_nm"),
                 ["torque_curve"] = Set("preset"),
                 ["transmission"] = Set(
                     "primary_type",

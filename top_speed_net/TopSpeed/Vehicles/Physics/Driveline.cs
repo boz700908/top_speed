@@ -213,8 +213,8 @@ namespace TopSpeed.Vehicles
             var surfaceDecelMod = _deceleration > 0f ? _currentDeceleration / _deceleration : 1.0f;
             var brakeInput = Math.Max(0f, Math.Min(100f, -_currentBrake)) / 100f;
             var brakeDecel = CalculateBrakeDecel(brakeInput, surfaceDecelMod);
-            var rollingDecel = Math.Max(0.1f, _currentDeceleration * 0.35f);
-            _speedDiff = -(brakeDecel + rollingDecel) * elapsed;
+            var passiveResistiveDecel = CalculateResistiveDecel(_speed / 3.6f, surfaceDecelMod);
+            _speedDiff = -(brakeDecel + passiveResistiveDecel) * elapsed;
             _lastDriveRpm = 0f;
         }
     }

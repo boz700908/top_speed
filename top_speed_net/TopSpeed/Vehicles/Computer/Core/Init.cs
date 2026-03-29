@@ -138,7 +138,21 @@ namespace TopSpeed.Vehicles
                 definition.EngineInertiaKgm2,
                 definition.EngineFrictionTorqueNm,
                 definition.DrivelineCouplingRate,
-                torqueCurve);
+                torqueCurve: torqueCurve,
+                useStrictEngineClutchModel: definition.UseStrictEngineClutchModel,
+                engineFrictionCoulombNm: definition.EngineFrictionCoulombNm,
+                engineFrictionViscousNmPerRadS: definition.EngineFrictionViscousNmPerRadS,
+                enginePumpingLossNmAtClosedThrottle: definition.EnginePumpingLossNmAtClosedThrottle,
+                engineAccessoryTorqueNm: definition.EngineAccessoryTorqueNm,
+                idleTargetRpm: definition.IdleTargetRpm,
+                idleMaxCorrectionTorqueNm: definition.IdleMaxCorrectionTorqueNm,
+                idleControlKp: definition.IdleControlKp,
+                idleControlKi: definition.IdleControlKi,
+                clutchCapacityNm: definition.ClutchCapacityNm,
+                clutchEngageRatePerS: definition.ClutchEngageRatePerS,
+                clutchReleaseRatePerS: definition.ClutchReleaseRatePerS,
+                clutchDragTorqueNm: definition.ClutchDragTorqueNm,
+                launchTargetSlipRpm: definition.LaunchTargetSlipRpm);
 
             _physicsConfig = new BotPhysicsConfig(
                 _surfaceTractionFactor,
@@ -194,7 +208,27 @@ namespace TopSpeed.Vehicles
                 definition.GearRatios,
                 definition.TransmissionPolicy,
                 definition.PrimaryTransmissionType,
-                definition.AutomaticTuning);
+                definition.AutomaticTuning,
+                useStrictEngineClutchModel: definition.UseStrictEngineClutchModel,
+                engineFrictionCoulombNm: definition.EngineFrictionCoulombNm,
+                engineFrictionViscousNmPerRadS: definition.EngineFrictionViscousNmPerRadS,
+                enginePumpingLossNmAtClosedThrottle: definition.EnginePumpingLossNmAtClosedThrottle,
+                engineAccessoryTorqueNm: definition.EngineAccessoryTorqueNm,
+                idleTargetRpm: definition.IdleTargetRpm,
+                idleMaxCorrectionTorqueNm: definition.IdleMaxCorrectionTorqueNm,
+                idleControlKp: definition.IdleControlKp,
+                idleControlKi: definition.IdleControlKi,
+                clutchCapacityNm: definition.ClutchCapacityNm,
+                clutchEngageRatePerS: definition.ClutchEngageRatePerS,
+                clutchReleaseRatePerS: definition.ClutchReleaseRatePerS,
+                clutchDragTorqueNm: definition.ClutchDragTorqueNm,
+                launchTargetSlipRpm: definition.LaunchTargetSlipRpm,
+                airDensityKgPerM3: definition.AirDensityKgPerM3,
+                rollingResistanceSpeedGainPerMps: definition.RollingResistanceSpeedGainPerMps,
+                drivelineCoastTorqueNm: definition.DrivelineCoastTorqueNm,
+                drivelineCoastViscousNmPerRadS: definition.DrivelineCoastViscousNmPerRadS,
+                coastStopSpeedKph: definition.CoastStopSpeedKph,
+                coastStopDecelKphps: definition.CoastStopDecelKphps);
 
             _soundEngine = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Engine), "engine", looped: true);
             _soundStart = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Start), "start");

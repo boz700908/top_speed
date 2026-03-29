@@ -69,7 +69,14 @@ namespace TopSpeed.Vehicles
                 primaryTransmissionType: TransmissionType.Dct, supportedTransmissionTypes: DctOnly,
                 automaticTuning: DctTune,
                 shiftOnDemand: true,
-                transmissionPolicy: Policy(5, true, Auto6Upshifts, upshiftRpmFraction: 0.88f)),
+                transmissionPolicy: Policy(5, true, Auto6Upshifts, upshiftRpmFraction: 0.88f),
+                physicsModel: OfficialVehicleSpec.StrictEngineClutchPhysicsModel,
+                idleTargetRpm: 900f,
+                rollingResistanceSpeedGainPerMps: 0.008f,
+                drivelineCoastTorqueNm: 32f,
+                drivelineCoastViscousNmPerRadS: 0.014f,
+                coastStopSpeedKph: 4f,
+                coastStopDecelKphps: 1.2f),
 
             new OfficialVehicleSpec(
                 CarType.Vehicle2, "Porsche 911 GT3 RS",
@@ -131,7 +138,14 @@ namespace TopSpeed.Vehicles
                 turnResponse: 0.76f, massSensitivity: 0.78f, downforceGripGain: 0.03f,
                 cornerStiffnessFront: 0.98f, cornerStiffnessRear: 0.95f, yawInertiaScale: 1.32f, steeringCurve: 1.20f, transientDamping: 2.05f,
                 primaryTransmissionType: TransmissionType.Manual, supportedTransmissionTypes: ManualOnly,
-                transmissionPolicy: Policy(5, true, Auto6Upshifts, upshiftRpmFraction: 0.86f)),
+                transmissionPolicy: Policy(5, true, Auto6Upshifts, upshiftRpmFraction: 0.86f),
+                physicsModel: OfficialVehicleSpec.StrictEngineClutchPhysicsModel,
+                idleTargetRpm: 800f,
+                rollingResistanceSpeedGainPerMps: 0.010f,
+                drivelineCoastTorqueNm: 24f,
+                drivelineCoastViscousNmPerRadS: 0.012f,
+                coastStopSpeedKph: 3.8f,
+                coastStopDecelKphps: 1.1f),
 
             new OfficialVehicleSpec(
                 CarType.Vehicle5, "Ford Mustang 1969",
@@ -173,7 +187,14 @@ namespace TopSpeed.Vehicles
                 primaryTransmissionType: TransmissionType.Atc, supportedTransmissionTypes: AtcOnly,
                 automaticTuning: AtcTune,
                 shiftOnDemand: true,
-                transmissionPolicy: Policy(6, true, Auto8Upshifts, upshiftRpmFraction: 0.84f, minUpshiftNetAccelerationMps2: -0.12f)),
+                transmissionPolicy: Policy(6, true, Auto8Upshifts, upshiftRpmFraction: 0.84f, minUpshiftNetAccelerationMps2: -0.12f),
+                physicsModel: OfficialVehicleSpec.StrictEngineClutchPhysicsModel,
+                idleTargetRpm: 700f,
+                rollingResistanceSpeedGainPerMps: 0.009f,
+                drivelineCoastTorqueNm: 30f,
+                drivelineCoastViscousNmPerRadS: 0.013f,
+                coastStopSpeedKph: 4.0f,
+                coastStopDecelKphps: 1.0f),
 
             new OfficialVehicleSpec(
                 CarType.Vehicle7, "Lamborghini Aventador",

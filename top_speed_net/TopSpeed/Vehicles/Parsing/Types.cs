@@ -96,10 +96,30 @@ namespace TopSpeed.Vehicles.Parsing
         public float DragCoefficient { get; set; }
         public float FrontalAreaM2 { get; set; }
         public float RollingResistanceCoefficient { get; set; }
+        public float AirDensityKgPerM3 { get; set; } = 1.225f;
+        public float RollingResistanceSpeedGainPerMps { get; set; }
+        public float DrivelineCoastTorqueNm { get; set; }
+        public float DrivelineCoastViscousNmPerRadS { get; set; }
+        public float CoastStopSpeedKph { get; set; } = 3f;
+        public float CoastStopDecelKphps { get; set; } = 0.7f;
         public float LaunchRpm { get; set; }
         public float EngineInertiaKgm2 { get; set; }
         public float EngineFrictionTorqueNm { get; set; }
         public float DrivelineCouplingRate { get; set; }
+        public string PhysicsModel { get; set; } = VehicleDefinition.LegacyPhysicsModel;
+        public float EngineFrictionCoulombNm { get; set; }
+        public float EngineFrictionViscousNmPerRadS { get; set; }
+        public float EnginePumpingLossNmAtClosedThrottle { get; set; }
+        public float EngineAccessoryTorqueNm { get; set; }
+        public float IdleTargetRpm { get; set; }
+        public float IdleMaxCorrectionTorqueNm { get; set; }
+        public float IdleControlKp { get; set; }
+        public float IdleControlKi { get; set; }
+        public float ClutchCapacityNm { get; set; }
+        public float ClutchEngageRatePerS { get; set; }
+        public float ClutchReleaseRatePerS { get; set; }
+        public float ClutchDragTorqueNm { get; set; }
+        public float LaunchTargetSlipRpm { get; set; }
         public float PowerFactor { get; set; }
         public string? TorqueCurvePreset { get; set; }
         public float[] TorqueCurveRpm { get; set; } = Array.Empty<float>();

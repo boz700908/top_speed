@@ -28,7 +28,7 @@ namespace TopSpeed.Vehicles
 
                 case TransmissionType.Dct:
                 {
-                    var target = ResolveDctTargetCoupling(tuning.Dct, speedKph, throttle, input.Shifting);
+                    var target = ResolveDctTargetCoupling(tuning.Dct, in input, speedKph, throttle, input.Shifting);
                     var coupling = MoveToward(currentCoupling, target, elapsed, tuning.Dct.EngageRate, tuning.Dct.DisengageRate);
                     return new AutomaticDrivelineOutput(coupling, cvtRatio: 0f, effectiveDriveRatio: 0f, creepAccelerationMps2: 0f);
                 }
@@ -106,14 +106,46 @@ namespace TopSpeed.Vehicles
             return Clamp(input.LaunchRpm, input.IdleRpm, input.RevLimiter);
         }
 
-        private static float ResolveDctTargetCoupling(DctDrivelineTuning tuning, float speedKph, float throttle, bool shifting)
+        private static float ResolveDctTargetCoupling(
+            DctDrivelineTuning tuning,
+            in AutomaticDrivelineInput input,
+            float speedKph,
+            float throttle,
+            bool shifting)
         {
+            const float LaunchControlThrottleMin = 0.30f;
+            const float LaunchTransitionSpeedKph = 7.5f;
+            const float LaunchRpmWindowFloor = 220f;
+            const float LaunchCouplingFeedbackGain = 0.24f;
+
             if (shifting)
                 return Clamp01(tuning.ShiftOverlapCoupling);
+
             if (speedKph < 1.8f)
-                return Lerp(tuning.LaunchCouplingMin, tuning.LaunchCouplingMax, throttle);
+            {
+                if (throttle <= 0.02f)
+                    return 0f;
+            }
+
+            var launchTarget = Lerp(tuning.LaunchCouplingMin, tuning.LaunchCouplingMax, throttle);
+            var launchEngageT = Clamp((throttle - 0.02f) / LaunchControlThrottleMin, 0f, 1f);
+            var stagedLaunchTarget = Lerp(0f, launchTarget, launchEngageT);
+            if (speedKph <= LaunchTransitionSpeedKph)
+            {
+                if (throttle < LaunchControlThrottleMin)
+                    return stagedLaunchTarget;
+
+                var launchRpm = ResolveLaunchRpm(input);
+                var currentRpm = Math.Max(input.IdleRpm, input.CurrentEngineRpm > 0f ? input.CurrentEngineRpm : launchRpm);
+                var launchRpmWindow = Math.Max(LaunchRpmWindowFloor, launchRpm * 0.18f);
+                var normalizedRpmError = Clamp((currentRpm - launchRpm) / launchRpmWindow, -1f, 1f);
+                var correctedLaunchTarget = stagedLaunchTarget + (normalizedRpmError * LaunchCouplingFeedbackGain);
+                return Clamp(correctedLaunchTarget, 0f, Math.Min(0.98f, tuning.LaunchCouplingMax + 0.06f));
+            }
+
             if (speedKph >= tuning.LockSpeedKph && throttle >= tuning.LockThrottleMin)
                 return 1f;
+
             return 0.95f + (0.05f * throttle);
         }
 

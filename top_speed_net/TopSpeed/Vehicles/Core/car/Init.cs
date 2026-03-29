@@ -216,7 +216,21 @@ namespace TopSpeed.Vehicles
                 definition.EngineInertiaKgm2,
                 definition.EngineFrictionTorqueNm,
                 definition.DrivelineCouplingRate,
-                torqueCurve);
+                torqueCurve: torqueCurve,
+                useStrictEngineClutchModel: definition.UseStrictEngineClutchModel,
+                engineFrictionCoulombNm: definition.EngineFrictionCoulombNm,
+                engineFrictionViscousNmPerRadS: definition.EngineFrictionViscousNmPerRadS,
+                enginePumpingLossNmAtClosedThrottle: definition.EnginePumpingLossNmAtClosedThrottle,
+                engineAccessoryTorqueNm: definition.EngineAccessoryTorqueNm,
+                idleTargetRpm: definition.IdleTargetRpm,
+                idleMaxCorrectionTorqueNm: definition.IdleMaxCorrectionTorqueNm,
+                idleControlKp: definition.IdleControlKp,
+                idleControlKi: definition.IdleControlKi,
+                clutchCapacityNm: definition.ClutchCapacityNm,
+                clutchEngageRatePerS: definition.ClutchEngageRatePerS,
+                clutchReleaseRatePerS: definition.ClutchReleaseRatePerS,
+                clutchDragTorqueNm: definition.ClutchDragTorqueNm,
+                launchTargetSlipRpm: definition.LaunchTargetSlipRpm);
 
             _powertrainConfiguration = new Config(
                 _massKg,
@@ -245,7 +259,27 @@ namespace TopSpeed.Vehicles
                 _drivelineCouplingRate,
                 _gears,
                 definition.GearRatios ?? Array.Empty<float>(),
-                torqueCurve);
+                torqueCurve,
+                useStrictEngineClutchModel: definition.UseStrictEngineClutchModel,
+                engineFrictionCoulombNm: definition.EngineFrictionCoulombNm,
+                engineFrictionViscousNmPerRadS: definition.EngineFrictionViscousNmPerRadS,
+                enginePumpingLossNmAtClosedThrottle: definition.EnginePumpingLossNmAtClosedThrottle,
+                engineAccessoryTorqueNm: definition.EngineAccessoryTorqueNm,
+                idleTargetRpm: definition.IdleTargetRpm,
+                idleMaxCorrectionTorqueNm: definition.IdleMaxCorrectionTorqueNm,
+                idleControlKp: definition.IdleControlKp,
+                idleControlKi: definition.IdleControlKi,
+                clutchCapacityNm: definition.ClutchCapacityNm,
+                clutchEngageRatePerS: definition.ClutchEngageRatePerS,
+                clutchReleaseRatePerS: definition.ClutchReleaseRatePerS,
+                clutchDragTorqueNm: definition.ClutchDragTorqueNm,
+                launchTargetSlipRpm: definition.LaunchTargetSlipRpm,
+                airDensityKgPerM3: definition.AirDensityKgPerM3,
+                rollingResistanceSpeedGainPerMps: definition.RollingResistanceSpeedGainPerMps,
+                drivelineCoastTorqueNm: definition.DrivelineCoastTorqueNm,
+                drivelineCoastViscousNmPerRadS: definition.DrivelineCoastViscousNmPerRadS,
+                coastStopSpeedKph: definition.CoastStopSpeedKph,
+                coastStopDecelKphps: definition.CoastStopDecelKphps);
             _transmissionPolicy = definition.TransmissionPolicy ?? TransmissionPolicy.Default;
         }
     }

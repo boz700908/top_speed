@@ -5,6 +5,9 @@ namespace TopSpeed.Vehicles
 {
     public sealed class OfficialVehicleSpec
     {
+        public const string LegacyPhysicsModel = "legacy";
+        public const string StrictEngineClutchPhysicsModel = "strict_v2_engine_clutch";
+
         public OfficialVehicleSpec(
             CarType carType,
             string name,
@@ -72,7 +75,27 @@ namespace TopSpeed.Vehicles
             TransmissionType[]? supportedTransmissionTypes = null,
             bool shiftOnDemand = false,
             AutomaticDrivelineTuning? automaticTuning = null,
-            TransmissionPolicy? transmissionPolicy = null)
+            TransmissionPolicy? transmissionPolicy = null,
+            string physicsModel = LegacyPhysicsModel,
+            float engineFrictionCoulombNm = 20f,
+            float engineFrictionViscousNmPerRadS = 0.01f,
+            float enginePumpingLossNmAtClosedThrottle = 70f,
+            float engineAccessoryTorqueNm = 8f,
+            float idleTargetRpm = 800f,
+            float idleMaxCorrectionTorqueNm = 160f,
+            float idleControlKp = 0.08f,
+            float idleControlKi = 0.22f,
+            float clutchCapacityNm = 1200f,
+            float clutchEngageRatePerS = 12f,
+            float clutchReleaseRatePerS = 18f,
+            float clutchDragTorqueNm = 30f,
+            float launchTargetSlipRpm = 350f,
+            float airDensityKgPerM3 = 1.225f,
+            float rollingResistanceSpeedGainPerMps = 0f,
+            float drivelineCoastTorqueNm = 0f,
+            float drivelineCoastViscousNmPerRadS = 0f,
+            float coastStopSpeedKph = 3f,
+            float coastStopDecelKphps = 0.7f)
         {
             CarType = carType;
             Name = name;
@@ -144,6 +167,26 @@ namespace TopSpeed.Vehicles
             ShiftOnDemand = shiftOnDemand;
             AutomaticTuning = automaticTuning ?? AutomaticDrivelineTuning.Default;
             TransmissionPolicy = transmissionPolicy ?? TransmissionPolicy.Default;
+            PhysicsModel = physicsModel;
+            EngineFrictionCoulombNm = engineFrictionCoulombNm;
+            EngineFrictionViscousNmPerRadS = engineFrictionViscousNmPerRadS;
+            EnginePumpingLossNmAtClosedThrottle = enginePumpingLossNmAtClosedThrottle;
+            EngineAccessoryTorqueNm = engineAccessoryTorqueNm;
+            IdleTargetRpm = idleTargetRpm;
+            IdleMaxCorrectionTorqueNm = idleMaxCorrectionTorqueNm;
+            IdleControlKp = idleControlKp;
+            IdleControlKi = idleControlKi;
+            ClutchCapacityNm = clutchCapacityNm;
+            ClutchEngageRatePerS = clutchEngageRatePerS;
+            ClutchReleaseRatePerS = clutchReleaseRatePerS;
+            ClutchDragTorqueNm = clutchDragTorqueNm;
+            LaunchTargetSlipRpm = launchTargetSlipRpm;
+            AirDensityKgPerM3 = airDensityKgPerM3;
+            RollingResistanceSpeedGainPerMps = rollingResistanceSpeedGainPerMps;
+            DrivelineCoastTorqueNm = drivelineCoastTorqueNm;
+            DrivelineCoastViscousNmPerRadS = drivelineCoastViscousNmPerRadS;
+            CoastStopSpeedKph = coastStopSpeedKph;
+            CoastStopDecelKphps = coastStopDecelKphps;
         }
 
         public CarType CarType { get; }
@@ -213,5 +256,25 @@ namespace TopSpeed.Vehicles
         public bool ShiftOnDemand { get; }
         public AutomaticDrivelineTuning AutomaticTuning { get; }
         public TransmissionPolicy TransmissionPolicy { get; }
+        public string PhysicsModel { get; }
+        public float EngineFrictionCoulombNm { get; }
+        public float EngineFrictionViscousNmPerRadS { get; }
+        public float EnginePumpingLossNmAtClosedThrottle { get; }
+        public float EngineAccessoryTorqueNm { get; }
+        public float IdleTargetRpm { get; }
+        public float IdleMaxCorrectionTorqueNm { get; }
+        public float IdleControlKp { get; }
+        public float IdleControlKi { get; }
+        public float ClutchCapacityNm { get; }
+        public float ClutchEngageRatePerS { get; }
+        public float ClutchReleaseRatePerS { get; }
+        public float ClutchDragTorqueNm { get; }
+        public float LaunchTargetSlipRpm { get; }
+        public float AirDensityKgPerM3 { get; }
+        public float RollingResistanceSpeedGainPerMps { get; }
+        public float DrivelineCoastTorqueNm { get; }
+        public float DrivelineCoastViscousNmPerRadS { get; }
+        public float CoastStopSpeedKph { get; }
+        public float CoastStopDecelKphps { get; }
     }
 }

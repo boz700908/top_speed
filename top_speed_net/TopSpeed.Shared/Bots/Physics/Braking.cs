@@ -29,6 +29,20 @@ namespace TopSpeed.Bots
                 SpeedToRpm(config, speedMps, gear, driveRatioOverride),
                 driveRatioOverride);
         }
+
+        private static float CalculateResistiveDecel(
+            BotPhysicsConfig config,
+            int gear,
+            float speedMps,
+            float surfaceDecelMod,
+            float? driveRatioOverride = null)
+        {
+            return Calculator.ResistiveDecelKph(
+                config.Powertrain,
+                speedMps,
+                surfaceDecelMod,
+                SpeedToRpm(config, speedMps, gear, driveRatioOverride));
+        }
     }
 }
 

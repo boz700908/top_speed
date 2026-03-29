@@ -100,9 +100,13 @@ namespace TopSpeed.Vehicles
         {
             var surfaceDecelMod = _deceleration > 0f ? _currentDeceleration / _deceleration : 1.0f;
             var brakeInput = Math.Max(0f, Math.Min(100f, -_currentBrake)) / 100f;
+            var speedMpsCurrent = _speed / 3.6f;
             var brakeDecel = CalculateBrakeDecel(brakeInput, surfaceDecelMod);
             var engineBrakeDecel = CalculateEngineBrakingDecel(surfaceDecelMod);
-            var totalDecel = _thrust < -10 ? (brakeDecel + engineBrakeDecel) : engineBrakeDecel;
+            var passiveResistiveDecel = CalculateResistiveDecel(speedMpsCurrent, surfaceDecelMod);
+            var totalDecel = passiveResistiveDecel + engineBrakeDecel;
+            if (_thrust < -10)
+                totalDecel += brakeDecel;
             _speedDiff = -totalDecel * elapsed;
             if (_automaticCreepAccelMps2 > 0f)
                 _speedDiff += _automaticCreepAccelMps2 * elapsed * 3.6f;

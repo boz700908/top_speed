@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TopSpeed.Localization;
 using TopSpeed.Protocol;
@@ -9,6 +10,8 @@ namespace TopSpeed.Vehicles
         public const float PitchCurveExponentDefault = 0.85f;
         public const float PitchCurveExponentMin = 0.5f;
         public const float PitchCurveExponentMax = 1.5f;
+        public const string LegacyPhysicsModel = "legacy";
+        public const string StrictEngineClutchPhysicsModel = "strict_v2_engine_clutch";
 
         public CarType CarType { get; set; }
         public string Name { get; set; } = LocalizationService.Mark("Vehicle");
@@ -50,11 +53,33 @@ namespace TopSpeed.Vehicles
         public float RedlineTorqueNm { get; set; } = 140f;
         public float DragCoefficient { get; set; } = 0.30f;
         public float FrontalAreaM2 { get; set; } = 2.2f;
-        public float RollingResistanceCoefficient { get; set; } = 0.015f;       
+        public float RollingResistanceCoefficient { get; set; } = 0.015f;
+        public float AirDensityKgPerM3 { get; set; } = 1.225f;
+        public float RollingResistanceSpeedGainPerMps { get; set; } = 0f;
+        public float DrivelineCoastTorqueNm { get; set; } = 0f;
+        public float DrivelineCoastViscousNmPerRadS { get; set; } = 0f;
+        public float CoastStopSpeedKph { get; set; } = 3f;
+        public float CoastStopDecelKphps { get; set; } = 0.7f;
         public float LaunchRpm { get; set; } = 1800f;
         public float EngineInertiaKgm2 { get; set; } = 0.24f;
         public float EngineFrictionTorqueNm { get; set; } = 20f;
         public float DrivelineCouplingRate { get; set; } = 12f;
+        public string PhysicsModel { get; set; } = LegacyPhysicsModel;
+        public bool UseStrictEngineClutchModel =>
+            string.Equals(PhysicsModel, StrictEngineClutchPhysicsModel, StringComparison.OrdinalIgnoreCase);
+        public float EngineFrictionCoulombNm { get; set; } = 20f;
+        public float EngineFrictionViscousNmPerRadS { get; set; } = 0.01f;
+        public float EnginePumpingLossNmAtClosedThrottle { get; set; } = 70f;
+        public float EngineAccessoryTorqueNm { get; set; } = 8f;
+        public float IdleTargetRpm { get; set; } = 800f;
+        public float IdleMaxCorrectionTorqueNm { get; set; } = 160f;
+        public float IdleControlKp { get; set; } = 0.08f;
+        public float IdleControlKi { get; set; } = 0.22f;
+        public float ClutchCapacityNm { get; set; } = 1200f;
+        public float ClutchEngageRatePerS { get; set; } = 12f;
+        public float ClutchReleaseRatePerS { get; set; } = 18f;
+        public float ClutchDragTorqueNm { get; set; } = 30f;
+        public float LaunchTargetSlipRpm { get; set; } = 350f;
         public float FinalDriveRatio { get; set; } = 3.5f;
         public float ReverseMaxSpeedKph { get; set; } = 35f;
         public float ReversePowerFactor { get; set; } = 0.55f;

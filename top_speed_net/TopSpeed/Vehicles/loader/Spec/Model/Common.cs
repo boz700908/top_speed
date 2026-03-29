@@ -34,10 +34,30 @@ namespace TopSpeed.Vehicles.Loader
             public float DragCoefficient { get; set; }
             public float FrontalAreaM2 { get; set; }
             public float RollingResistanceCoefficient { get; set; }
+            public float AirDensityKgPerM3 { get; set; } = 1.225f;
+            public float RollingResistanceSpeedGainPerMps { get; set; }
+            public float DrivelineCoastTorqueNm { get; set; }
+            public float DrivelineCoastViscousNmPerRadS { get; set; }
+            public float CoastStopSpeedKph { get; set; } = 3f;
+            public float CoastStopDecelKphps { get; set; } = 0.7f;
             public float LaunchRpm { get; set; }
             public float EngineInertiaKgm2 { get; set; }
             public float EngineFrictionTorqueNm { get; set; }
             public float DrivelineCouplingRate { get; set; }
+            public string PhysicsModel { get; set; } = VehicleDefinition.LegacyPhysicsModel;
+            public float EngineFrictionCoulombNm { get; set; } = 20f;
+            public float EngineFrictionViscousNmPerRadS { get; set; } = 0.01f;
+            public float EnginePumpingLossNmAtClosedThrottle { get; set; } = 70f;
+            public float EngineAccessoryTorqueNm { get; set; } = 8f;
+            public float IdleTargetRpm { get; set; } = 800f;
+            public float IdleMaxCorrectionTorqueNm { get; set; } = 160f;
+            public float IdleControlKp { get; set; } = 0.08f;
+            public float IdleControlKi { get; set; } = 0.22f;
+            public float ClutchCapacityNm { get; set; } = 1200f;
+            public float ClutchEngageRatePerS { get; set; } = 12f;
+            public float ClutchReleaseRatePerS { get; set; } = 18f;
+            public float ClutchDragTorqueNm { get; set; } = 30f;
+            public float LaunchTargetSlipRpm { get; set; } = 350f;
             public float FinalDriveRatio { get; set; }
             public float ReverseMaxSpeedKph { get; set; }
             public float ReversePowerFactor { get; set; }

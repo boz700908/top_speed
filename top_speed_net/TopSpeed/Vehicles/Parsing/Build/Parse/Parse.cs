@@ -9,6 +9,7 @@ namespace TopSpeed.Vehicles.Parsing
             sections.TryGetValue("transmission_atc", out var transmissionAtc);
             sections.TryGetValue("transmission_dct", out var transmissionDct);
             sections.TryGetValue("transmission_cvt", out var transmissionCvt);
+            sections.TryGetValue("resistance", out var resistance);
             sections.TryGetValue("policy", out var policy);
 
             return new ParsedSections
@@ -17,6 +18,7 @@ namespace TopSpeed.Vehicles.Parsing
                 Sounds = sections["sounds"],
                 General = sections["general"],
                 Engine = sections["engine"],
+                Resistance = resistance,
                 Torque = sections["torque"],
                 TorqueCurve = sections["torque_curve"],
                 Transmission = sections["transmission"],
@@ -43,6 +45,7 @@ namespace TopSpeed.Vehicles.Parsing
             ParseGeneralValues(sections.General, values, issues);
             ParseGearValues(sections.Gears, values, issues);
             ParseEngineValues(sections.Engine, values, issues);
+            ParseResistanceValues(sections.Resistance, values, issues);
             ParseTorqueValues(sections.Torque, values, issues);
             ParseDrivetrainValues(sections.Drivetrain, values, issues);
             ParseSteeringValues(sections.Steering, values, issues);

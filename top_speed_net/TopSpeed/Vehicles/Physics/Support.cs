@@ -82,6 +82,15 @@ namespace TopSpeed.Vehicles
                 _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null);
         }
 
+        private float CalculateResistiveDecel(float speedMps, float surfaceDecelMod)
+        {
+            return Calculator.ResistiveDecelKph(
+                _powertrainConfiguration,
+                speedMps,
+                surfaceDecelMod,
+                _engine.Rpm);
+        }
+
         private float GetLapStartPosition(float position)
         {
             var lapLength = _track.Length;

@@ -7,6 +7,7 @@ namespace TopSpeed.Physics.Powertrain
         private const float AirDensityKgPerM3 = 1.225f;
         private const float Gravity = 9.80665f;
         private const float TwoPi = (float)(Math.PI * 2.0);
+        private const float CompressionRpmFactorFloor = 0.22f;
 
         public static float DriveRpm(
             Config config,
@@ -139,25 +140,64 @@ namespace TopSpeed.Physics.Powertrain
             var speedBasedRpm = RpmForRatio(config, speedMps, ratio);
             var effectiveRpm = Math.Max(currentEngineRpm, speedBasedRpm);
             var rpmFactor = (effectiveRpm - config.IdleRpm) / rpmRange;
-            if (rpmFactor <= 0f)
-                return 0f;
             rpmFactor = Clamp(rpmFactor, 0f, 1f);
+            var compressionFactor = BlendCompressionFactor(rpmFactor);
 
-            var drivelineTorque = config.EngineBrakingTorqueNm * config.EngineBraking * rpmFactor;
+            float drivelineTorque;
+            if (config.UseStrictEngineClutchModel)
+            {
+                var omega = effectiveRpm * TwoPi / 60f;
+                var frictionTorque = config.EngineFrictionCoulombNm + (config.EngineFrictionViscousNmPerRadS * Math.Max(0f, omega));
+                var pumpingTorque = config.EnginePumpingLossNmAtClosedThrottle * compressionFactor;
+                drivelineTorque = frictionTorque + pumpingTorque + config.EngineAccessoryTorqueNm + config.ClutchDragTorqueNm;
+            }
+            else
+            {
+                drivelineTorque = config.EngineFrictionTorqueNm + (config.EngineBrakingTorqueNm * config.EngineBraking * compressionFactor);
+            }
             var wheelTorque = drivelineTorque * ratio * config.FinalDriveRatio * config.DrivetrainEfficiency;
             var wheelForce = wheelTorque / config.WheelRadiusM;
             var decelMps2 = (wheelForce / config.MassKg) * surfaceDecelerationModifier;
             return Math.Max(0f, decelMps2 * 3.6f);
         }
 
-        public static float ResistiveForce(Config config, float speedMps)
+        public static float ResistiveForce(Config config, float speedMps, float currentEngineRpm = 0f)
         {
             if (config == null)
                 throw new ArgumentNullException(nameof(config));
 
-            var dragForce = 0.5f * AirDensityKgPerM3 * config.DragCoefficient * config.FrontalAreaM2 * speedMps * speedMps;
-            var rollingForce = config.RollingResistanceCoefficient * config.MassKg * Gravity;
-            return dragForce + rollingForce;
+            var dragForce = AerodynamicDragForce(config, speedMps);
+            var rollingForce = RollingResistanceForce(config, speedMps, surfaceDecelerationModifier: 1f);
+            var drivelineForce = DrivelineCoastForce(config, currentEngineRpm);
+            return dragForce + rollingForce + drivelineForce;
+        }
+
+        public static float ResistiveDecelKph(
+            Config config,
+            float speedMps,
+            float surfaceDecelerationModifier = 1f,
+            float currentEngineRpm = 0f)
+        {
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+            if (config.MassKg <= 0f)
+                return 0f;
+
+            var dragForce = AerodynamicDragForce(config, speedMps);
+            var rollingForce = RollingResistanceForce(config, speedMps, surfaceDecelerationModifier);
+            var drivelineForce = DrivelineCoastForce(config, currentEngineRpm);
+            var decelMps2 = (dragForce + rollingForce + drivelineForce) / config.MassKg;
+            if (config.UseStrictEngineClutchModel)
+            {
+                var speedKph = Math.Max(0f, speedMps * 3.6f);
+                if (config.CoastStopSpeedKph > 0f && speedKph < config.CoastStopSpeedKph)
+                {
+                    var settleBlend = Clamp(1f - (speedKph / config.CoastStopSpeedKph), 0f, 1f);
+                    decelMps2 += (config.CoastStopDecelKphps / 3.6f) * settleBlend;
+                }
+            }
+
+            return Math.Max(0f, decelMps2 * 3.6f);
         }
 
         private static float DriveAccelCore(
@@ -203,6 +243,47 @@ namespace TopSpeed.Physics.Powertrain
             if (wheelCircumference <= 0f || ratio <= 0f)
                 return 0f;
             return (speedMps / wheelCircumference) * 60f * ratio * config.FinalDriveRatio;
+        }
+
+        private static float AerodynamicDragForce(Config config, float speedMps)
+        {
+            var nonNegativeSpeedMps = Math.Max(0f, speedMps);
+            var airDensity = config.UseStrictEngineClutchModel ? config.AirDensityKgPerM3 : AirDensityKgPerM3;
+            return 0.5f * airDensity * config.DragCoefficient * config.FrontalAreaM2 * nonNegativeSpeedMps * nonNegativeSpeedMps;
+        }
+
+        private static float RollingResistanceForce(Config config, float speedMps, float surfaceDecelerationModifier)
+        {
+            var nonNegativeSpeed = Math.Max(0f, speedMps);
+            var crr = config.RollingResistanceCoefficient;
+            if (config.UseStrictEngineClutchModel)
+            {
+                crr *= 1f + (config.RollingResistanceSpeedGainPerMps * nonNegativeSpeed);
+                if (crr < 0f)
+                    crr = 0f;
+                return crr * config.MassKg * Gravity;
+            }
+
+            var surfaceFactor = Math.Max(0f, surfaceDecelerationModifier);
+            return crr * config.MassKg * Gravity * surfaceFactor;
+        }
+
+        private static float DrivelineCoastForce(Config config, float currentEngineRpm)
+        {
+            if (!config.UseStrictEngineClutchModel || config.WheelRadiusM <= 0f)
+                return 0f;
+
+            var omega = Math.Max(0f, currentEngineRpm) * TwoPi / 60f;
+            var torque = config.DrivelineCoastTorqueNm + (config.DrivelineCoastViscousNmPerRadS * omega);
+            if (torque <= 0f)
+                return 0f;
+            return torque / config.WheelRadiusM;
+        }
+
+        private static float BlendCompressionFactor(float rpmFactor)
+        {
+            var clamped = Clamp(rpmFactor, 0f, 1f);
+            return CompressionRpmFactorFloor + ((1f - CompressionRpmFactorFloor) * clamped);
         }
 
         private static float Clamp(float value, float min, float max)

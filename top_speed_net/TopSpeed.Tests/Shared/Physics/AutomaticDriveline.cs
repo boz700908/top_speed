@@ -182,6 +182,91 @@ namespace TopSpeed.Tests.Physics
         }
 
         [Fact]
+        public void Step_DctStandstillClosedThrottle_ReleasesCoupling()
+        {
+            var output = AutomaticDrivelineModel.Step(
+                TransmissionType.Dct,
+                AutomaticDrivelineTuning.Default,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 0f,
+                    throttle: 0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 900f,
+                    revLimiter: 8000f),
+                new AutomaticDrivelineState(couplingFactor: 1f, cvtRatio: 0f));
+
+            Assert.True(output.CouplingFactor <= 0.01f);
+        }
+
+        [Fact]
+        public void Step_DctLowThrottleStandstill_KeepsLowCoupling()
+        {
+            var output = AutomaticDrivelineModel.Step(
+                TransmissionType.Dct,
+                AutomaticDrivelineTuning.Default,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 0f,
+                    throttle: 0.10f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 900f,
+                    revLimiter: 8000f,
+                    launchRpm: 2400f,
+                    currentEngineRpm: 850f),
+                new AutomaticDrivelineState(couplingFactor: 0f, cvtRatio: 0f));
+
+            Assert.True(output.CouplingFactor < 0.15f);
+        }
+
+        [Fact]
+        public void Step_DctLaunchFeedback_AdjustsCouplingByRpmError()
+        {
+            var tuning = AutomaticDrivelineTuning.Default;
+            var lowRpmOutput = AutomaticDrivelineModel.Step(
+                TransmissionType.Dct,
+                tuning,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 4f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 900f,
+                    revLimiter: 8000f,
+                    launchRpm: 2400f,
+                    currentEngineRpm: 1200f),
+                new AutomaticDrivelineState(couplingFactor: 0f, cvtRatio: 0f));
+
+            var highRpmOutput = AutomaticDrivelineModel.Step(
+                TransmissionType.Dct,
+                tuning,
+                new AutomaticDrivelineInput(
+                    elapsedSeconds: 1.0f,
+                    speedMps: 4f / 3.6f,
+                    throttle: 1.0f,
+                    brake: 0f,
+                    shifting: false,
+                    wheelCircumferenceM: 2.0f,
+                    finalDriveRatio: 3.5f,
+                    idleRpm: 900f,
+                    revLimiter: 8000f,
+                    launchRpm: 2400f,
+                    currentEngineRpm: 3400f),
+                new AutomaticDrivelineState(couplingFactor: 0f, cvtRatio: 0f));
+
+            Assert.True(highRpmOutput.CouplingFactor > lowRpmOutput.CouplingFactor);
+        }
+
+        [Fact]
         public void Step_Cvt_AdjustsRatioWithinConfiguredBounds()
         {
             var tuning = AutomaticDrivelineTuning.Default;

@@ -192,9 +192,9 @@ namespace TopSpeed.Vehicles
                 _stickReleased = false;
                 if (_gear == FirstForwardGear)
                 {
-                    _switchingGear = -1;
+                    _switchingGear = 0;
                     _gear = NeutralGear;
-                    PushEvent(EventType.InGear, 0.2f);
+                    PrepareSelectorDisengageState();
                     return;
                 }
 
@@ -202,9 +202,9 @@ namespace TopSpeed.Vehicles
                 {
                     if (_speed <= ReverseShiftMaxSpeedKmh)
                     {
-                        _switchingGear = -1;
+                        _switchingGear = 0;
                         _gear = ReverseGear;
-                        PushEvent(EventType.InGear, 0.2f);
+                        PrepareSelectorEngageState();
                     }
                     else
                     {
@@ -219,17 +219,36 @@ namespace TopSpeed.Vehicles
                 _stickReleased = false;
                 if (_gear == ReverseGear)
                 {
-                    _switchingGear = 1;
+                    _switchingGear = 0;
                     _gear = NeutralGear;
-                    PushEvent(EventType.InGear, 0.2f);
+                    PrepareSelectorDisengageState();
                 }
                 else if (_gear == NeutralGear)
                 {
-                    _switchingGear = 1;
+                    _switchingGear = 0;
                     _gear = FirstForwardGear;
-                    PushEvent(EventType.InGear, 0.2f);
+                    PrepareSelectorEngageState();
                 }
             }
+        }
+
+        private void PrepareSelectorEngageState()
+        {
+            if (EffectiveTransmissionType() != TransmissionType.Dct)
+                return;
+
+            _drivelineCouplingFactor = 0f;
+            _drivelineState = DrivelineState.Disengaged;
+            _effectiveDriveRatioOverride = 0f;
+            _automaticCreepAccelMps2 = 0f;
+        }
+
+        private void PrepareSelectorDisengageState()
+        {
+            _drivelineCouplingFactor = 0f;
+            _drivelineState = DrivelineState.Disengaged;
+            _effectiveDriveRatioOverride = 0f;
+            _automaticCreepAccelMps2 = 0f;
         }
     }
 }

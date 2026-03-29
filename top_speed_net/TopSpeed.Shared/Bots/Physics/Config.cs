@@ -61,7 +61,27 @@ namespace TopSpeed.Bots
             float[]? gearRatios = null,
             TransmissionPolicy? transmissionPolicy = null,
             TransmissionType activeTransmissionType = TransmissionType.Atc,
-            AutomaticDrivelineTuning? automaticTuning = null)
+            AutomaticDrivelineTuning? automaticTuning = null,
+            bool useStrictEngineClutchModel = false,
+            float engineFrictionCoulombNm = 20f,
+            float engineFrictionViscousNmPerRadS = 0.01f,
+            float enginePumpingLossNmAtClosedThrottle = 70f,
+            float engineAccessoryTorqueNm = 8f,
+            float idleTargetRpm = 800f,
+            float idleMaxCorrectionTorqueNm = 160f,
+            float idleControlKp = 0.08f,
+            float idleControlKi = 0.22f,
+            float clutchCapacityNm = 1200f,
+            float clutchEngageRatePerS = 12f,
+            float clutchReleaseRatePerS = 18f,
+            float clutchDragTorqueNm = 30f,
+            float launchTargetSlipRpm = 350f,
+            float airDensityKgPerM3 = 1.225f,
+            float rollingResistanceSpeedGainPerMps = 0f,
+            float drivelineCoastTorqueNm = 0f,
+            float drivelineCoastViscousNmPerRadS = 0f,
+            float coastStopSpeedKph = 3f,
+            float coastStopDecelKphps = 0.7f)
         {
             SurfaceTractionFactor = Math.Max(0.01f, surfaceTractionFactor);
             Deceleration = Math.Max(0.01f, deceleration);
@@ -147,7 +167,27 @@ namespace TopSpeed.Bots
                 DrivelineCouplingRate,
                 Gears,
                 GearRatios,
-                TorqueCurve);
+                TorqueCurve,
+                useStrictEngineClutchModel,
+                engineFrictionCoulombNm,
+                engineFrictionViscousNmPerRadS,
+                enginePumpingLossNmAtClosedThrottle,
+                engineAccessoryTorqueNm,
+                idleTargetRpm,
+                idleMaxCorrectionTorqueNm,
+                idleControlKp,
+                idleControlKi,
+                clutchCapacityNm,
+                clutchEngageRatePerS,
+                clutchReleaseRatePerS,
+                clutchDragTorqueNm,
+                launchTargetSlipRpm,
+                airDensityKgPerM3,
+                rollingResistanceSpeedGainPerMps,
+                drivelineCoastTorqueNm,
+                drivelineCoastViscousNmPerRadS,
+                coastStopSpeedKph,
+                coastStopDecelKphps);
         }
 
         public float SurfaceTractionFactor { get; }

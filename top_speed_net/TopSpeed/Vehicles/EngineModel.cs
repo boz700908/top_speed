@@ -20,6 +20,20 @@ namespace TopSpeed.Vehicles
         private readonly float _engineInertiaKgm2;
         private readonly float _engineFrictionTorqueNm;
         private readonly float _drivelineCouplingRate;
+        private readonly bool _useStrictEngineClutchModel;
+        private readonly float _engineFrictionCoulombNm;
+        private readonly float _engineFrictionViscousNmPerRadS;
+        private readonly float _enginePumpingLossNmAtClosedThrottle;
+        private readonly float _engineAccessoryTorqueNm;
+        private readonly float _idleTargetRpm;
+        private readonly float _idleMaxCorrectionTorqueNm;
+        private readonly float _idleControlKp;
+        private readonly float _idleControlKi;
+        private readonly float _clutchCapacityNm;
+        private readonly float _clutchEngageRatePerS;
+        private readonly float _clutchReleaseRatePerS;
+        private readonly float _clutchDragTorqueNm;
+        private readonly float _launchTargetSlipRpm;
         private readonly float _topSpeedKmh;
         private readonly float _finalDriveRatio;
         private readonly float _tireCircumferenceM;
@@ -35,6 +49,8 @@ namespace TopSpeed.Vehicles
         private float _netHorsepower;
         private float _distanceMeters;
         private float _speedMps;
+        private float _idleIntegrator;
+        private float _effectiveClutchCoupling;
 
         public EngineModel(
             float idleRpm,
@@ -56,7 +72,21 @@ namespace TopSpeed.Vehicles
             float engineInertiaKgm2 = 0.24f,
             float engineFrictionTorqueNm = 20f,
             float drivelineCouplingRate = 12f,
-            CurveProfile? torqueCurve = null)
+            CurveProfile? torqueCurve = null,
+            bool useStrictEngineClutchModel = false,
+            float engineFrictionCoulombNm = 20f,
+            float engineFrictionViscousNmPerRadS = 0.01f,
+            float enginePumpingLossNmAtClosedThrottle = 70f,
+            float engineAccessoryTorqueNm = 8f,
+            float idleTargetRpm = 800f,
+            float idleMaxCorrectionTorqueNm = 160f,
+            float idleControlKp = 0.08f,
+            float idleControlKi = 0.22f,
+            float clutchCapacityNm = 1200f,
+            float clutchEngageRatePerS = 12f,
+            float clutchReleaseRatePerS = 18f,
+            float clutchDragTorqueNm = 30f,
+            float launchTargetSlipRpm = 350f)
         {
             _idleRpm = Math.Max(500f, idleRpm);
             _stallRpm = Math.Max(200f, _idleRpm * 0.55f);
@@ -71,6 +101,20 @@ namespace TopSpeed.Vehicles
             _engineInertiaKgm2 = Math.Max(0.01f, engineInertiaKgm2);
             _engineFrictionTorqueNm = Math.Max(0f, engineFrictionTorqueNm);
             _drivelineCouplingRate = Math.Max(0.1f, drivelineCouplingRate);
+            _useStrictEngineClutchModel = useStrictEngineClutchModel;
+            _engineFrictionCoulombNm = Math.Max(0f, engineFrictionCoulombNm);
+            _engineFrictionViscousNmPerRadS = Math.Max(0f, engineFrictionViscousNmPerRadS);
+            _enginePumpingLossNmAtClosedThrottle = Math.Max(0f, enginePumpingLossNmAtClosedThrottle);
+            _engineAccessoryTorqueNm = Math.Max(0f, engineAccessoryTorqueNm);
+            _idleTargetRpm = Math.Max(_stallRpm, Math.Min(_revLimiter, idleTargetRpm <= 0f ? _idleRpm : idleTargetRpm));
+            _idleMaxCorrectionTorqueNm = Math.Max(0f, idleMaxCorrectionTorqueNm);
+            _idleControlKp = Math.Max(0f, idleControlKp);
+            _idleControlKi = Math.Max(0f, idleControlKi);
+            _clutchCapacityNm = Math.Max(1f, clutchCapacityNm);
+            _clutchEngageRatePerS = Math.Max(0.1f, clutchEngageRatePerS);
+            _clutchReleaseRatePerS = Math.Max(0.1f, clutchReleaseRatePerS);
+            _clutchDragTorqueNm = Math.Max(0f, clutchDragTorqueNm);
+            _launchTargetSlipRpm = Math.Max(0f, launchTargetSlipRpm);
             _topSpeedKmh = Math.Max(50f, topSpeedKmh);
             _finalDriveRatio = Math.Max(0.1f, finalDriveRatio);
             _tireCircumferenceM = Math.Max(0.5f, tireCircumferenceM);
@@ -80,6 +124,8 @@ namespace TopSpeed.Vehicles
             _netHorsepower = 0f;
             _distanceMeters = 0f;
             _speedMps = 0f;
+            _idleIntegrator = 0f;
+            _effectiveClutchCoupling = 0f;
 
             _gearRatios = gearRatios != null && gearRatios.Length == _gearCount
                 ? gearRatios

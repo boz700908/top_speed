@@ -74,7 +74,27 @@ namespace TopSpeed.Vehicles.Loader
                 TorqueCurveTorqueNm = parameters.TorqueCurveTorqueNm,
                 TorqueCurvePreset = parameters.TorqueCurvePreset,
                 BrakeStrength = parameters.BrakeStrength,
-                TransmissionPolicy = parameters.TransmissionPolicy
+                TransmissionPolicy = parameters.TransmissionPolicy,
+                PhysicsModel = parameters.PhysicsModel,
+                EngineFrictionCoulombNm = parameters.EngineFrictionCoulombNm,
+                EngineFrictionViscousNmPerRadS = parameters.EngineFrictionViscousNmPerRadS,
+                EnginePumpingLossNmAtClosedThrottle = parameters.EnginePumpingLossNmAtClosedThrottle,
+                EngineAccessoryTorqueNm = parameters.EngineAccessoryTorqueNm,
+                IdleTargetRpm = parameters.IdleTargetRpm,
+                IdleMaxCorrectionTorqueNm = parameters.IdleMaxCorrectionTorqueNm,
+                IdleControlKp = parameters.IdleControlKp,
+                IdleControlKi = parameters.IdleControlKi,
+                ClutchCapacityNm = parameters.ClutchCapacityNm,
+                ClutchEngageRatePerS = parameters.ClutchEngageRatePerS,
+                ClutchReleaseRatePerS = parameters.ClutchReleaseRatePerS,
+                ClutchDragTorqueNm = parameters.ClutchDragTorqueNm,
+                LaunchTargetSlipRpm = parameters.LaunchTargetSlipRpm,
+                AirDensityKgPerM3 = parameters.AirDensityKgPerM3,
+                RollingResistanceSpeedGainPerMps = parameters.RollingResistanceSpeedGainPerMps,
+                DrivelineCoastTorqueNm = parameters.DrivelineCoastTorqueNm,
+                DrivelineCoastViscousNmPerRadS = parameters.DrivelineCoastViscousNmPerRadS,
+                CoastStopSpeedKph = parameters.CoastStopSpeedKph,
+                CoastStopDecelKphps = parameters.CoastStopDecelKphps
             };
         }
     }

@@ -34,7 +34,27 @@ namespace TopSpeed.Physics.Powertrain
             float drivelineCouplingRate,
             int gears,
             float[] gearRatios,
-            CurveProfile torqueCurve)
+            CurveProfile torqueCurve,
+            bool useStrictEngineClutchModel = false,
+            float engineFrictionCoulombNm = 20f,
+            float engineFrictionViscousNmPerRadS = 0.01f,
+            float enginePumpingLossNmAtClosedThrottle = 70f,
+            float engineAccessoryTorqueNm = 8f,
+            float idleTargetRpm = 800f,
+            float idleMaxCorrectionTorqueNm = 160f,
+            float idleControlKp = 0.08f,
+            float idleControlKi = 0.22f,
+            float clutchCapacityNm = 1200f,
+            float clutchEngageRatePerS = 12f,
+            float clutchReleaseRatePerS = 18f,
+            float clutchDragTorqueNm = 30f,
+            float launchTargetSlipRpm = 350f,
+            float airDensityKgPerM3 = 1.225f,
+            float rollingResistanceSpeedGainPerMps = 0f,
+            float drivelineCoastTorqueNm = 0f,
+            float drivelineCoastViscousNmPerRadS = 0f,
+            float coastStopSpeedKph = 3f,
+            float coastStopDecelKphps = 0.7f)
         {
             MassKg = Math.Max(1f, massKg);
             DrivetrainEfficiency = Clamp(drivetrainEfficiency, 0.1f, 1.0f);
@@ -60,6 +80,26 @@ namespace TopSpeed.Physics.Powertrain
             EngineInertiaKgm2 = Math.Max(0.01f, engineInertiaKgm2);
             EngineFrictionTorqueNm = Math.Max(0f, engineFrictionTorqueNm);
             DrivelineCouplingRate = Math.Max(0.1f, drivelineCouplingRate);
+            UseStrictEngineClutchModel = useStrictEngineClutchModel;
+            EngineFrictionCoulombNm = Math.Max(0f, engineFrictionCoulombNm);
+            EngineFrictionViscousNmPerRadS = Math.Max(0f, engineFrictionViscousNmPerRadS);
+            EnginePumpingLossNmAtClosedThrottle = Math.Max(0f, enginePumpingLossNmAtClosedThrottle);
+            EngineAccessoryTorqueNm = Math.Max(0f, engineAccessoryTorqueNm);
+            IdleTargetRpm = Clamp(idleTargetRpm <= 0f ? IdleRpm : idleTargetRpm, IdleRpm, RevLimiter);
+            IdleMaxCorrectionTorqueNm = Math.Max(0f, idleMaxCorrectionTorqueNm);
+            IdleControlKp = Math.Max(0f, idleControlKp);
+            IdleControlKi = Math.Max(0f, idleControlKi);
+            ClutchCapacityNm = Math.Max(1f, clutchCapacityNm);
+            ClutchEngageRatePerS = Math.Max(0.1f, clutchEngageRatePerS);
+            ClutchReleaseRatePerS = Math.Max(0.1f, clutchReleaseRatePerS);
+            ClutchDragTorqueNm = Math.Max(0f, clutchDragTorqueNm);
+            LaunchTargetSlipRpm = Math.Max(0f, launchTargetSlipRpm);
+            AirDensityKgPerM3 = Math.Max(0.1f, airDensityKgPerM3);
+            RollingResistanceSpeedGainPerMps = Math.Max(0f, rollingResistanceSpeedGainPerMps);
+            DrivelineCoastTorqueNm = Math.Max(0f, drivelineCoastTorqueNm);
+            DrivelineCoastViscousNmPerRadS = Math.Max(0f, drivelineCoastViscousNmPerRadS);
+            CoastStopSpeedKph = Math.Max(0f, coastStopSpeedKph);
+            CoastStopDecelKphps = Math.Max(0f, coastStopDecelKphps);
             Gears = Math.Max(1, gears);
             _gearRatios = (gearRatios != null && gearRatios.Length == Gears)
                 ? gearRatios
@@ -91,6 +131,26 @@ namespace TopSpeed.Physics.Powertrain
         public float EngineInertiaKgm2 { get; }
         public float EngineFrictionTorqueNm { get; }
         public float DrivelineCouplingRate { get; }
+        public bool UseStrictEngineClutchModel { get; }
+        public float EngineFrictionCoulombNm { get; }
+        public float EngineFrictionViscousNmPerRadS { get; }
+        public float EnginePumpingLossNmAtClosedThrottle { get; }
+        public float EngineAccessoryTorqueNm { get; }
+        public float IdleTargetRpm { get; }
+        public float IdleMaxCorrectionTorqueNm { get; }
+        public float IdleControlKp { get; }
+        public float IdleControlKi { get; }
+        public float ClutchCapacityNm { get; }
+        public float ClutchEngageRatePerS { get; }
+        public float ClutchReleaseRatePerS { get; }
+        public float ClutchDragTorqueNm { get; }
+        public float LaunchTargetSlipRpm { get; }
+        public float AirDensityKgPerM3 { get; }
+        public float RollingResistanceSpeedGainPerMps { get; }
+        public float DrivelineCoastTorqueNm { get; }
+        public float DrivelineCoastViscousNmPerRadS { get; }
+        public float CoastStopSpeedKph { get; }
+        public float CoastStopDecelKphps { get; }
         public int Gears { get; }
         public CurveProfile TorqueCurve { get; }
 

@@ -108,7 +108,15 @@ namespace TopSpeed.Bots
                     speedMpsCurrent,
                     surfaceDecelMod,
                     driveRatioOverride > 0f ? driveRatioOverride : (float?)null);
-                var totalDecel = thrust < -10f ? (brakeDecel + engineBrakeDecel) : engineBrakeDecel;
+                var passiveResistiveDecel = CalculateResistiveDecel(
+                    config,
+                    state.Gear,
+                    speedMpsCurrent,
+                    surfaceDecelMod,
+                    driveRatioOverride > 0f ? driveRatioOverride : (float?)null);
+                var totalDecel = passiveResistiveDecel + engineBrakeDecel;
+                if (thrust < -10f)
+                    totalDecel += brakeDecel;
                 speedDiffKph = -totalDecel * input.ElapsedSeconds;
                 if (automaticFamily)
                     speedDiffKph += autoOutput.CreepAccelerationMps2 * input.ElapsedSeconds * 3.6f;
