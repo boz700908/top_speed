@@ -113,9 +113,7 @@ namespace TopSpeed.Shortcuts
 
         private static string FormatKey(Key key)
         {
-            return (int)key <= 0
-                ? LocalizationService.Translate(LocalizationService.Mark("none"))
-                : key.ToString();
+            return InputDisplayText.Key(key);
         }
     }
 }

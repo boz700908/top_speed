@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-26 14:35+0200\n"
+"POT-Creation-Date: 2026-04-03 14:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,14 +16,18 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:69
-msgid ""
-"  --log <levels>          Comma-separated levels: error,warning,info,debug,"
-"all."
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:70
+msgid "  --log <levels>          Alias for --log-level."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:70
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:71
 msgid "  --log-file <path>       Output log file path (e.g. log.txt)."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:69
+msgid ""
+"  --log-level <levels>    Comma-separated levels: error,warning,info,debug,"
+"all."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:67
@@ -38,7 +42,7 @@ msgstr ""
 msgid "  --port <number>         Server port (1-65535)."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:71
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:72
 msgid "  -h, --help              Show this help."
 msgstr ""
 
@@ -63,16 +67,16 @@ msgstr ""
 msgid "A player"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:95
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:91
 msgid "A race is already in progress."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:95
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:100
 #, csharp-format
 msgid "All loadouts ready: room={0} \"{1}\", starting race."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:93
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:98
 msgid "All players are ready. Starting game."
 msgstr ""
 
@@ -129,35 +133,39 @@ msgstr ""
 msgid "Bot {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:34
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:31
 msgid "Bots can only be added in race-with-bots rooms."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:79
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:76
 msgid "Bots can only be removed in race-with-bots rooms."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:28
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:25
 msgid "Cannot add bots while race setup or race is active."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:58
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:179
+msgid "Cannot change game rules while race setup or race is active."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:54
 msgid "Cannot change laps while race setup or race is active."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:143
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:137
 msgid "Cannot change player limit while race setup or race is active."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:28
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:24
 msgid "Cannot change track while race setup or race is active."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:73
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:70
 msgid "Cannot remove bots while race setup or race is active."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:162
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:156
 msgid "Cannot set lower than current players in room."
 msgstr ""
 
@@ -187,12 +195,12 @@ msgstr ""
 msgid "Command failed. Check server logs for details."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:146
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:29
 #, csharp-format
 msgid "Connection closed by server. Reason: {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:144
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:27
 msgid "Connection closed."
 msgstr ""
 
@@ -206,21 +214,21 @@ msgstr ""
 msgid "Connection pending protocol negotiation: playerId={0}, endpoint={1}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:138
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:21
 msgid "Connection refused due to invalid protocol negotiation."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Protocol\Handshake.cs:120
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:136
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:19
 msgid "Connection refused due to protocol mismatch."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:119
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Lifecycle.cs:70
 #, csharp-format
 msgid "Connection removed: player={0}, endpoint={1}, room={2}, reason={3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:134
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:17
 msgid "Connection timed out."
 msgstr ""
 
@@ -280,16 +288,21 @@ msgstr ""
 msgid "Downloading..."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Packets\packets.cs:15
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Packets.cs:18
 #, csharp-format
 msgid "Dropped packet with invalid header from {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Packets\packets.cs:22
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Packets.cs:26
 #, csharp-format
 msgid ""
 "Dropped packet with protocol version mismatch from {0}: received={1}, "
 "expected={2}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Completion.cs:90
+#, csharp-format
+msgid "Duplicate finish ignored: room={0}, player={1}, number={2}."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Validate.cs:62
@@ -356,25 +369,36 @@ msgstr ""
 msgid "Failed to start transport on port {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:52
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:209
+#, csharp-format
+msgid "Finish ignored: room={0}, player={1}, number={2}, state={3}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:190
+#, csharp-format
+msgid ""
+"Finish recorded: room={0}, player={1}, number={2}, place={3}, timeMs={4}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:49
 msgid "Game room not found."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:19
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:16
 #, csharp-format
 msgid "Game {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Packets\packets.cs:41
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Packets.cs:46
 #, csharp-format
 msgid "Ignoring unknown packet command {0} from {1}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:138
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:154
 msgid "Invalid --max-players value. Using configured max players."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:130
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:146
 msgid "Invalid --port value. Using configured port."
 msgstr ""
 
@@ -479,12 +503,12 @@ msgstr ""
 msgid "Invalid weather value '{0}'."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:60
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:57
 #, csharp-format
 msgid "Join denied: player={0}, room={1}, raceStarted={2}, preparing={3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:198
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:204
 #, csharp-format
 msgid "Join room assignment: room={0}, player={1}, playerNumber={2}, host={3}."
 msgstr ""
@@ -498,7 +522,7 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:64
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:60
 msgid "Laps must be between 1 and 16."
 msgstr ""
 
@@ -564,16 +588,16 @@ msgstr ""
 msgid "No languages are available."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:88
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:84
 #, csharp-format
 msgid "Not enough players. {0} required to start."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:156
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:150
 msgid "One-on-one rooms always allow a maximum of 2 players."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Access.cs:34
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Access.cs:30
 msgid "Only host can do this."
 msgstr ""
 
@@ -585,68 +609,49 @@ msgstr ""
 msgid "Options:"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\RaceEvents.cs:43
-#, csharp-format
-msgid "Player finished: room={0}, player={1}, number={2}, results={3}."
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:78
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:75
 #, csharp-format
 msgid "Player joined room: room={0} \"{1}\", player={2}, participants={3}/{4}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:154
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:160
 #, csharp-format
 msgid "Player left room: room={0} \"{1}\", player={2}, notify={3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:150
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:144
 msgid "Player limit must be between 2 and 10."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:41
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:37
 #, csharp-format
 msgid ""
 "Player ready: room={0}, player={1}, car={2}, automatic={3}, ready={4}/{5}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\Core.cs:138
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:125
 #, csharp-format
 msgid "Player state transition from data: room={0}, player={1}, {2} -> {3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\Core.cs:69
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:44
 #, csharp-format
 msgid "Player state transition: room={0}, player={1}, {2} -> {3} (packet={4})."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\Core.cs:30
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\Core.cs:85
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:189
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:193
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Numbering.cs:71
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:87
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Messages.cs:59
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Messages.cs:93
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Online.cs:89
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\State.cs:143
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\admin.cs:78
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Notify\Room.cs:191
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:60
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:195
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:199
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Numbering.cs:72
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:83
 #, csharp-format
 msgid "Player {0}"
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\RaceEvents.cs:68
-#, csharp-format
-msgid ""
-"PlayerCrashed payload mismatch: room={0}, connectionPlayer={1}/{2}, payload="
-"{3}/{4}."
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Players\RaceEvents.cs:26
-#, csharp-format
-msgid ""
-"PlayerFinished payload mismatch: room={0}, connectionPlayer={1}/{2}, payload="
-"{3}/{4}."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Validate.cs:81
@@ -697,21 +702,36 @@ msgstr ""
 msgid "Protocol version: {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:84
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:200
+#, csharp-format
+msgid "Race completion pending: room={0}, finished={1}/{2}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Completion.cs:50
+#, csharp-format
+msgid "Race completion ready: room={0}, all active participants finished."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Completion.cs:37
+#, csharp-format
+msgid "Race completion ready: room={0}, no active participants remain."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:90
 #, csharp-format
 msgid ""
 "Race prepare cancelled after loadout: room={0} \"{1}\", active={2}, minStart="
 "{3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:51
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:59
 #, csharp-format
 msgid ""
 "Race prepare cancelled: room={0} \"{1}\", participants={2}, minStart={3}, "
 "capacity={4}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:112
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:107
 #, csharp-format
 msgid ""
 "Race prepare started: room={0} \"{1}\", requestedBy={2}, humans={3}, bots="
@@ -726,12 +746,12 @@ msgstr ""
 msgid "Race server stopped."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:25
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:66
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:21
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:62
 msgid "Race setup has not started yet."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:101
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:97
 msgid "Race setup is already in progress."
 msgstr ""
 
@@ -740,21 +760,21 @@ msgstr ""
 msgid "Race snapshot send: room={0}, delivery={1}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:49
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:57
 msgid "Race start cancelled because there are not enough players."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:82
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:88
 msgid "Race start cancelled because there are not enough ready players."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Lifecycle.cs:100
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:233
 #, csharp-format
 msgid ""
 "Race started: room={0} \"{1}\", track={2}, laps={3}, humans={4}, bots={5}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Lifecycle.cs:179
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:296
 #, csharp-format
 msgid "Race stopped: room={0} \"{1}\", results={2}."
 msgstr ""
@@ -764,53 +784,60 @@ msgstr ""
 msgid "Refused connection from {0}: server is full."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:100
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:97
 #, csharp-format
 msgid "Removed bot {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:23
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:20
 #, csharp-format
 msgid ""
 "Room add-bot denied: room={0}, player={1}, raceStarted={2}, preparing={3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:136
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:140
 #, csharp-format
 msgid "Room closed: room={0} \"{1}\"."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:40
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:37
 #, csharp-format
 msgid "Room created: room={0} \"{1}\", host={2}, type={3}, playersToStart={4}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:53
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:174
+#, csharp-format
+msgid ""
+"Room game-rules change denied: room={0}, player={1}, raceStarted={2}, "
+"preparing={3}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:49
 #, csharp-format
 msgid ""
 "Room laps change denied: room={0}, player={1}, raceStarted={2}, preparing="
 "{3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Numbering.cs:89
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Numbering.cs:90
 #, csharp-format
-msgid "Room numbers compacted: room={0}, humans={1}, bots={2}."
+msgid "Room numbers reassigned: room={0}, players={1}, bots={2}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:138
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:132
 #, csharp-format
 msgid ""
 "Room player-limit change denied: room={0}, player={1}, raceStarted={2}, "
 "preparing={3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:68
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:65
 #, csharp-format
 msgid ""
 "Room remove-bot denied: room={0}, player={1}, raceStarted={2}, preparing={3}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:23
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:19
 #, csharp-format
 msgid ""
 "Room track change denied: room={0}, player={1}, raceStarted={2}, preparing="
@@ -982,13 +1009,18 @@ msgstr ""
 msgid "Standard input is not available. Update download was skipped."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:129
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:247
+#, csharp-format
+msgid "Stopping race: room={0}, active={1}, trackedResults={2}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:12
 msgid "The server closed the connection."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:138
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\admin.cs:46
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:142
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:25
 msgid "The server will be shut down immediately by the host."
 msgstr ""
 
@@ -1000,21 +1032,21 @@ msgstr ""
 msgid "The update info file has an invalid server version format."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:85
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:82
 msgid "There are no bots to remove."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:65
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:62
 msgid "This game room is currently in progress."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\BotOps.cs:40
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:71
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:37
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:68
 msgid "This game room is unavailable because it is full."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Packets\pkt_core.cs:42
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:140
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Messages.cs:23
 msgid "This server is full."
 msgstr ""
 
@@ -1038,7 +1070,7 @@ msgstr ""
 msgid "TopSpeed.Server usage:"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:35
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:31
 msgid "Track cannot be empty."
 msgstr ""
 
@@ -1123,7 +1155,7 @@ msgstr ""
 msgid "Value must be between {0} and {1}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:66
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:74
 #, csharp-format
 msgid ""
 "Waiting for loadouts: room={0}, ready={1}, skipped={2}, totalHumans={3}."
@@ -1137,17 +1169,17 @@ msgstr ""
 msgid "Would you like to download the update? (y/n)"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Access.cs:20
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Access.cs:26
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:90
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:19
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:60
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Messages.cs:88
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Access.cs:17
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Access.cs:23
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:87
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:15
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:56
 msgid "You are not in a game room."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:31
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:72
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:27
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:68
 msgid "You are not in this game room."
 msgstr ""
 
@@ -1204,11 +1236,11 @@ msgstr ""
 msgid "[room]: {0} says: {1}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:79
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:80
 msgid "all"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:89
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:90
 msgid "debug"
 msgstr ""
 
@@ -1220,7 +1252,7 @@ msgstr ""
 msgid "end_area cannot be empty."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:83
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:84
 msgid "error"
 msgstr ""
 
@@ -1228,7 +1260,7 @@ msgstr ""
 msgid "hard"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:87
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:88
 msgid "info"
 msgstr ""
 
@@ -1236,13 +1268,13 @@ msgstr ""
 msgid "main room"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:158
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:73
 msgid "multiple"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:122
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:77
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:91
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Session\Lifecycle.cs:73
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:78
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:92
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Program.cs:42
 msgid "none"
 msgstr ""
@@ -1276,7 +1308,7 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:85
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:86
 msgid "warning"
 msgstr ""
 
@@ -1305,7 +1337,7 @@ msgstr ""
 msgid "{0} B"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:36
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:33
 #, csharp-format
 msgid "{0} created game room {1}."
 msgstr ""
@@ -1320,7 +1352,7 @@ msgstr ""
 msgid "{0} has disconnected from the server."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Membership.cs:126
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:130
 #, csharp-format
 msgid "{0} has left the game."
 msgstr ""
@@ -1330,26 +1362,39 @@ msgstr ""
 msgid "{0} has lost connection to the server."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\HostOps.cs:124
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Host.cs:119
 #, csharp-format
 msgid ""
 "{0} is about to start the game. Choose your vehicle and transmission mode."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:51
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Race\Prepare.cs:32
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Lifecycle.cs:33
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:47
 #, csharp-format
 msgid "{0} is ready."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Commands\Ready.cs:92
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:88
 #, csharp-format
 msgid "{0} left race preparation."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:242
+#, csharp-format
+msgid ""
+"{0} payload mismatch: room={1}, connectionPlayer={2}/{3}, payload={4}/{5}."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:127
 #, csharp-format
 msgid "{0} players are connected:"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:256
+#, csharp-format
+msgid ""
+"{0} race instance mismatch: room={1}, connectionPlayer={2}/{3}, "
+"payloadRaceInstance={4}, roomRaceInstance={5}."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Messages.cs:62

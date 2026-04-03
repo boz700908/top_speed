@@ -78,58 +78,12 @@ namespace TopSpeed.Input
 
         public static string FormatKey(Key key)
         {
-            if ((int)key <= 0)
-                return "none";
-            return key.ToString();
+            return InputDisplayText.Key(key);
         }
 
         public static string FormatAxis(AxisOrButton axis)
         {
-            return axis switch
-            {
-                AxisOrButton.AxisNone => "none",
-                AxisOrButton.AxisXNeg => "X-",
-                AxisOrButton.AxisXPos => "X+",
-                AxisOrButton.AxisYNeg => "Y-",
-                AxisOrButton.AxisYPos => "Y+",
-                AxisOrButton.AxisZNeg => "Z-",
-                AxisOrButton.AxisZPos => "Z+",
-                AxisOrButton.AxisRxNeg => "Rx-",
-                AxisOrButton.AxisRxPos => "Rx+",
-                AxisOrButton.AxisRyNeg => "Ry-",
-                AxisOrButton.AxisRyPos => "Ry+",
-                AxisOrButton.AxisRzNeg => "Rz-",
-                AxisOrButton.AxisRzPos => "Rz+",
-                AxisOrButton.AxisSlider1Neg => "Slider1-",
-                AxisOrButton.AxisSlider1Pos => "Slider1+",
-                AxisOrButton.AxisSlider2Neg => "Slider2-",
-                AxisOrButton.AxisSlider2Pos => "Slider2+",
-                AxisOrButton.Button1 => "Button 1",
-                AxisOrButton.Button2 => "Button 2",
-                AxisOrButton.Button3 => "Button 3",
-                AxisOrButton.Button4 => "Button 4",
-                AxisOrButton.Button5 => "Button 5",
-                AxisOrButton.Button6 => "Button 6",
-                AxisOrButton.Button7 => "Button 7",
-                AxisOrButton.Button8 => "Button 8",
-                AxisOrButton.Button9 => "Button 9",
-                AxisOrButton.Button10 => "Button 10",
-                AxisOrButton.Button11 => "Button 11",
-                AxisOrButton.Button12 => "Button 12",
-                AxisOrButton.Button13 => "Button 13",
-                AxisOrButton.Button14 => "Button 14",
-                AxisOrButton.Button15 => "Button 15",
-                AxisOrButton.Button16 => "Button 16",
-                AxisOrButton.Pov1 => "POV 1 up",
-                AxisOrButton.Pov2 => "POV 1 right",
-                AxisOrButton.Pov3 => "POV 1 down",
-                AxisOrButton.Pov4 => "POV 1 left",
-                AxisOrButton.Pov5 => "POV 2 up",
-                AxisOrButton.Pov6 => "POV 2 right",
-                AxisOrButton.Pov7 => "POV 2 down",
-                AxisOrButton.Pov8 => "POV 2 left",
-                _ => axis.ToString()
-            };
+            return InputDisplayText.Axis(axis);
         }
 
         public string GetMappingInstruction(bool keyboard, InputAction action)

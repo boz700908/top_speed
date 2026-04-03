@@ -87,6 +87,7 @@
   <ItemGroup>
     <Content Include="..\languages\server\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>languages\server\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <TargetPath>languages\server\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>

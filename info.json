@@ -1,7 +1,8 @@
 {
-  "version": "2026.4.3.1",
+  "version": "2026.4.3.2",
   "serverVersion": "2026.4.3.1",
   "changes": [
+    "Added the Spanish language to the game as an official language.",
     "Improved drag resistance for vehicles, added new keys and sections to custom vehicles, and updated official ones.",
     "Fixed a lot of bugs with vehicles, for example in manual, starting from a high gear and releasing throddle after gaining speed no longer gets stuck. Vehicles are now using real drag and resistance physics.",
     "Turning off engine no longer cuts speed and engine immediately.",

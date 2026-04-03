@@ -159,6 +159,7 @@
     </Content>
     <Content Include="..\languages\client\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>languages\client\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <TargetPath>languages\client\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>

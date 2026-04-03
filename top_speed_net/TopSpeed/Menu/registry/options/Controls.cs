@@ -229,9 +229,7 @@ namespace TopSpeed.Menu
 
         private static string FormatShortcutKey(InputKey key)
         {
-            return (int)key <= 0
-                ? "none"
-                : key.ToString();
+            return InputDisplayText.Key(key);
         }
     }
 }
