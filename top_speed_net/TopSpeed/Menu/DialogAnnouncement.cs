@@ -11,8 +11,8 @@ namespace TopSpeed.Menu
 
         public static string Compose(string? title, string? caption)
         {
-            var titleText = title ?? string.Empty;
-            var captionText = caption ?? string.Empty;
+            var titleText = LocalizationService.Translate(title);
+            var captionText = LocalizationService.Translate(caption);
             var hasCaption = !string.IsNullOrWhiteSpace(captionText);
             var announcement = hasCaption
                 ? LocalizationService.Format(TitleCaptionTemplate, titleText, captionText)

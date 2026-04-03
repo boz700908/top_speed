@@ -1,5 +1,5 @@
 {
-  "version": "2026.4.3.2",
+  "version": "2026.4.3.3",
   "serverVersion": "2026.4.3.1",
   "changes": [
     "Added the Spanish language to the game as an official language.",
@@ -9,7 +9,8 @@
     "Fixed bugs with multiplayer server, especially when all players are finished racing. Players are no longer stuck.",
     "Layed the ground work for future cross-platform compatibility on other operating systems for the game itself.",
     "Major code refactor in many areas, such as keyboard, joystick, window, text input, and multiplayer packet handling.",
-    "Update vehicle creation guide and added a lot of details for new and existing sections and explanations."
+    "Update vehicle creation guide and added a lot of details for new and existing sections and explanations.",
+    "Fixed some localization bugs."
   ],
   "serverChanges": [
     "Updated server room model and explicit race finish events for players.",
