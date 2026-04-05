@@ -22,6 +22,7 @@ namespace TopSpeed.Vehicles
         bool ShiftOnDemandEnabled { get; }
         CarType CarType { get; }
         ICarListener? Listener { get; set; }
+        bool CombustionActive { get; }
         bool EngineRunning { get; }
         bool Braking { get; }
         bool Horning { get; }

@@ -76,6 +76,7 @@ namespace TopSpeed.Vehicles
                         _physicsConfig.Powertrain,
                         _activeTransmissionType,
                         isNeutralGear: false,
+                        combustionEnabled: true,
                         engineStalled: false,
                         drivelineLocked: _automaticCouplingFactor >= 0.98f,
                         drivelineDisengaged: _automaticCouplingFactor <= 0.05f,

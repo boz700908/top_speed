@@ -17,6 +17,7 @@ namespace TopSpeed.Tests.Physics
                     config,
                     TransmissionType.Atc,
                     isNeutralGear: false,
+                    combustionEnabled: true,
                     engineStalled: false,
                     drivelineLocked: false,
                     drivelineDisengaged: false,
@@ -40,6 +41,7 @@ namespace TopSpeed.Tests.Physics
                     config,
                     TransmissionType.Dct,
                     isNeutralGear: false,
+                    combustionEnabled: true,
                     engineStalled: false,
                     drivelineLocked: false,
                     drivelineDisengaged: false,
@@ -62,6 +64,7 @@ namespace TopSpeed.Tests.Physics
                     config,
                     TransmissionType.Dct,
                     isNeutralGear: false,
+                    combustionEnabled: true,
                     engineStalled: false,
                     drivelineLocked: false,
                     drivelineDisengaged: false,
@@ -173,6 +176,7 @@ namespace TopSpeed.Tests.Physics
                     config,
                     TransmissionType.Atc,
                     isNeutralGear: true,
+                    combustionEnabled: true,
                     engineStalled: false,
                     drivelineLocked: false,
                     drivelineDisengaged: true,
@@ -184,6 +188,29 @@ namespace TopSpeed.Tests.Physics
                     coupledDriveRpm: 0f));
 
             Assert.Equal(CouplingMode.Disengaged, result.CouplingMode);
+            Assert.Equal(0f, result.MinimumCoupledRpm, 3);
+        }
+
+        [Fact]
+        public void Resolve_CombustionOff_AutomaticDoesNotForceMinimumCoupledRpm()
+        {
+            var config = BuildConfiguration();
+            var result = EngineStateRuntime.Resolve(
+                new EngineStateRuntimeInput(
+                    config,
+                    TransmissionType.Atc,
+                    isNeutralGear: false,
+                    combustionEnabled: false,
+                    engineStalled: false,
+                    drivelineLocked: false,
+                    drivelineDisengaged: false,
+                    speedMps: 12f / 3.6f,
+                    throttle: 0f,
+                    couplingFactor: 0.55f,
+                    switchingGear: 0,
+                    engineRpm: 1800f,
+                    coupledDriveRpm: 1700f));
+
             Assert.Equal(0f, result.MinimumCoupledRpm, 3);
         }
 

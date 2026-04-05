@@ -52,6 +52,11 @@ namespace TopSpeed.Game
             _input = input;
             _speech = speech;
             speech.ScreenReaderRateMs = _settings.ScreenReaderRateMs;
+            speech.OutputMode = _settings.SpeechMode;
+            speech.SpeechRate = _settings.SpeechRate;
+            speech.ScreenReaderInterrupt = _settings.ScreenReaderInterrupt;
+            speech.PreferredBackendId = _settings.SpeechBackendId;
+            speech.PreferredVoiceIndex = _settings.SpeechVoiceIndex;
             input.ControllerScanTimedOut += () => speech.Speak(LocalizationService.Mark("No controller detected."));
             input.SetDeviceMode(_settings.DeviceMode);
             _raceInput = new RaceInput(_settings);
@@ -103,8 +108,11 @@ namespace TopSpeed.Game
 
         public void Initialize()
         {
-            _logo = new LogoScreen((AudioManager)_audio);
-            _logo.Start();
+            if (_settings.PlayLogoAtStartup)
+            {
+                _logo = new LogoScreen((AudioManager)_audio);
+                _logo.Start();
+            }
             _state = AppState.Logo;
         }
     }

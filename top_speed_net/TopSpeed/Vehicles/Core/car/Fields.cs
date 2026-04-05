@@ -180,7 +180,8 @@ namespace TopSpeed.Vehicles
         private bool _shiftOnDemandSupported;
         private bool _shiftOnDemandEnabled;
         private DrivelineState _drivelineState = DrivelineState.Locked;
-        private EngineLifecycleState _engineLifecycleState = EngineLifecycleState.Stopped;
+        private EngineCombustionState _combustionState = EngineCombustionState.Off;
+        private EngineRotationState _engineRotationState = EngineRotationState.Stopped;
     }
 }
 

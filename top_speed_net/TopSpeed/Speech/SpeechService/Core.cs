@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 #if NETFRAMEWORK
 using System.Speech.Synthesis;
 #endif
 using System.Threading;
-using CrossSpeak;
+using TopSpeed.Input;
 using TopSpeed.Localization;
+using TopSpeed.Speech.ScreenReaders;
 
 namespace TopSpeed.Speech
 {
@@ -30,18 +32,56 @@ namespace TopSpeed.Speech
         private Func<bool>? _isInputHeld;
         private Action? _prepareForInterruptableSpeech;
         private bool _screenReaderReady;
+        private float _speechRate = 0.5f;
 
         public SpeechService(Func<bool>? isInputHeld = null, Action? prepareForInterruptableSpeech = null)
         {
             _isInputHeld = isInputHeld;
             _prepareForInterruptableSpeech = prepareForInterruptableSpeech;
-            _screenReader = CrossSpeakManager.Instance;
+            _screenReader = Factory.Create();
             _screenReaderReady = InitializeScreenReader();
         }
 
         public bool IsAvailable => _screenReaderReady || IsSapiInitialized();
 
         public float ScreenReaderRateMs { get; set; }
+        public SpeechOutputMode OutputMode { get; set; } = SpeechOutputMode.Speech;
+        public bool ScreenReaderInterrupt { get; set; }
+        public IReadOnlyList<SpeechBackendInfo> AvailableBackends => _screenReader.AvailableBackends;
+        public IReadOnlyList<SpeechVoiceInfo> AvailableVoices => _screenReader.AvailableVoices;
+        public ulong? ActiveBackendId => _screenReader.ActiveBackendId;
+        public SpeechCapabilities ScreenReaderCapabilities => _screenReader.Capabilities;
+        public string? ScreenReaderBackendName => _screenReader.ActiveBackendName;
+
+        public float SpeechRate
+        {
+            get => _speechRate;
+            set
+            {
+                var clamped = Math.Max(0f, Math.Min(1f, value));
+                _speechRate = clamped;
+                ApplySpeechRate();
+            }
+        }
+
+        public ulong? PreferredBackendId
+        {
+            get => _screenReader.PreferredBackendId;
+            set
+            {
+                if (_screenReader.PreferredBackendId == value)
+                    return;
+
+                _screenReader.PreferredBackendId = value;
+                _screenReaderReady = InitializeScreenReader();
+            }
+        }
+
+        public int? PreferredVoiceIndex
+        {
+            get => _screenReader.PreferredVoiceIndex;
+            set => _screenReader.PreferredVoiceIndex = value;
+        }
 
         public void BindInputProbe(Func<bool> isInputHeld)
         {
@@ -55,16 +95,22 @@ namespace TopSpeed.Speech
 
         public void Speak(string text)
         {
-            Speak(text, SpeakFlag.None);
+            SpeakInternal(text, SpeakFlag.None, allowConfiguredInterrupt: true);
         }
 
         public void Speak(string text, SpeakFlag flag)
+        {
+            SpeakInternal(text, flag, allowConfiguredInterrupt: false);
+        }
+
+        private void SpeakInternal(string text, SpeakFlag flag, bool allowConfiguredInterrupt)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return;
 
             var shouldInterruptCurrent = flag == SpeakFlag.NoInterruptButStop || flag == SpeakFlag.InterruptableButStop;
-            if (shouldInterruptCurrent)
+            var interruptSpeech = shouldInterruptCurrent || (allowConfiguredInterrupt && ScreenReaderInterrupt);
+            if (interruptSpeech)
                 Purge();
 
             text = text.Trim();
@@ -74,7 +120,7 @@ namespace TopSpeed.Speech
             var spoke = false;
             if (_screenReaderReady)
             {
-                spoke = TrySpeakWithScreenReader(text, shouldInterruptCurrent);
+                spoke = TrySpeakWithScreenReader(text, interruptSpeech);
                 if (spoke)
                     StartSpeakTimer(text);
             }
@@ -188,9 +234,20 @@ namespace TopSpeed.Speech
         {
             try
             {
+                try
+                {
+                    _screenReader.Close();
+                }
+                catch
+                {
+                }
+
                 _screenReader.TrySAPI(false);
                 _screenReader.PreferSAPI(false);
-                return _screenReader.Initialize();
+                var initialized = _screenReader.Initialize();
+                if (initialized)
+                    ApplySpeechRate();
+                return initialized;
             }
             catch
             {
@@ -202,10 +259,35 @@ namespace TopSpeed.Speech
         {
             try
             {
-                if (_screenReader.Output(text, interrupt))
-                    return true;
+                switch (OutputMode)
+                {
+                    case SpeechOutputMode.Braille:
+                        if (_screenReader.Braille(text))
+                            return true;
 
-                return _screenReader.Speak(text, interrupt);
+                        if (_screenReader.Output(text, interrupt))
+                            return true;
+
+                        return _screenReader.Speak(text, interrupt);
+
+                    case SpeechOutputMode.SpeechAndBraille:
+                        if (_screenReader.Output(text, interrupt))
+                            return true;
+
+                        if (_screenReader.Speak(text, interrupt))
+                        {
+                            _screenReader.Braille(text);
+                            return true;
+                        }
+
+                        return _screenReader.Braille(text);
+
+                    default:
+                        if (_screenReader.Speak(text, interrupt))
+                            return true;
+
+                        return _screenReader.Output(text, interrupt);
+                }
             }
             catch
             {
@@ -269,6 +351,20 @@ namespace TopSpeed.Speech
             try
             {
                 _prepareForInterruptableSpeech?.Invoke();
+            }
+            catch
+            {
+            }
+        }
+
+        private void ApplySpeechRate()
+        {
+            if (!_screenReaderReady)
+                return;
+
+            try
+            {
+                _screenReader.SetRate(_speechRate);
             }
             catch
             {

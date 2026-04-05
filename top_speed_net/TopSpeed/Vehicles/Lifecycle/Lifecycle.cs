@@ -42,9 +42,13 @@ namespace TopSpeed.Vehicles
 
         public virtual void Start()
         {
-            if (_engineLifecycleState == EngineLifecycleState.Starting
-                || _engineLifecycleState == EngineLifecycleState.Stopping)
+            if (_combustionState == EngineCombustionState.Starting)
                 return;
+            if (_engineRotationState != EngineRotationState.Stopped)
+            {
+                ResumeCombustion();
+                return;
+            }
 
             var delay = Math.Max(0f, _soundStart.GetLengthSeconds() - 0.1f);
             PushEvent(EventType.CarStart, delay);
@@ -70,7 +74,7 @@ namespace TopSpeed.Vehicles
             _soundSand.SetFrequency(_surfaceFrequency);
             _soundSnow.SetFrequency(_surfaceFrequency);
             _stickReleased = true;
-            _engineLifecycleState = EngineLifecycleState.Starting;
+            _combustionState = EngineCombustionState.Starting;
             SetState(CarState.Starting);
             _listener?.OnStart();
             _vibration?.PlayEffect(VibrationEffectType.Start);
@@ -79,9 +83,13 @@ namespace TopSpeed.Vehicles
 
         public virtual void RestartFromStall()
         {
-            if (_engineLifecycleState == EngineLifecycleState.Starting
-                || _engineLifecycleState == EngineLifecycleState.Stopping)
+            if (_combustionState == EngineCombustionState.Starting)
                 return;
+            if (_engineRotationState != EngineRotationState.Stopped)
+            {
+                ResumeCombustion();
+                return;
+            }
 
             var delay = Math.Max(0f, _soundStart.GetLengthSeconds() - 0.1f);
             PushEvent(EventType.CarStart, delay);
@@ -90,7 +98,7 @@ namespace TopSpeed.Vehicles
             _switchingGear = 0;
             _autoShiftCooldown = 0f;
             _throttleVolume = 0.0f;
-            _engineLifecycleState = EngineLifecycleState.Starting;
+            _combustionState = EngineCombustionState.Starting;
             SetState(CarState.Starting);
             _vibration?.PlayEffect(VibrationEffectType.Start);
             _vibration?.PlayEffect(VibrationEffectType.Engine);
@@ -101,8 +109,7 @@ namespace TopSpeed.Vehicles
         /// </summary>
         public virtual void RestartAfterCrash()
         {
-            if (_engineLifecycleState == EngineLifecycleState.Starting
-                || _engineLifecycleState == EngineLifecycleState.Stopping)
+            if (_combustionState == EngineCombustionState.Starting)
                 return;
 
             var delay = Math.Max(0f, _soundStart.GetLengthSeconds() - 0.1f);
@@ -128,7 +135,7 @@ namespace TopSpeed.Vehicles
             _soundSand.SetFrequency(_surfaceFrequency);
             _soundSnow.SetFrequency(_surfaceFrequency);
             _stickReleased = true;
-            _engineLifecycleState = EngineLifecycleState.Starting;
+            _combustionState = EngineCombustionState.Starting;
             SetState(CarState.Starting);
             _listener?.OnStart();
             _vibration?.PlayEffect(VibrationEffectType.Start);
@@ -137,8 +144,7 @@ namespace TopSpeed.Vehicles
 
         public virtual void ShutdownEngine()
         {
-            if (_engineLifecycleState == EngineLifecycleState.Stopped
-                || _engineLifecycleState == EngineLifecycleState.Stopping)
+            if (_combustionState == EngineCombustionState.Off)
                 return;
 
             _currentThrottle = 0;
@@ -148,14 +154,11 @@ namespace TopSpeed.Vehicles
             _autoShiftCooldown = 0f;
             _throttleVolume = 0f;
             _prevThrottleVolume = 0f;
-            _engineLifecycleState = EngineLifecycleState.Stopping;
+            _combustionState = EngineCombustionState.Off;
             _soundStart.Stop();
-            _soundStop?.Stop();
-            if (_soundEngine.IsPlaying)
-                _soundEngine.Stop(EngineShutdownFadeSeconds);
-
-            if (_state == CarState.Running || _state == CarState.Starting || _state == CarState.Stopped)
-                SetState(CarState.Stopping);
+            _soundStop?.Restart(loop: false);
+            _soundThrottle?.Stop();
+            _vibration?.StopEffect(VibrationEffectType.Engine);
         }
 
         public virtual void Crash()
@@ -219,7 +222,8 @@ namespace TopSpeed.Vehicles
             _gear = NeutralGear;
             _switchingGear = 0;
             _autoShiftCooldown = 0f;
-            _engineLifecycleState = EngineLifecycleState.Stopped;
+            _combustionState = EngineCombustionState.Off;
+            SetEngineRotationState(EngineRotationState.Stopped);
             ClearStallState();
             SetState(CarState.Crashing);
             PushEvent(EventType.CrashComplete, _soundCrash.GetLengthSeconds() + 1.25f);
@@ -287,9 +291,12 @@ namespace TopSpeed.Vehicles
             StopSurfaceLoops();
             _vibration?.StopEffect(VibrationEffectType.CurbLeft);
             _vibration?.StopEffect(VibrationEffectType.CurbRight);
-            if (_engineLifecycleState != EngineLifecycleState.Stopped)
+            if (_combustionState != EngineCombustionState.Off || _engineRotationState != EngineRotationState.Stopped)
             {
-                _engineLifecycleState = EngineLifecycleState.Stopping;
+                _combustionState = EngineCombustionState.Off;
+                _soundThrottle?.Stop();
+                _soundStop?.Restart(loop: false);
+                _vibration?.StopEffect(VibrationEffectType.Engine);
                 SetState(CarState.Stopping);
             }
             else
@@ -345,25 +352,29 @@ namespace TopSpeed.Vehicles
                 _vibration.StopEffect(effect);
         }
 
-        private void CompleteEngineShutdown()
-        {
-            if (_engineLifecycleState == EngineLifecycleState.Stopped)
-                return;
-
-            _engine.StopEngine();
-            _soundThrottle?.Stop();
-            _soundStop?.Restart(loop: false);
-            _vibration?.StopEffect(VibrationEffectType.Engine);
-            _engineLifecycleState = EngineLifecycleState.Stopped;
-            _speedDiff = 0f;
-        }
-
         private void CompleteStop()
         {
             _speed = 0f;
             _speedDiff = 0f;
+            _engine.StopEngine();
+            SetEngineRotationState(EngineRotationState.Stopped);
             StopSurfaceLoops();
             SetState(CarState.Stopped);
+        }
+
+        private void ResumeCombustion()
+        {
+            _soundStop?.Stop();
+            _soundStart.Stop();
+            _switchingGear = 0;
+            _autoShiftCooldown = 0f;
+            _throttleVolume = 0.0f;
+            _prevThrottleVolume = 0.0f;
+            ClearStallState();
+            _combustionState = EngineCombustionState.On;
+            SetState(CarState.Running);
+            _listener?.OnStart();
+            _vibration?.PlayEffect(VibrationEffectType.Engine);
         }
     }
 }

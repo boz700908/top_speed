@@ -48,7 +48,7 @@ namespace TopSpeed.Menu
             var opening = _openingAnnouncementOverride ?? Title;
             _openingAnnouncementOverride = null;
             if (!string.IsNullOrWhiteSpace(opening))
-                _speech.Speak(opening, ActiveView.TitleSpeakFlag);
+                _speech.Speak(opening, ResolveTitleSpeakFlag());
 
             _index = NoSelection;
             QueueAutoFocusFirstItem(force: string.IsNullOrWhiteSpace(opening));
@@ -104,6 +104,13 @@ namespace TopSpeed.Menu
         private void CancelHint()
         {
             Interlocked.Increment(ref _hintToken);
+        }
+
+        private SpeechService.SpeakFlag ResolveTitleSpeakFlag()
+        {
+            return ActiveView.TitleSpeakFlag == SpeechService.SpeakFlag.None
+                ? SpeechService.SpeakFlag.NoInterrupt
+                : ActiveView.TitleSpeakFlag;
         }
     }
 }

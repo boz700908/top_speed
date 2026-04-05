@@ -15,7 +15,8 @@ namespace TopSpeed.Vehicles
             EngineCouplingMode couplingMode = EngineCouplingMode.Blended,
             float couplingFactor = 1f,
             float? driveRatioOverride = null,
-            float minimumCoupledRpm = 0f)
+            float minimumCoupledRpm = 0f,
+            bool combustionEnabled = true)
         {
             var clampedGear = Math.Max(1, Math.Min(_gearCount, gear));
             var throttle = Math.Max(0, throttleInput) / 100f;
@@ -23,6 +24,7 @@ namespace TopSpeed.Vehicles
             var wheelCircumference = _tireCircumferenceM;
             var lockToDriveline = couplingMode == EngineCouplingMode.Locked;
             var disengaged = couplingMode == EngineCouplingMode.Disengaged;
+            var minimumOperationalRpm = combustionEnabled ? _stallRpm : 0f;
             var gearRatio = inReverse
                 ? Math.Max(0.1f, reverseGearRatio)
                 : (driveRatioOverride.HasValue && driveRatioOverride.Value > 0f
@@ -45,13 +47,13 @@ namespace TopSpeed.Vehicles
                     coupledRpm = effectiveMinimumCoupledRpm;
             }
 
-            coupledRpm = Math.Max(_stallRpm, Math.Min(_revLimiter, coupledRpm));
+            coupledRpm = Math.Max(minimumOperationalRpm, Math.Min(_revLimiter, coupledRpm));
             var clampedCouplingFactor = Math.Max(0f, Math.Min(1f, couplingFactor));
             var baseRpm = lockToDriveline ? coupledRpm : (_rpm > 0f ? _rpm : coupledRpm);
-            var clampedBaseRpm = Math.Max(_stallRpm, Math.Min(_revLimiter, baseRpm));
+            var clampedBaseRpm = Math.Max(minimumOperationalRpm, Math.Min(_revLimiter, baseRpm));
             var torqueAvailable = _torqueCurve.EvaluateTorque(clampedBaseRpm);
             var maximumEngineTorque = torqueAvailable * _powerFactor;
-            var requestedEngineTorque = maximumEngineTorque * throttle;
+            var requestedEngineTorque = combustionEnabled ? maximumEngineTorque * throttle : 0f;
             var grossEngineTorque = requestedEngineTorque;
 
             var parasiticFrictionTorque = Calculator.EngineLossTorqueNm(
@@ -66,7 +68,9 @@ namespace TopSpeed.Vehicles
                 _engineOverrunIdleLossFraction,
                 _overrunCurveExponent,
                 closedThrottle: false);
-            var idleControlActive = throttle <= 0.10f && clampedBaseRpm <= _idleRpm + _idleControlWindowRpm;
+            var idleControlActive = combustionEnabled
+                && throttle <= 0.10f
+                && clampedBaseRpm <= _idleRpm + _idleControlWindowRpm;
             if (idleControlActive)
             {
                 var idleRpmDeficit = Math.Max(0f, _idleRpm - clampedBaseRpm);
@@ -79,7 +83,9 @@ namespace TopSpeed.Vehicles
             var freeRevRpmThreshold = _idleRpm + Math.Max(80f, _idleControlWindowRpm * 0.35f);
             var freeRevOverrunActive = disengaged && clampedBaseRpm > freeRevRpmThreshold;
             var drivelineOverrunActive = !disengaged && clampedCouplingFactor > 0.05f;
-            var applyClosedThrottleOverrun = throttle <= 0.1f && (drivelineOverrunActive || freeRevOverrunActive);
+            var applyClosedThrottleOverrun = combustionEnabled
+                ? throttle <= 0.1f && (drivelineOverrunActive || freeRevOverrunActive)
+                : clampedBaseRpm > minimumOperationalRpm + 1f && (drivelineOverrunActive || freeRevOverrunActive || disengaged);
             var lossTorque = Calculator.EngineLossTorqueNm(
                 clampedBaseRpm,
                 _idleRpm,
@@ -96,7 +102,7 @@ namespace TopSpeed.Vehicles
             var netEngineTorque = grossEngineTorque - lossTorque;
             var rpmPerSecond = (netEngineTorque / _engineInertiaKgm2) * (60f / (2f * (float)Math.PI));
             var torqueIntegratedRpm = clampedBaseRpm + (rpmPerSecond * elapsed);
-            torqueIntegratedRpm = Math.Max(_stallRpm, Math.Min(_maxRpm, torqueIntegratedRpm));
+            torqueIntegratedRpm = Math.Max(minimumOperationalRpm, Math.Min(_maxRpm, torqueIntegratedRpm));
 
             if (lockToDriveline)
             {
@@ -110,14 +116,20 @@ namespace TopSpeed.Vehicles
             {
                 var couplingAlpha = Math.Max(0f, Math.Min(1f, _drivelineCouplingRate * elapsed * clampedCouplingFactor));
                 var blendedRpm = torqueIntegratedRpm + ((coupledRpm - torqueIntegratedRpm) * couplingAlpha);
-                _rpm = Math.Max(_stallRpm, Math.Min(_maxRpm, blendedRpm));
+                _rpm = Math.Max(minimumOperationalRpm, Math.Min(_maxRpm, blendedRpm));
             }
 
-            if (!inReverse && !lockToDriveline && effectiveMinimumCoupledRpm > 0f && _rpm < effectiveMinimumCoupledRpm)
+            if (combustionEnabled
+                && !inReverse
+                && !lockToDriveline
+                && effectiveMinimumCoupledRpm > 0f
+                && _rpm < effectiveMinimumCoupledRpm)
                 _rpm = effectiveMinimumCoupledRpm;
 
             if (_rpm > _revLimiter)
                 _rpm = _revLimiter;
+            if (_rpm < 1f)
+                _rpm = 0f;
 
             _grossHorsepower = Calculator.Horsepower(Math.Max(0f, grossEngineTorque), _rpm);
             _netHorsepower = Calculator.Horsepower(Math.Max(0f, netEngineTorque), _rpm);

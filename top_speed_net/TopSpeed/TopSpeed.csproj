@@ -73,7 +73,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CrossSpeak\CrossSpeak.csproj" />
     <ProjectReference Include="..\TS.Audio\TS.Audio.csproj" />
     <ProjectReference Include="..\TopSpeed.Shared\TopSpeed.Shared.csproj" />
   </ItemGroup>
@@ -84,7 +83,6 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Compile Remove="Window\Eto\**\*.cs" />
-    <Compile Remove="ThirdParty\Tolk\**\*.cs" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
@@ -99,51 +97,61 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472' or ('$(TargetFramework)' == 'net10.0-windows' and '$(RuntimeIdentifier)' == 'win-x64')">
-    <Content Include="..\CrossSpeak\lib\windows\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>lib\screen-reader-libs\windows\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-    </Content>
     <Content Include="ThirdParty\win-x64\phonon.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\phonon.dll</TargetPath>
     </Content>
     <Content Include="..\MiniAudioExNET\runtimes\win-x64\native\miniaudioex.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\miniaudioex.dll</TargetPath>
+    </Content>
+    <Content Include="ThirdParty\win-x64\prism.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>lib\prism.dll</TargetPath>
     </Content>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == 'linux-x64'">
-    <Content Include="..\CrossSpeak\lib\linux\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>lib\screen-reader-libs\linux\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-    </Content>
     <Content Include="ThirdParty\linux-x64\libphonon.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\libphonon.so</TargetPath>
     </Content>
     <Content Include="..\MiniAudioExNET\runtimes\linux-x64\native\libminiaudioex.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\libminiaudioex.so</TargetPath>
+    </Content>
+    <Content Include="ThirdParty\linux-x64\libprism.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>lib\libprism.so</TargetPath>
     </Content>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == 'osx-x64'">
-    <Content Include="..\CrossSpeak\lib\macos\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>lib\screen-reader-libs\macos\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-    </Content>
     <Content Include="ThirdParty\osx\libphonon.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\libphonon.dylib</TargetPath>
     </Content>
     <Content Include="ThirdParty\osx\phonon.bundle\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\phonon.bundle\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>
     <Content Include="..\MiniAudioExNET\runtimes\osx-x64\native\libminiaudioex.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>lib\libminiaudioex.dylib</TargetPath>
+    </Content>
+    <Content Include="ThirdParty\osx\libprism.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>lib\libprism.dylib</TargetPath>
     </Content>
   </ItemGroup>
 

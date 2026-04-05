@@ -24,11 +24,11 @@ namespace TopSpeed.Core.Settings
         [DataMember(Name = "ui")]
         public SettingsUiDocument? Ui { get; set; }
 
+        [DataMember(Name = "speech")]
+        public SettingsSpeechDocument? Speech { get; set; }
+
         [DataMember(Name = "network")]
         public SettingsNetworkDocument? Network { get; set; }
-
-        [DataMember(Name = "accessibility")]
-        public SettingsAccessibilityDocument? Accessibility { get; set; }
 
         [DataMember(Name = "radio")]
         public SettingsRadioDocument? Radio { get; set; }
@@ -207,6 +207,7 @@ namespace TopSpeed.Core.Settings
         [DataMember(Name = "menuWrapNavigation")] public bool? MenuWrapNavigation { get; set; }
         [DataMember(Name = "menuSoundPreset")] public string? MenuSoundPreset { get; set; }
         [DataMember(Name = "menuNavigatePanning")] public bool? MenuNavigatePanning { get; set; }
+        [DataMember(Name = "playLogoAtStartup")] public bool? PlayLogoAtStartup { get; set; }
         [DataMember(Name = "autoCheckUpdates")] public bool? AutoCheckUpdates { get; set; }
     }
 
@@ -233,10 +234,25 @@ namespace TopSpeed.Core.Settings
     }
 
     [DataContract]
-    internal sealed class SettingsAccessibilityDocument
+    internal sealed class SettingsSpeechDocument
     {
+        [DataMember(Name = "mode")]
+        public int? Mode { get; set; }
+
         [DataMember(Name = "screenReaderRateMs")]
         public decimal? ScreenReaderRateMs { get; set; }
+
+        [DataMember(Name = "backend")]
+        public ulong? Backend { get; set; }
+
+        [DataMember(Name = "voice")]
+        public int? Voice { get; set; }
+
+        [DataMember(Name = "rate")]
+        public decimal? Rate { get; set; }
+
+        [DataMember(Name = "interrupt")]
+        public bool? Interrupt { get; set; }
     }
 
     [DataContract]

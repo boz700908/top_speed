@@ -22,7 +22,7 @@ namespace TopSpeed.Physics.Powertrain
         {
             var couplingMode = ResolveCouplingMode(in input);
             var minimumCoupledRpm = 0f;
-            if (!input.EngineStalled
+            if (input.CombustionEnabled
                 && TransmissionTypes.IsAutomaticFamily(input.TransmissionType)
                 && !input.IsNeutralGear)
             {
@@ -67,9 +67,6 @@ namespace TopSpeed.Physics.Powertrain
 
         private static CouplingMode ResolveCouplingMode(in EngineStateRuntimeInput input)
         {
-            if (input.EngineStalled)
-                return CouplingMode.Disengaged;
-
             var type = input.TransmissionType;
             if (TransmissionTypes.IsAutomaticFamily(type))
             {

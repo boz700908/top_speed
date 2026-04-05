@@ -19,7 +19,7 @@ namespace TopSpeed.Vehicles
             GuardDynamicInputs();
 
             _currentSteering = controlIntent.Steering;
-            _currentThrottle = controlIntent.Throttle;
+            _currentThrottle = _combustionState == EngineCombustionState.On ? controlIntent.Throttle : 0;
             _currentBrake = controlIntent.Brake;
             var clutchInput = controlIntent.Clutch;
 
@@ -62,13 +62,24 @@ namespace TopSpeed.Vehicles
             }
 
             ClampSpeedAndTransmission(elapsed, throttle, inReverse, reverseBlockedAtLapStart, surfaceTractionMod, longitudinalGripFactor);
-            SyncEngineFromSpeed(elapsed);
-            UpdateStallState(elapsed, _speed / 3.6f, throttle, clutchInput);
-            UpdateBackfireStateAfterDrive();
+            SyncEngineFromSpeed(elapsed, out var couplingMode, out var rawCoupledDriveRpm);
+            UpdateEngineRotationState(couplingMode, rawCoupledDriveRpm);
+            if (_combustionState == EngineCombustionState.On)
+            {
+                UpdateStallState(elapsed, _speed / 3.6f, throttle, clutchInput);
+                UpdateBackfireStateAfterDrive();
+            }
             UpdateBrakeAndSteeringOutput();
             IntegrateVehiclePosition(elapsed, currentLapStart);
             UpdateFrameAudioAndFeedback();
             EnsureSurfaceLoopPlaying();
+
+            if (_combustionState == EngineCombustionState.Off
+                && _engineRotationState == EngineRotationState.Stopped
+                && _speed <= 0.05f)
+            {
+                CompleteStop();
+            }
         }
 
         private void RunStoppingDynamics(float elapsed)
@@ -79,20 +90,13 @@ namespace TopSpeed.Vehicles
             if (_speed < 0f)
                 _speed = 0f;
 
-            if (_engineLifecycleState == EngineLifecycleState.Stopping)
-            {
-                _engine.StepShutdown(_speed, elapsed);
-                if (_engine.Rpm <= 1f)
-                    CompleteEngineShutdown();
-            }
-            else
-            {
-                _engine.UpdateKinematicsOnly(_speed, elapsed);
-            }
+            SyncEngineFromSpeed(elapsed, out var couplingMode, out var rawCoupledDriveRpm);
+            UpdateEngineRotationState(couplingMode, rawCoupledDriveRpm);
 
             UpdateEngineFreq();
 
-            if (_engineLifecycleState == EngineLifecycleState.Stopped
+            if (_combustionState == EngineCombustionState.Off
+                && _engineRotationState == EngineRotationState.Stopped
                 && _speed <= 0.05f)
             {
                 CompleteStop();

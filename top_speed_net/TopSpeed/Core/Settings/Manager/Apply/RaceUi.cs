@@ -34,6 +34,8 @@ namespace TopSpeed.Core.Settings
                 settings.MenuWrapNavigation = ui.MenuWrapNavigation.Value;
             if (ui.MenuNavigatePanning.HasValue)
                 settings.MenuNavigatePanning = ui.MenuNavigatePanning.Value;
+            if (ui.PlayLogoAtStartup.HasValue)
+                settings.PlayLogoAtStartup = ui.PlayLogoAtStartup.Value;
             if (ui.AutoCheckUpdates.HasValue)
                 settings.AutoCheckUpdates = ui.AutoCheckUpdates.Value;
 

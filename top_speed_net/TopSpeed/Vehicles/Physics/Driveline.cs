@@ -145,11 +145,7 @@ namespace TopSpeed.Vehicles
             _drivelineState = DrivelineState.Disengaged;
             _effectiveDriveRatioOverride = 0f;
             _automaticCreepAccelMps2 = 0f;
-            _engineLifecycleState = EngineLifecycleState.Stopped;
-            _engine.StopEngine();
-
-            if (_soundEngine.IsPlaying)
-                _soundEngine.Stop();
+            _combustionState = EngineCombustionState.Off;
             if (_soundThrottle != null && _soundThrottle.IsPlaying)
                 _soundThrottle.Stop();
 

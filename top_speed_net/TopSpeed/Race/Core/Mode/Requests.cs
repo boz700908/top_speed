@@ -18,7 +18,7 @@ namespace TopSpeed.Race
                 if (_car.State == CarState.Starting || _car.State == CarState.Stopping)
                     return;
 
-                if (_car.EngineRunning)
+                if (_car.CombustionActive)
                 {
                     _car.ShutdownEngine();
                     return;

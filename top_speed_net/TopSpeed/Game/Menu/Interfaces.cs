@@ -5,6 +5,7 @@ using TopSpeed.Data;
 using TopSpeed.Input;
 using TopSpeed.Menu;
 using TopSpeed.Localization;
+using TopSpeed.Speech;
 
 namespace TopSpeed.Game
 {
@@ -29,11 +30,19 @@ namespace TopSpeed.Game
         void IMenuUiActions.SpeakNotImplemented() => _speech.Speak(LocalizationService.Mark("Not implemented yet."));
 
         string IMenuSettingsActions.GetLanguageName() => CurrentLanguageName();
+        IReadOnlyList<SpeechBackendInfo> IMenuSettingsActions.GetSpeechBackends() => _speech.AvailableBackends;
+        IReadOnlyList<SpeechVoiceInfo> IMenuSettingsActions.GetSpeechVoices() => _speech.AvailableVoices;
+        SpeechCapabilities IMenuSettingsActions.GetSpeechCapabilities() => _speech.ScreenReaderCapabilities;
         void IMenuSettingsActions.ChangeLanguage() => ChangeLanguage();
         void IMenuSettingsActions.RestoreDefaults() => RestoreDefaults();
-        void IMenuSettingsActions.RecalibrateScreenReaderRate() => StartCalibrationSequence("options_game");
+        void IMenuSettingsActions.RecalibrateScreenReaderRate() => StartCalibrationSequence("options_speech");
         void IMenuSettingsActions.CheckForUpdates() => StartManualUpdateCheck();
         void IMenuSettingsActions.SetDevice(InputDeviceMode mode) => SetDevice(mode);
+        void IMenuSettingsActions.SetSpeechBackend(ulong? backendId) => SetSpeechBackend(backendId);
+        void IMenuSettingsActions.SetScreenReaderInterrupt(bool enabled) => SetScreenReaderInterrupt(enabled);
+        void IMenuSettingsActions.SetSpeechMode(SpeechOutputMode mode) => SetSpeechMode(mode);
+        void IMenuSettingsActions.SetSpeechVoice(int? voiceIndex) => SetSpeechVoice(voiceIndex);
+        void IMenuSettingsActions.SetSpeechRate(float rate) => SetSpeechRate(rate);
         void IMenuSettingsActions.UpdateSetting(Action update) => UpdateSetting(update);
 
         void IMenuMappingActions.BeginMapping(InputMappingMode mode, InputAction action) => _inputMapping.BeginMapping(mode, action);

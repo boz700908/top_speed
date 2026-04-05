@@ -13,7 +13,7 @@ namespace TopSpeed.Vehicles
             if (_soundThrottle == null)
                 return;
 
-            if (_soundEngine.IsPlaying)
+            if (_combustionState == EngineCombustionState.On && _soundEngine.IsPlaying)
             {
                 var throttlePercent = Math.Max(0f, Math.Min(100f, _currentThrottle));
                 var throttleRatio = throttlePercent / 100f;

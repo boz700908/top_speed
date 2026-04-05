@@ -94,7 +94,8 @@ namespace TopSpeed.Vehicles
             _automaticCreepAccelMps2 = 0f;
             _shiftOnDemandSupported = false;
             _shiftOnDemandEnabled = false;
-            _engineLifecycleState = EngineLifecycleState.Stopped;
+            _combustionState = EngineCombustionState.Off;
+            _engineRotationState = EngineRotationState.Stopped;
             _factor1 = 100;
             _lateralVelocityMps = 0f;
             _yawRateRad = 0f;

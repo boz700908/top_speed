@@ -16,6 +16,7 @@ namespace TopSpeed.Physics.Powertrain
             Config powertrainConfig,
             TransmissionType transmissionType,
             bool isNeutralGear,
+            bool combustionEnabled,
             bool engineStalled,
             bool drivelineLocked,
             bool drivelineDisengaged,
@@ -29,6 +30,7 @@ namespace TopSpeed.Physics.Powertrain
             PowertrainConfig = powertrainConfig ?? throw new ArgumentNullException(nameof(powertrainConfig));
             TransmissionType = transmissionType;
             IsNeutralGear = isNeutralGear;
+            CombustionEnabled = combustionEnabled;
             EngineStalled = engineStalled;
             DrivelineLocked = drivelineLocked;
             DrivelineDisengaged = drivelineDisengaged;
@@ -43,6 +45,7 @@ namespace TopSpeed.Physics.Powertrain
         public Config PowertrainConfig { get; }
         public TransmissionType TransmissionType { get; }
         public bool IsNeutralGear { get; }
+        public bool CombustionEnabled { get; }
         public bool EngineStalled { get; }
         public bool DrivelineLocked { get; }
         public bool DrivelineDisengaged { get; }

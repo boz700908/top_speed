@@ -102,6 +102,7 @@ namespace TopSpeed.Menu
 
             _menu.Register(BuildOptionsMenu());
             _menu.Register(BuildOptionsGameSettingsMenu());
+            _menu.Register(BuildOptionsSpeechSettingsMenu());
             _menu.Register(BuildOptionsAudioSettingsMenu());
             _menu.Register(BuildOptionsVolumeSettingsMenu());
             _menu.Register(BuildOptionsControlsMenu());

@@ -59,6 +59,64 @@ namespace TopSpeed.Tests
             Assert.True(after >= before + 9.9f, $"Expected distance to advance during shutdown. before={before:0.###}, after={after:0.###}.");
         }
 
+        [Fact]
+        public void SyncFromSpeed_CombustionOff_DisengagedRpmCanDecayToZero()
+        {
+            var engine = BuildEngine();
+            engine.StartEngine();
+
+            for (var i = 0; i < 12; i++)
+            {
+                engine.SyncFromSpeed(
+                    speedGameUnits: 0f,
+                    gear: 1,
+                    elapsed: 0.05f,
+                    throttleInput: 100,
+                    inReverse: false,
+                    couplingMode: EngineCouplingMode.Disengaged,
+                    couplingFactor: 0f);
+            }
+
+            Assert.True(engine.Rpm > engine.IdleRpm + 400f);
+
+            for (var i = 0; i < 240 && engine.Rpm > 0f; i++)
+            {
+                engine.SyncFromSpeed(
+                    speedGameUnits: 0f,
+                    gear: 1,
+                    elapsed: 0.05f,
+                    throttleInput: 0,
+                    inReverse: false,
+                    couplingMode: EngineCouplingMode.Disengaged,
+                    couplingFactor: 0f,
+                    minimumCoupledRpm: 0f,
+                    combustionEnabled: false);
+            }
+
+            Assert.True(engine.Rpm <= 0f, $"Expected combustion-off free spin to decay to zero RPM. final={engine.Rpm:0.###}.");
+        }
+
+        [Fact]
+        public void SyncFromSpeed_CombustionOff_LockedDrivelineBackDrivesEngine()
+        {
+            var engine = BuildEngine();
+            engine.StartEngine();
+
+            engine.SyncFromSpeed(
+                speedGameUnits: 45f,
+                gear: 3,
+                elapsed: 0.05f,
+                throttleInput: 0,
+                inReverse: false,
+                couplingMode: EngineCouplingMode.Locked,
+                couplingFactor: 1f,
+                minimumCoupledRpm: 0f,
+                combustionEnabled: false);
+
+            Assert.True(engine.Rpm > 0f, $"Expected rolling locked driveline to back-drive engine RPM. final={engine.Rpm:0.###}.");
+            Assert.Equal(0f, engine.NetHorsepower, 3);
+        }
+
         private static EngineModel BuildEngine()
         {
             return new EngineModel(

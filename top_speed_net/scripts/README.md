@@ -8,7 +8,6 @@ Rebuilds and stages the Windows native DLLs that are maintained from source in o
 
 Current targets:
 - `MiniAudioEx` -> `MiniAudioExNET/runtimes/win-x64/native/miniaudioex.dll`
-- `Tolk` -> `CrossSpeak/lib/windows/Tolk.dll`
 
 ### Requirements
 
@@ -38,10 +37,7 @@ powershell -ExecutionPolicy Bypass -File .\top_speed_net\scripts\Build-WindowsNa
   - default: `Release`
 - `-SkipMiniAudioEx`
   - optional
-  - rebuild only `Tolk`
-- `-SkipTolk`
-  - optional
-  - rebuild only `MiniAudioEx`
+  - skip `MiniAudioEx`
 
 ### Notes
 

@@ -79,11 +79,17 @@ namespace TopSpeed.Input
         public string LastServerAddress { get; set; } = string.Empty;
         public int DefaultServerPort { get; set; }
         public float ScreenReaderRateMs { get; set; }
+        public ulong? SpeechBackendId { get; set; }
+        public SpeechOutputMode SpeechMode { get; set; }
+        public int? SpeechVoiceIndex { get; set; }
+        public float SpeechRate { get; set; }
+        public bool ScreenReaderInterrupt { get; set; }
         public bool UsageHints { get; set; }
         public bool MenuAutoFocus { get; set; }
         public bool MenuWrapNavigation { get; set; }
         public string MenuSoundPreset { get; set; } = "1";
         public bool MenuNavigatePanning { get; set; }
+        public bool PlayLogoAtStartup { get; set; }
         public bool AutoCheckUpdates { get; set; }
         public string RadioLastFolder { get; set; } = string.Empty;
         public bool RadioShuffle { get; set; }
@@ -165,11 +171,17 @@ namespace TopSpeed.Input
             LastServerAddress = string.Empty;
             DefaultServerPort = 28630;
             ScreenReaderRateMs = 0f;
+            SpeechBackendId = null;
+            SpeechMode = SpeechOutputMode.Speech;
+            SpeechVoiceIndex = null;
+            SpeechRate = 0.5f;
+            ScreenReaderInterrupt = false;
             UsageHints = true;
             MenuAutoFocus = true;
             MenuWrapNavigation = true;
             MenuSoundPreset = "1";
             MenuNavigatePanning = false;
+            PlayLogoAtStartup = true;
             AutoCheckUpdates = true;
             RadioLastFolder = string.Empty;
             RadioShuffle = false;

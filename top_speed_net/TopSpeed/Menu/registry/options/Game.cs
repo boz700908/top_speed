@@ -51,11 +51,14 @@ namespace TopSpeed.Menu
                     value => _settingsActions.UpdateSetting(() => _settings.MenuNavigatePanning = value),
                     onChanged: value => _menu.SetMenuNavigatePanning(value),
                     hint: LocalizationService.Mark("When checked, menu navigation sounds pan left or right based on the item position. Press ENTER to toggle.")),
+                new CheckBox(LocalizationService.Mark("Play logo at startup"),
+                    () => _settings.PlayLogoAtStartup,
+                    value => _settingsActions.UpdateSetting(() => _settings.PlayLogoAtStartup = value),
+                    hint: LocalizationService.Mark("When checked, the startup logo audio plays when the game launches. Press ENTER to toggle.")),
                 new CheckBox(LocalizationService.Mark("Check for updates on startup"),
                     () => _settings.AutoCheckUpdates,
                     value => _settingsActions.UpdateSetting(() => _settings.AutoCheckUpdates = value),
                     hint: LocalizationService.Mark("When checked, the game checks for updates automatically after the logo. Press ENTER to toggle.")),
-                new MenuItem(LocalizationService.Mark("Recalibrate screen reader rate"), MenuAction.None, onActivate: _settingsActions.RecalibrateScreenReaderRate),
                 BackItem()
             };
             return _menu.CreateMenu("options_game", items);

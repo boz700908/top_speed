@@ -9,17 +9,17 @@ namespace TopSpeed.Vehicles
     {
         private void HandleEventCarStart()
         {
-            if (_engineLifecycleState != EngineLifecycleState.Starting)
+            if (_combustionState != EngineCombustionState.Starting)
                 return;
 
             _soundEngine.SetFrequency(_idleFreq);
             _soundThrottle?.SetFrequency(_idleFreq);
             _vibration?.StopEffect(VibrationEffectType.Start);
-            _soundEngine.Play(loop: true);
             _soundWipers?.Play(loop: true);
             ClearStallState();
             _engine.StartEngine();
-            _engineLifecycleState = EngineLifecycleState.Running;
+            _combustionState = EngineCombustionState.On;
+            SetEngineRotationState(EngineRotationState.FreeSpinning);
             SetState(CarState.Running);
         }
 

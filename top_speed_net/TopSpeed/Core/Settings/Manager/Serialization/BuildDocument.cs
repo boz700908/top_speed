@@ -117,7 +117,17 @@ namespace TopSpeed.Core.Settings
                     MenuWrapNavigation = settings.MenuWrapNavigation,
                     MenuSoundPreset = settings.MenuSoundPreset,
                     MenuNavigatePanning = settings.MenuNavigatePanning,
+                    PlayLogoAtStartup = settings.PlayLogoAtStartup,
                     AutoCheckUpdates = settings.AutoCheckUpdates
+                },
+                Speech = new SettingsSpeechDocument
+                {
+                    Mode = (int)settings.SpeechMode,
+                    ScreenReaderRateMs = Round3Decimal(settings.ScreenReaderRateMs),
+                    Backend = settings.SpeechBackendId,
+                    Voice = settings.SpeechVoiceIndex,
+                    Rate = Round3Decimal(settings.SpeechRate),
+                    Interrupt = settings.ScreenReaderInterrupt
                 },
                 Network = new SettingsNetworkDocument
                 {
@@ -127,10 +137,6 @@ namespace TopSpeed.Core.Settings
                     {
                         Servers = BuildSavedServers(settings.SavedServers)
                     }
-                },
-                Accessibility = new SettingsAccessibilityDocument
-                {
-                    ScreenReaderRateMs = Round3Decimal(settings.ScreenReaderRateMs)
                 },
                 Radio = new SettingsRadioDocument
                 {

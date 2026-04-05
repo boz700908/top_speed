@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 17:46+0200\n"
+"POT-Creation-Date: 2026-04-05 12:04+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -82,10 +82,17 @@ msgstr ""
 msgid "Add a new server"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:26
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:30
 msgid ""
 "Adjust category-based volume balance for engine sounds, effects, ambience, "
 "radio, music, and online events."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:144
+msgid ""
+"Adjust the speech rate for the current backend. Use LEFT or RIGHT to change "
+"by 1, PAGE UP or PAGE DOWN to change by 10, HOME for minimum, END for "
+"maximum."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Multiplayer.cs:167
@@ -151,7 +158,7 @@ msgstr ""
 msgid "Attempting to connect, please wait..."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:16
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:20
 msgid "Audio"
 msgstr ""
 
@@ -350,11 +357,11 @@ msgstr ""
 msgid "Chat message cannot be empty."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:147
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:148
 msgid "Check for updates"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:54
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:58
 msgid "Check for updates on startup"
 msgstr ""
 
@@ -419,10 +426,22 @@ msgid ""
 "RIGHT to change."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:108
+msgid ""
+"Choose whether spoken messages use speech only, braille only, or speech with "
+"braille. Use LEFT or RIGHT to change."
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:35
 msgid ""
 "Choose whether this room is a race with bots, a multiplayer race without "
 "bots, or a one-on-one game. Use LEFT or RIGHT to change."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:24
+msgid ""
+"Choose which speech backend to prefer. Automatic lets Prism pick the best "
+"available backend. Use LEFT or RIGHT to change."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Multiplayer.cs:189
@@ -451,7 +470,7 @@ msgstr ""
 msgid "Compatibility warning"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:38
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:42
 msgid ""
 "Configure default multiplayer hosting settings, including the server port "
 "used by the game."
@@ -463,16 +482,22 @@ msgid ""
 "hints, menu behavior, and update checking."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:30
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:34
 msgid ""
 "Configure input devices, force feedback, progressive keyboard behavior, key "
 "mappings, and menu shortcut mappings."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:19
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:23
 msgid ""
 "Configure spatial audio behavior, including HRTF processing, stereo "
 "widening, and automatic device format detection."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:19
+msgid ""
+"Configure speech behavior, including screen-reader backend selection and "
+"screen-reader calibration."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:95
@@ -560,7 +585,7 @@ msgstr ""
 msgid "Controller {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:27
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:31
 msgid "Controls"
 msgstr ""
 
@@ -726,7 +751,7 @@ msgstr ""
 msgid "Default server port: {0}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Game\Settings\Core.cs:29
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Settings\Core.cs:35
 msgid "Defaults restored."
 msgstr ""
 
@@ -939,7 +964,7 @@ msgstr ""
 msgid "Excellent driving. You beat your previous best time."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:148
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:149
 msgid "Exit Game"
 msgstr ""
 
@@ -1158,6 +1183,10 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:80
 msgid "Insert"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:58
+msgid "Interrupt screen reader speech"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Validate.cs:99
@@ -1381,7 +1410,7 @@ msgstr ""
 msgid "Language set to {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:67
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:70
 #, csharp-format
 msgid "Language: {0}"
 msgstr ""
@@ -1487,7 +1516,7 @@ msgid ""
 "you to the top or bottom of a menu."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:149
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:150
 msgid "Main menu"
 msgstr ""
 
@@ -1536,6 +1565,12 @@ msgstr ""
 msgid "Maximum players allowed in this room"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:75
+msgid ""
+"Measure your screen-reader speaking speed again so usage hints and delayed "
+"speech timings stay accurate. Press ENTER to start."
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:96
 msgid "Media Select"
 msgstr ""
@@ -1544,15 +1579,15 @@ msgstr ""
 msgid "Media Stop"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\RaceUi.cs:49
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\RaceUi.cs:51
 msgid "Menu sound preset was empty and was reset to default."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:84
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:87
 msgid "Menu sounds"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:77
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:80
 #, csharp-format
 msgid "Menu sounds: {0}"
 msgstr ""
@@ -1604,7 +1639,7 @@ msgstr ""
 msgid "Move or press the controller control for {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:145
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:146
 msgid "MultiPlayer game"
 msgstr ""
 
@@ -1670,7 +1705,7 @@ msgstr ""
 msgid "Next Track"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:128
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:129
 msgid "Next chat category"
 msgstr ""
 
@@ -1682,7 +1717,7 @@ msgstr ""
 msgid "No Convert"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Game\Core\Init.cs:55
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Core\Init.cs:60
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Mapping\Handler\Controller.cs:13
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Mapping\Handler\Core.cs:46
 msgid "No controller detected."
@@ -1822,7 +1857,7 @@ msgstr ""
 msgid "Not connected to a server."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Game\Menu\Interfaces.cs:29
+#: D:\top_speed\top_speed_net\TopSpeed\Game\Menu\Interfaces.cs:30
 msgid "Not implemented yet."
 msgstr ""
 
@@ -1919,7 +1954,7 @@ msgid "Opens chat input for the global multiplayer lobby chat."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:20
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:146
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:147
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Multiplayer.cs:36
 msgid "Options"
 msgstr ""
@@ -1996,6 +2031,10 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Connection\Ping.cs:19
 msgid "Ping check already in progress."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:54
+msgid "Play logo at startup"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:62
@@ -2082,7 +2121,7 @@ msgstr ""
 msgid "Previous best time: {0}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:122
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:123
 msgid "Previous chat category"
 msgstr ""
 
@@ -2108,7 +2147,7 @@ msgstr ""
 msgid "Question"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:142
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:143
 msgid "Quick start"
 msgstr ""
 
@@ -2157,7 +2196,7 @@ msgstr ""
 msgid "Race percentage {0} percent"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:31
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:35
 msgid "Race settings"
 msgstr ""
 
@@ -2240,7 +2279,7 @@ msgstr ""
 msgid "Ready. Waiting for other players."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:58
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:72
 msgid "Recalibrate screen reader rate"
 msgstr ""
 
@@ -2268,11 +2307,11 @@ msgstr ""
 msgid "Request position information"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:42
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:46
 msgid "Reset all configurable settings back to their default values."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:39
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:43
 msgid "Restore default settings"
 msgstr ""
 
@@ -2385,7 +2424,7 @@ msgstr ""
 msgid "Saved server host is empty."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Accessibility.cs:24
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Speech.cs:46
 msgid "Screen reader rate is not a valid number and was reset to default."
 msgstr ""
 
@@ -2492,7 +2531,7 @@ msgstr ""
 msgid "Select radio media folder"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:89
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:92
 msgid "Select the menu sound preset. Use LEFT or RIGHT to change."
 msgstr ""
 
@@ -2504,6 +2543,13 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Race.cs:156
 msgid "Select transmission mode"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:122
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:134
+msgid ""
+"Select which voice the current speech backend should use. Use LEFT or RIGHT "
+"to change."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:25
@@ -2557,7 +2603,7 @@ msgstr ""
 msgid "Server saved."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:35
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:39
 msgid "Server settings"
 msgstr ""
 
@@ -2566,7 +2612,7 @@ msgstr ""
 msgid "Server supported protocol versions: {0} to {1}"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:34
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:38
 msgid ""
 "Set race behavior defaults such as copilot callouts, curve announcements, "
 "automatic info, laps, computer opponents, and difficulty."
@@ -2621,7 +2667,7 @@ msgstr ""
 msgid "Setup wizard."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:135
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:136
 msgid "Shared lobby chat"
 msgstr ""
 
@@ -2651,7 +2697,7 @@ msgstr ""
 msgid "Shuffle mode on."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:144
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:145
 msgid "Single race"
 msgstr ""
 
@@ -2753,6 +2799,27 @@ msgstr ""
 msgid "Speaks your current ping while you are in multiplayer menus."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:16
+msgid "Speech"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:45
+msgid "Speech backend"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:30
+#, csharp-format
+msgid "Speech backend: {0}"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:99
+msgid "Speech mode"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:140
+msgid "Speech rate"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Race\Bind.cs:51
 msgid "Start the engine"
 msgstr ""
@@ -2817,12 +2884,12 @@ msgstr ""
 msgid "Switch between metric and imperial units. Press ENTER to change."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:129
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:130
 msgid ""
 "Switches chat history to the next category in the shared lobby chat view."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:123
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:124
 msgid ""
 "Switches chat history to the previous category in the shared lobby chat view."
 msgstr ""
@@ -2853,12 +2920,6 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Mapping\Handler\Keyboard.cs:17
 msgid "That key is reserved."
-msgstr ""
-
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Core.cs:41
-msgid ""
-"The accessibility section is missing. Defaults were used for accessibility "
-"settings."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Core.cs:16
@@ -2903,7 +2964,7 @@ msgstr ""
 msgid "The key {0} has invalid value {1}, which was replaced with {2}."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Core.cs:36
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Core.cs:41
 msgid ""
 "The network section is missing. Defaults were used for network settings."
 msgstr ""
@@ -2959,6 +3020,10 @@ msgstr ""
 msgid ""
 "The server supports an older protocol range. You can continue, but some "
 "features may behave differently."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Core.cs:36
+msgid "The speech section is missing. Defaults were used for speech settings."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Core.cs:31
@@ -3028,7 +3093,7 @@ msgstr ""
 msgid "Throttle pedal direction"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:143
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Core.cs:144
 msgid "Time trial"
 msgstr ""
 
@@ -3277,7 +3342,7 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed\Race\Core\Mode\Format.cs:62
 #: D:\top_speed\top_speed_net\TopSpeed\Race\Modes\single\Commentary.cs:134
 #: D:\top_speed\top_speed_net\TopSpeed\Race\Multiplayer\MultiplayerMode\Commentary.cs:156
-#: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Car.cs:39
+#: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Car.cs:38
 #: D:\top_speed\top_speed_net\TopSpeed\Vehicles\VehicleDefinition.cs:14
 msgid "Vehicle"
 msgstr ""
@@ -3308,6 +3373,15 @@ msgstr ""
 msgid "View game rules"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:130
+msgid "Voice"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:119
+#, csharp-format
+msgid "Voice: {0}"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:64
 msgid "Volume Down"
 msgstr ""
@@ -3316,7 +3390,7 @@ msgstr ""
 msgid "Volume Up"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:20
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Main.cs:24
 msgid "Volume settings"
 msgstr ""
 
@@ -3400,6 +3474,12 @@ msgid ""
 "ENTER to toggle."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:61
+msgid ""
+"When checked, new spoken messages interrupt the current screen reader "
+"speech. Menu titles and usage hints are not affected. Press ENTER to toggle."
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:23
 msgid ""
 "When checked, random track selection can include custom tracks. Press ENTER "
@@ -3412,7 +3492,7 @@ msgid ""
 "ENTER to toggle."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:57
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:61
 msgid ""
 "When checked, the game checks for updates automatically after the logo. "
 "Press ENTER to toggle."
@@ -3422,6 +3502,12 @@ msgstr ""
 msgid ""
 "When checked, the game uses the device channel count and sample rate. "
 "Restart required. Press ENTER to toggle."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:57
+msgid ""
+"When checked, the startup logo audio plays when the game launches. Press "
+"ENTER to toggle."
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Controls.cs:40
@@ -3590,12 +3676,22 @@ msgstr ""
 msgid "auto_upshift_rpm must be 0 or between idle_rpm and rev_limiter."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:31
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:38
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:116
+msgid "automatic"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Online.cs:67
 msgid "available"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\Helpers.cs:59
 msgid "both"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:103
+msgid "braille"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\CheckBox.cs:31
@@ -3618,7 +3714,7 @@ msgstr ""
 msgid "curves only"
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:80
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Game.cs:83
 msgid "default"
 msgstr ""
 
@@ -3839,6 +3935,14 @@ msgstr ""
 msgid "slider"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:102
+msgid "speech only"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:104
+msgid "speech with braille"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Race.cs:25
 msgid "speed dependent"
 msgstr ""
@@ -3927,6 +4031,7 @@ msgid "{0}  dialog  {1}"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Localization\ClientLanguages.cs:31
+#: D:\top_speed\top_speed_net\TopSpeed\Menu\registry\options\Speech.cs:182
 #, csharp-format
 msgid "{0} ({1})"
 msgstr ""

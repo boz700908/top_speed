@@ -18,12 +18,18 @@ namespace TopSpeed.Game
             _raceInput.SetDevice(_settings.DeviceMode);
             _input.SetDeviceMode(_settings.DeviceMode);
             _speech.ScreenReaderRateMs = _settings.ScreenReaderRateMs;
+            _speech.OutputMode = _settings.SpeechMode;
+            _speech.SpeechRate = _settings.SpeechRate;
+            _speech.ScreenReaderInterrupt = _settings.ScreenReaderInterrupt;
+            _speech.PreferredBackendId = _settings.SpeechBackendId;
+            _speech.PreferredVoiceIndex = _settings.SpeechVoiceIndex;
             _needsCalibration = _settings.UsageHints && _settings.ScreenReaderRateMs <= 0f;
             _menu.SetWrapNavigation(_settings.MenuWrapNavigation);
             _menu.SetMenuSoundPreset(_settings.MenuSoundPreset);
             _menu.SetMenuNavigatePanning(_settings.MenuNavigatePanning);
             _menu.SetMenuAutoFocus(_settings.MenuAutoFocus);
             _menu.ResetShortcutBindings();
+            _menuRegistry.RefreshSpeechSettingsMenu();
             ApplyAudioSettings();
             SaveSettings();
             _speech.Speak(LocalizationService.Mark("Defaults restored."));
@@ -40,6 +46,42 @@ namespace TopSpeed.Game
         private void UpdateSetting(Action update)
         {
             update();
+            SaveSettings();
+        }
+
+        private void SetSpeechBackend(ulong? backendId)
+        {
+            _settings.SpeechBackendId = backendId;
+            _speech.PreferredBackendId = backendId;
+            _menuRegistry.RefreshSpeechSettingsMenu();
+            SaveSettings();
+        }
+
+        private void SetScreenReaderInterrupt(bool enabled)
+        {
+            _settings.ScreenReaderInterrupt = enabled;
+            _speech.ScreenReaderInterrupt = enabled;
+            SaveSettings();
+        }
+
+        private void SetSpeechMode(SpeechOutputMode mode)
+        {
+            _settings.SpeechMode = mode;
+            _speech.OutputMode = mode;
+            SaveSettings();
+        }
+
+        private void SetSpeechVoice(int? voiceIndex)
+        {
+            _settings.SpeechVoiceIndex = voiceIndex;
+            _speech.PreferredVoiceIndex = voiceIndex;
+            SaveSettings();
+        }
+
+        private void SetSpeechRate(float rate)
+        {
+            _settings.SpeechRate = rate;
+            _speech.SpeechRate = rate;
             SaveSettings();
         }
     }

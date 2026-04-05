@@ -2,6 +2,7 @@ using System;
 using TopSpeed.Audio;
 using TopSpeed.Data;
 using TopSpeed.Input;
+using TopSpeed.Physics.Powertrain;
 using TopSpeed.Tracks;
 using TS.Audio;
 
@@ -12,6 +13,7 @@ namespace TopSpeed.Vehicles
         private void UpdateEngineFreq()
         {
             UpdateEngineFreqManual();
+            SyncEngineLoopPlayback();
         }
 
         private void UpdateEngineFreqManual()
@@ -62,6 +64,69 @@ namespace TopSpeed.Vehicles
             _soundWater.Stop();
             _soundSand.Stop();
             _soundSnow.Stop();
+        }
+
+        private void SetEngineRotationState(EngineRotationState nextState)
+        {
+            if (_engineRotationState == nextState)
+                return;
+
+            var previousState = _engineRotationState;
+            _engineRotationState = nextState;
+
+            if (previousState == EngineRotationState.Stopped
+                && nextState != EngineRotationState.Stopped
+                && _combustionState != EngineCombustionState.Starting)
+            {
+                if (!_soundEngine.IsPlaying)
+                {
+                    _soundEngine.SeekToStart();
+                    _soundEngine.SetFrequency(_frequency > 0 ? _frequency : _idleFreq);
+                    _soundEngine.Play(loop: true);
+                }
+            }
+            else if (previousState != EngineRotationState.Stopped
+                && nextState == EngineRotationState.Stopped
+                && _soundEngine.IsPlaying)
+            {
+                _soundEngine.Stop(EngineShutdownFadeSeconds);
+            }
+        }
+
+        private void UpdateEngineRotationState(EngineCouplingMode couplingMode, float rawCoupledDriveRpm)
+        {
+            if (_engine.Rpm <= 1f)
+            {
+                SetEngineRotationState(EngineRotationState.Stopped);
+                return;
+            }
+
+            var drivelineDriven = _combustionState == EngineCombustionState.Off
+                && couplingMode != EngineCouplingMode.Disengaged
+                && !IsNeutralGear()
+                && _drivelineCouplingFactor > 0.05f
+                && rawCoupledDriveRpm > _engine.StallRpm;
+            SetEngineRotationState(drivelineDriven
+                ? EngineRotationState.DrivelineDriven
+                : EngineRotationState.FreeSpinning);
+        }
+
+        private void SyncEngineLoopPlayback()
+        {
+            var shouldPlay = _engineRotationState != EngineRotationState.Stopped
+                && _combustionState != EngineCombustionState.Starting;
+            if (shouldPlay)
+            {
+                if (!_soundEngine.IsPlaying)
+                {
+                    _soundEngine.SeekToStart();
+                    _soundEngine.Play(loop: true);
+                }
+            }
+            else if (_soundEngine.IsPlaying)
+            {
+                _soundEngine.Stop(EngineShutdownFadeSeconds);
+            }
         }
 
         private void SwitchSurfaceSound(TrackSurface surface)

@@ -2,8 +2,7 @@ param(
     [string]$MsvcRoot = "",
     [string]$MiniAudioExSource = "",
     [string]$Configuration = "Release",
-    [switch]$SkipMiniAudioEx,
-    [switch]$SkipTolk
+    [switch]$SkipMiniAudioEx
 )
 
 Set-StrictMode -Version Latest
@@ -66,26 +65,6 @@ if (!$SkipMiniAudioEx) {
     }
 
     Copy-Item -LiteralPath $miniAudioExOutput -Destination $miniAudioExTarget -Force
-}
-
-if (!$SkipTolk) {
-    $tolkSource = Join-Path $repoRoot "tolk"
-    $tolkBuildDir = Join-Path $tolkSource "build-win64-static"
-    $tolkOutput = Join-Path $tolkBuildDir "Tolk.dll"
-    $tolkTarget = Join-Path $repoRoot "CrossSpeak\lib\windows\Tolk.dll"
-
-    if (Test-Path -LiteralPath $tolkBuildDir) {
-        Remove-Item -LiteralPath $tolkBuildDir -Recurse -Force
-    }
-
-    Invoke-MsvcCommand -SetupBatch $setupBatch -CommandLine "cmake -S `"$tolkSource`" -B `"$tolkBuildDir`" -G Ninja -DCMAKE_BUILD_TYPE=$Configuration -DTOLK_MULTITHREADED=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
-    Invoke-MsvcCommand -SetupBatch $setupBatch -CommandLine "cmake --build `"$tolkBuildDir`" --config $Configuration"
-
-    if (!(Test-Path -LiteralPath $tolkOutput)) {
-        throw "Tolk output was not produced: $tolkOutput"
-    }
-
-    Copy-Item -LiteralPath $tolkOutput -Destination $tolkTarget -Force
 }
 
 Write-Host "Windows native dependencies rebuilt and staged."

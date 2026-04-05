@@ -29,9 +29,8 @@ namespace TopSpeed.Vehicles
             get => _listener;
             set => _listener = value;
         }
-        public bool EngineRunning =>
-            _engineLifecycleState == EngineLifecycleState.Running
-            || _engineLifecycleState == EngineLifecycleState.Stopping;
+        public bool CombustionActive => _combustionState != EngineCombustionState.Off;
+        public bool EngineRunning => _engineRotationState != EngineRotationState.Stopped;
         public bool Braking => _soundBrake.IsPlaying;
         public bool Horning => _soundHorn.IsPlaying;
         public bool UserDefined => _userDefined;

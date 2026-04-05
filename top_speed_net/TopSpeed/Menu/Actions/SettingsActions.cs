@@ -1,16 +1,26 @@
 using System;
+using System.Collections.Generic;
 using TopSpeed.Input;
+using TopSpeed.Speech;
 
 namespace TopSpeed.Menu
 {
     internal interface IMenuSettingsActions
     {
         string GetLanguageName();
+        IReadOnlyList<SpeechBackendInfo> GetSpeechBackends();
+        IReadOnlyList<SpeechVoiceInfo> GetSpeechVoices();
+        SpeechCapabilities GetSpeechCapabilities();
         void ChangeLanguage();
         void RestoreDefaults();
         void RecalibrateScreenReaderRate();
         void CheckForUpdates();
         void SetDevice(InputDeviceMode mode);
+        void SetSpeechBackend(ulong? backendId);
+        void SetScreenReaderInterrupt(bool enabled);
+        void SetSpeechMode(SpeechOutputMode mode);
+        void SetSpeechVoice(int? voiceIndex);
+        void SetSpeechRate(float rate);
         void UpdateSetting(Action update);
     }
 }

@@ -32,15 +32,15 @@ namespace TopSpeed.Core.Settings
             else
                 ApplyUi(settings, document.Ui, issues);
 
+            if (document.Speech == null)
+                issues.Add(new SettingsIssue(SettingsIssueSeverity.Warning, "speech", LocalizationService.Mark("The speech section is missing. Defaults were used for speech settings.")));
+            else
+                ApplySpeech(settings, document.Speech, issues);
+
             if (document.Network == null)
                 issues.Add(new SettingsIssue(SettingsIssueSeverity.Warning, "network", LocalizationService.Mark("The network section is missing. Defaults were used for network settings.")));
             else
                 ApplyNetwork(settings, document.Network, issues);
-
-            if (document.Accessibility == null)
-                issues.Add(new SettingsIssue(SettingsIssueSeverity.Warning, "accessibility", LocalizationService.Mark("The accessibility section is missing. Defaults were used for accessibility settings.")));
-            else
-                ApplyAccessibility(settings, document.Accessibility, issues);
 
             if (document.Radio != null)
                 ApplyRadio(settings, document.Radio, issues);

@@ -55,5 +55,12 @@ namespace TopSpeed.Input
         Metric = 0,
         Imperial = 1
     }
+
+    internal enum SpeechOutputMode
+    {
+        Speech = 0,
+        Braille = 1,
+        SpeechAndBraille = 2
+    }
 }
 
