@@ -49,20 +49,6 @@ namespace TopSpeed.Vehicles
             {
                 return null;
             }
-
-            if (vibrationDevice is IAdvancedVibrationDevice advancedVibration &&
-                advancedVibration.GetFeatureAvailability(VibrationFeature.EffectFilePlayback) == VibrationFeatureAvailability.Supported)
-            {
-                advancedVibration.LoadEffect(VibrationEffectType.Start, Path.Combine(_effectsRoot, "carstart.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.Crash, Path.Combine(_effectsRoot, "crash.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.Spring, Path.Combine(_effectsRoot, "spring.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.Engine, Path.Combine(_effectsRoot, "engine.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.CurbLeft, Path.Combine(_effectsRoot, "curbleft.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.CurbRight, Path.Combine(_effectsRoot, "curbright.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.Gravel, Path.Combine(_effectsRoot, "gravel.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.BumpLeft, Path.Combine(_effectsRoot, "bumpleft.ffe"));
-                advancedVibration.LoadEffect(VibrationEffectType.BumpRight, Path.Combine(_effectsRoot, "bumpright.ffe"));
-            }
             vibrationDevice.Gain(VibrationEffectType.Gravel, 0);
 
             return vibrationDevice;

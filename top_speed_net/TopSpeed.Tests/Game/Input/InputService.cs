@@ -98,13 +98,13 @@ namespace TopSpeed.Tests
         }
 
         [Fact]
-        public void ScanTimeout_IsForwardedFromControllerBackend()
+        public void NoControllerDetected_IsForwardedFromControllerBackend()
         {
             var (service, _, controller) = CreateService();
             var raised = 0;
-            service.ControllerScanTimedOut += () => raised++;
+            service.NoControllerDetected += () => raised++;
 
-            controller.RaiseScanTimedOut();
+            controller.RaiseNoControllerDetected();
 
             Assert.Equal(1, raised);
         }
@@ -227,12 +227,14 @@ namespace TopSpeed.Tests
 
         private sealed class FakeControllerBackend : IControllerBackend
         {
-            public event Action? ScanTimedOut;
+            public event Action? NoControllerDetected;
 
             public bool Enabled { get; private set; }
             public bool ActiveControllerIsRacingWheel { get; set; }
             public bool IgnoreAxesForMenuNavigation { get; set; }
             public IVibrationDevice? VibrationDevice { get; set; }
+            public ControllerDisplayProfile DisplayProfile { get; set; }
+            public bool HasDisplayProfile { get; set; }
             public bool AnyButtonHeld { get; set; }
             public IReadOnlyList<Choice>? PendingChoices { get; set; }
             public bool SelectResult { get; set; }
@@ -282,6 +284,18 @@ namespace TopSpeed.Tests
                 return Enabled && AnyButtonHeld;
             }
 
+            public bool TryGetDisplayProfile(out ControllerDisplayProfile profile)
+            {
+                if (!Enabled || !HasDisplayProfile)
+                {
+                    profile = default;
+                    return false;
+                }
+
+                profile = DisplayProfile;
+                return true;
+            }
+
             public bool TryGetPendingChoices(out IReadOnlyList<Choice> choices)
             {
                 if (PendingChoices == null || PendingChoices.Count == 0)
@@ -325,9 +339,9 @@ namespace TopSpeed.Tests
                 _hasPollState = hasState;
             }
 
-            public void RaiseScanTimedOut()
+            public void RaiseNoControllerDetected()
             {
-                ScanTimedOut?.Invoke();
+                NoControllerDetected?.Invoke();
             }
         }
 

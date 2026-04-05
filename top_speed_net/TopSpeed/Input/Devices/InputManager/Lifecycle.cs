@@ -24,7 +24,7 @@ namespace TopSpeed.Input
                 return;
 
             _disposed = true;
-            _controllerBackend.ScanTimedOut -= OnControllerScanTimedOut;
+            _controllerBackend.NoControllerDetected -= OnNoControllerDetected;
             SafeRelease(() => _controllerBackend.Dispose());
             SafeRelease(() => _keyboardBackend.Dispose());
         }

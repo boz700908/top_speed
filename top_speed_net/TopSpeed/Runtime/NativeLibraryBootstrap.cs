@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using MiniAudioEx.Native;
 using SteamAudio;
+using TopSpeed.Speech.Prism;
 
 namespace TopSpeed.Runtime
 {
@@ -13,6 +14,7 @@ namespace TopSpeed.Runtime
         private static bool _initialized;
 #if !NETFRAMEWORK
         private static readonly List<IntPtr> _loadedHandles = new List<IntPtr>();
+        private static readonly Dictionary<string, IntPtr> _loadedLibraries = new Dictionary<string, IntPtr>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<Assembly> _resolvedAssemblies = new HashSet<Assembly>();
 #endif
 
@@ -29,10 +31,12 @@ namespace TopSpeed.Runtime
 #if NETFRAMEWORK
             TryLoadWindows(Path.Combine(libDirectory, "miniaudioex.dll"));
             TryLoadWindows(Path.Combine(libDirectory, "phonon.dll"));
+            TryLoadWindows(Path.Combine(libDirectory, "prism.dll"));
 #else
             InstallResolver(typeof(MiniAudioNative).Assembly, libDirectory);
             InstallResolver(typeof(MiniAudioExNative).Assembly, libDirectory);
             InstallResolver(typeof(IPL).Assembly, libDirectory);
+            InstallResolver(typeof(Native).Assembly, libDirectory);
 
             TryPreload(libDirectory, GetMiniAudioCandidates());
             TryPreload(libDirectory, GetPhononCandidates());
@@ -84,6 +88,9 @@ namespace TopSpeed.Runtime
             if (IsPhononLibraryName(libraryName))
                 return TryLoadFirst(libDirectory, GetPhononCandidates());
 
+            if (IsPrismLibraryName(libraryName))
+                return TryLoadFirst(libDirectory, GetPrismCandidates());
+
             return IntPtr.Zero;
         }
 
@@ -97,14 +104,18 @@ namespace TopSpeed.Runtime
             for (var i = 0; i < candidates.Count; i++)
             {
                 var relative = candidates[i];
-                var absolutePath = Path.Combine(libDirectory, relative);
+                var absolutePath = Path.GetFullPath(Path.Combine(libDirectory, relative));
                 if (!File.Exists(absolutePath))
                     continue;
+
+                if (_loadedLibraries.TryGetValue(absolutePath, out var existing))
+                    return existing;
 
                 try
                 {
                     var handle = NativeLibrary.Load(absolutePath);
                     _loadedHandles.Add(handle);
+                    _loadedLibraries[absolutePath] = handle;
                     return handle;
                 }
                 catch
@@ -130,6 +141,13 @@ namespace TopSpeed.Runtime
             return libraryName.IndexOf("phonon", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        private static bool IsPrismLibraryName(string? libraryName)
+        {
+            if (string.IsNullOrWhiteSpace(libraryName))
+                return false;
+            return libraryName.IndexOf("prism", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private static IReadOnlyList<string> GetMiniAudioCandidates()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -153,6 +171,15 @@ namespace TopSpeed.Runtime
             }
 
             return new[] { "libphonon.so" };
+        }
+
+        private static IReadOnlyList<string> GetPrismCandidates()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new[] { "prism.dll" };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return new[] { "libprism.dylib" };
+            return new[] { "libprism.so" };
         }
 #endif
     }

@@ -26,9 +26,7 @@ namespace TopSpeed.Game
             {
                 var choiceId = i + 1;
                 var choice = discovered[i];
-                var label = choice.IsRacingWheel
-                    ? $"{choice.DisplayName} ({LocalizationService.Translate(LocalizationService.Mark("Racing wheel"))})"
-                    : choice.DisplayName;
+                var label = choice.DisplayName;
                 items[choiceId] = label;
                 guidByChoiceId[choiceId] = choice.InstanceGuid;
             }

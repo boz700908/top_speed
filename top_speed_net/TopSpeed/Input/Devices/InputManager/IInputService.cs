@@ -8,12 +8,13 @@ namespace TopSpeed.Input
 {
     internal interface IInputService : IDisposable
     {
-        event Action? ControllerScanTimedOut;
+        event Action? NoControllerDetected;
 
         InputState Current { get; }
         bool ActiveControllerIsRacingWheel { get; }
         bool IgnoreControllerAxesForMenuNavigation { get; }
         IVibrationDevice? VibrationDevice { get; }
+        bool TryGetControllerDisplayProfile(out ControllerDisplayProfile profile);
 
         void Update();
         bool IsDown(Key key);

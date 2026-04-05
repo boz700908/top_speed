@@ -46,7 +46,7 @@ namespace TopSpeed.Input
                 InputKey.Yen => LocalizationService.Translate(LocalizationService.Mark("Yen")),
                 InputKey.AbntC2 => LocalizationService.Translate(LocalizationService.Mark("ABNT C2")),
                 InputKey.NumberPadEquals => LocalizationService.Translate(LocalizationService.Mark("Numpad Equals")),
-                InputKey.PreviousTrack => LocalizationService.Translate(LocalizationService.Mark("Previous Track")),
+                InputKey.PreviousTrack => "Previous Track",
                 InputKey.AT => LocalizationService.Translate(LocalizationService.Mark("At")),
                 InputKey.Colon => LocalizationService.Translate(LocalizationService.Mark("Colon")),
                 InputKey.Underline => LocalizationService.Translate(LocalizationService.Mark("Underline")),
@@ -54,16 +54,16 @@ namespace TopSpeed.Input
                 InputKey.Stop => LocalizationService.Translate(LocalizationService.Mark("Stop")),
                 InputKey.AX => LocalizationService.Translate(LocalizationService.Mark("AX")),
                 InputKey.Unlabeled => LocalizationService.Translate(LocalizationService.Mark("Unlabeled")),
-                InputKey.NextTrack => LocalizationService.Translate(LocalizationService.Mark("Next Track")),
+                InputKey.NextTrack => "Next Track",
                 InputKey.NumberPadEnter => LocalizationService.Translate(LocalizationService.Mark("Numpad Enter")),
                 InputKey.RightControl => LocalizationService.Translate(LocalizationService.Mark("Right Control")),
-                InputKey.Mute => LocalizationService.Translate(LocalizationService.Mark("Mute")),
-                InputKey.Calculator => LocalizationService.Translate(LocalizationService.Mark("Calculator")),
-                InputKey.PlayPause => LocalizationService.Translate(LocalizationService.Mark("Play/Pause")),
-                InputKey.MediaStop => LocalizationService.Translate(LocalizationService.Mark("Media Stop")),
-                InputKey.VolumeDown => LocalizationService.Translate(LocalizationService.Mark("Volume Down")),
-                InputKey.VolumeUp => LocalizationService.Translate(LocalizationService.Mark("Volume Up")),
-                InputKey.WebHome => LocalizationService.Translate(LocalizationService.Mark("Web Home")),
+                InputKey.Mute => "Mute",
+                InputKey.Calculator => "Calculator",
+                InputKey.PlayPause => "Play/Pause",
+                InputKey.MediaStop => "Media Stop",
+                InputKey.VolumeDown => "Volume Down",
+                InputKey.VolumeUp => "Volume Up",
+                InputKey.WebHome => "Web Home",
                 InputKey.NumberPadComma => LocalizationService.Translate(LocalizationService.Mark("Numpad Comma")),
                 InputKey.Divide => LocalizationService.Translate(LocalizationService.Mark("Divide")),
                 InputKey.PrintScreen => LocalizationService.Translate(LocalizationService.Mark("Print Screen")),
@@ -82,23 +82,36 @@ namespace TopSpeed.Input
                 InputKey.LeftWindowsKey => LocalizationService.Translate(LocalizationService.Mark("Left Windows")),
                 InputKey.RightWindowsKey => LocalizationService.Translate(LocalizationService.Mark("Right Windows")),
                 InputKey.Applications => LocalizationService.Translate(LocalizationService.Mark("Applications")),
-                InputKey.Power => LocalizationService.Translate(LocalizationService.Mark("Power")),
-                InputKey.Sleep => LocalizationService.Translate(LocalizationService.Mark("Sleep")),
-                InputKey.Wake => LocalizationService.Translate(LocalizationService.Mark("Wake")),
-                InputKey.WebSearch => LocalizationService.Translate(LocalizationService.Mark("Web Search")),
-                InputKey.WebFavorites => LocalizationService.Translate(LocalizationService.Mark("Web Favorites")),
-                InputKey.WebRefresh => LocalizationService.Translate(LocalizationService.Mark("Web Refresh")),
-                InputKey.WebStop => LocalizationService.Translate(LocalizationService.Mark("Web Stop")),
-                InputKey.WebForward => LocalizationService.Translate(LocalizationService.Mark("Web Forward")),
-                InputKey.WebBack => LocalizationService.Translate(LocalizationService.Mark("Web Back")),
-                InputKey.MyComputer => LocalizationService.Translate(LocalizationService.Mark("My Computer")),
-                InputKey.Mail => LocalizationService.Translate(LocalizationService.Mark("Mail")),
-                InputKey.MediaSelect => LocalizationService.Translate(LocalizationService.Mark("Media Select")),
+                InputKey.Power => "Power",
+                InputKey.Sleep => "Sleep",
+                InputKey.Wake => "Wake",
+                InputKey.WebSearch => "Web Search",
+                InputKey.WebFavorites => "Web Favorites",
+                InputKey.WebRefresh => "Web Refresh",
+                InputKey.WebStop => "Web Stop",
+                InputKey.WebForward => "Web Forward",
+                InputKey.WebBack => "Web Back",
+                InputKey.MyComputer => "My Computer",
+                InputKey.Mail => "Mail",
+                InputKey.MediaSelect => "Media Select",
                 _ => key.ToString()
             };
         }
 
         public static string Axis(AxisOrButton axis)
+        {
+            return Axis(axis, ControllerDisplayProfile.Joystick);
+        }
+
+        public static string Axis(AxisOrButton axis, ControllerDisplayProfile profile)
+        {
+            if (profile.IsGamepad)
+                return GamepadAxis(axis, profile.GamepadFamily);
+
+            return GenericAxis(axis);
+        }
+
+        private static string GenericAxis(AxisOrButton axis)
         {
             return axis switch
             {
@@ -145,6 +158,62 @@ namespace TopSpeed.Input
                 AxisOrButton.Pov8 => LocalizationService.Translate(LocalizationService.Mark("POV 2 left")),
                 _ => axis.ToString()
             };
+        }
+
+        private static string GamepadAxis(AxisOrButton axis, ControllerGamepadFamily family)
+        {
+            return axis switch
+            {
+                AxisOrButton.AxisNone => LocalizationService.Translate(LocalizationService.Mark("none")),
+                AxisOrButton.AxisXNeg => LocalizationService.Translate(LocalizationService.Mark("Left stick left")),
+                AxisOrButton.AxisXPos => LocalizationService.Translate(LocalizationService.Mark("Left stick right")),
+                AxisOrButton.AxisYNeg => LocalizationService.Translate(LocalizationService.Mark("Left stick down")),
+                AxisOrButton.AxisYPos => LocalizationService.Translate(LocalizationService.Mark("Left stick up")),
+                AxisOrButton.AxisRxNeg => LocalizationService.Translate(LocalizationService.Mark("Right stick left")),
+                AxisOrButton.AxisRxPos => LocalizationService.Translate(LocalizationService.Mark("Right stick right")),
+                AxisOrButton.AxisRyNeg => LocalizationService.Translate(LocalizationService.Mark("Right stick down")),
+                AxisOrButton.AxisRyPos => LocalizationService.Translate(LocalizationService.Mark("Right stick up")),
+                AxisOrButton.AxisZPos => LocalizationService.Translate(LocalizationService.Mark("Left trigger")),
+                AxisOrButton.AxisRzPos => LocalizationService.Translate(LocalizationService.Mark("Right trigger")),
+                AxisOrButton.Button1 => FaceButton(family, "A", "Cross", "B", "South"),
+                AxisOrButton.Button2 => FaceButton(family, "B", "Circle", "A", "East"),
+                AxisOrButton.Button3 => FaceButton(family, "X", "Square", "Y", "West"),
+                AxisOrButton.Button4 => FaceButton(family, "Y", "Triangle", "X", "North"),
+                AxisOrButton.Button5 => FamilyLabel(family, "Left bumper", "L1", "L", "Left shoulder"),
+                AxisOrButton.Button6 => FamilyLabel(family, "Right bumper", "R1", "R", "Right shoulder"),
+                AxisOrButton.Button7 => FamilyLabel(family, "View", "Share", "Minus", "Back"),
+                AxisOrButton.Button8 => FamilyLabel(family, "Menu", "Options", "Plus", "Start"),
+                AxisOrButton.Button9 => FamilyLabel(family, "Left stick button", "L3", "Left stick button", "Left stick"),
+                AxisOrButton.Button10 => FamilyLabel(family, "Right stick button", "R3", "Right stick button", "Right stick"),
+                AxisOrButton.Button11 => FamilyLabel(family, "Xbox button", "PS button", "Home", "Guide"),
+                AxisOrButton.Button12 => FamilyLabel(family, "Share", "Touchpad", "Capture", "Misc 1"),
+                AxisOrButton.Button13 => LocalizationService.Translate(LocalizationService.Mark("Left paddle 1")),
+                AxisOrButton.Button14 => LocalizationService.Translate(LocalizationService.Mark("Right paddle 1")),
+                AxisOrButton.Button15 => LocalizationService.Translate(LocalizationService.Mark("Left paddle 2")),
+                AxisOrButton.Button16 => LocalizationService.Translate(LocalizationService.Mark("Right paddle 2")),
+                AxisOrButton.Pov1 => LocalizationService.Translate(LocalizationService.Mark("D-pad up")),
+                AxisOrButton.Pov2 => LocalizationService.Translate(LocalizationService.Mark("D-pad right")),
+                AxisOrButton.Pov3 => LocalizationService.Translate(LocalizationService.Mark("D-pad down")),
+                AxisOrButton.Pov4 => LocalizationService.Translate(LocalizationService.Mark("D-pad left")),
+                _ => GenericAxis(axis)
+            };
+        }
+
+        private static string FaceButton(ControllerGamepadFamily family, string xbox, string playStation, string nintendo, string semantic)
+        {
+            return FamilyLabel(family, xbox, playStation, nintendo, semantic);
+        }
+
+        private static string FamilyLabel(ControllerGamepadFamily family, string xbox, string playStation, string nintendo, string semantic)
+        {
+            var value = family switch
+            {
+                ControllerGamepadFamily.Xbox => xbox,
+                ControllerGamepadFamily.PlayStation => playStation,
+                ControllerGamepadFamily.Nintendo => nintendo,
+                _ => semantic
+            };
+            return LocalizationService.Translate(LocalizationService.Mark(value));
         }
     }
 }

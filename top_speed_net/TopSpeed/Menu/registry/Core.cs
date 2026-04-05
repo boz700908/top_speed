@@ -112,7 +112,6 @@ namespace TopSpeed.Menu
             _menu.Register(BuildOptionsControlsShortcutGroupsMenu());
             _menu.Register(BuildOptionsControlsShortcutBindingsMenu());
             _menu.Register(BuildOptionsRaceSettingsMenu());
-            _menu.Register(BuildOptionsRestoreMenu());
             _menu.Register(BuildOptionsServerSettingsMenu());
         }
 

@@ -34,6 +34,7 @@ namespace TopSpeed.Game
         IReadOnlyList<SpeechVoiceInfo> IMenuSettingsActions.GetSpeechVoices() => _speech.AvailableVoices;
         SpeechCapabilities IMenuSettingsActions.GetSpeechCapabilities() => _speech.ScreenReaderCapabilities;
         void IMenuSettingsActions.ChangeLanguage() => ChangeLanguage();
+        void IMenuSettingsActions.ShowRestoreDefaultsDialog() => ShowRestoreDefaultsDialog();
         void IMenuSettingsActions.RestoreDefaults() => RestoreDefaults();
         void IMenuSettingsActions.RecalibrateScreenReaderRate() => StartCalibrationSequence("options_speech");
         void IMenuSettingsActions.CheckForUpdates() => StartManualUpdateCheck();
@@ -48,6 +49,7 @@ namespace TopSpeed.Game
         void IMenuMappingActions.BeginMapping(InputMappingMode mode, InputAction action) => _inputMapping.BeginMapping(mode, action);
         void IMenuMappingActions.BeginShortcutMapping(string groupId, string actionId, string displayName) => _shortcutMapping.BeginMapping(groupId, actionId, displayName);
         string IMenuMappingActions.FormatMappingValue(InputAction action, InputMappingMode mode) => _inputMapping.FormatMappingValue(action, mode);
+        void IMenuMappingActions.ResetMappings(InputMappingMode mode) => ResetMappings(mode);
     }
 }
 

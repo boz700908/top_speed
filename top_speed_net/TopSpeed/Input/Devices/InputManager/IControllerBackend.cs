@@ -7,11 +7,12 @@ namespace TopSpeed.Input
 {
     internal interface IControllerBackend : IDisposable
     {
-        event Action? ScanTimedOut;
+        event Action? NoControllerDetected;
 
         bool ActiveControllerIsRacingWheel { get; }
         bool IgnoreAxesForMenuNavigation { get; }
         IVibrationDevice? VibrationDevice { get; }
+        bool TryGetDisplayProfile(out ControllerDisplayProfile profile);
 
         void SetEnabled(bool enabled);
         void Update();

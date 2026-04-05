@@ -36,7 +36,6 @@ namespace TopSpeed.Vehicles
             _currentTime = currentTime;
             _started = started;
             _legacyRoot = Path.Combine(AssetPaths.SoundsRoot, "Legacy");
-            _effectsRoot = Path.Combine(AssetPaths.Root, "Effects");
             _events = new EventQueue();
             _runtimeContext = new CarRuntimeContext();
             _physicsModel = new Default();

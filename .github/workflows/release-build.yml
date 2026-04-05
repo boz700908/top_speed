@@ -77,7 +77,10 @@ jobs:
 
         "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         "server_version=$serverVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        "game_zip=TopSpeed-Release-v-$version.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "game_zip_win=TopSpeed-windows-x64-Release-v-$version.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "game_zip_linux=TopSpeed-linux-x64-Release-v-$version.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "game_zip_osx=TopSpeed-mac-x64-Release-v-$version.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "game_zip_glob=TopSpeed-*-Release-v-$version.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         "server_zip_glob=TopSpeed.Server-*-Release-v-$serverVersion.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         "changes_md<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         $changes | Out-File -FilePath $env:GITHUB_OUTPUT -Append
@@ -120,13 +123,48 @@ jobs:
           dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=$profile
         }
 
+    - name: Build TopSpeed clients
+      shell: pwsh
+      run: |
+        function Clear-ClientBuildState {
+          $paths = @(
+            "TopSpeed/obj",
+            "TS.Audio/obj",
+            "TS.Sdl/obj",
+            "MiniAudioExNET/obj",
+            "SteamAudio.NET/Src/obj",
+            "TopSpeed.Shared/obj"
+          )
+
+          foreach ($path in $paths) {
+            if (Test-Path $path) {
+              Remove-Item -LiteralPath $path -Recurse -Force
+            }
+          }
+        }
+
+        Clear-ClientBuildState
+        dotnet build TopSpeed/TopSpeed.csproj --configuration Release --framework net10.0-windows --runtime win-x64
+
+        Clear-ClientBuildState
+        dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=linux-x64
+
+        Clear-ClientBuildState
+        dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=osx-x64
+
     - name: Create Zip Archive
       shell: powershell
       run: |
-        $gameSource = "TopSpeed\bin\Release\net472\*"
-        $gameDestination = "${{ steps.release_info.outputs.game_zip }}"
-        if (Test-Path $gameDestination) { Remove-Item $gameDestination -Force }
-        Compress-Archive -Path $gameSource -DestinationPath $gameDestination -CompressionLevel Optimal
+        $clientTargets = @(
+          @{ Source = "TopSpeed\bin\Release\net10.0\win-x64\*"; Destination = "${{ steps.release_info.outputs.game_zip_win }}" },
+          @{ Source = "TopSpeed\bin\Release\net10.0\linux-x64\*"; Destination = "${{ steps.release_info.outputs.game_zip_linux }}" },
+          @{ Source = "TopSpeed\bin\Release\net10.0\osx-x64\*"; Destination = "${{ steps.release_info.outputs.game_zip_osx }}" }
+        )
+
+        foreach ($target in $clientTargets) {
+          if (Test-Path $target.Destination) { Remove-Item $target.Destination -Force }
+          Compress-Archive -Path $target.Source -DestinationPath $target.Destination -CompressionLevel Optimal
+        }
 
         $serverVersion = "${{ steps.release_info.outputs.server_version }}"
         $targets = @(
@@ -223,5 +261,5 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          top_speed_net/${{ steps.release_info.outputs.game_zip }}
+          top_speed_net/${{ steps.release_info.outputs.game_zip_glob }}
           top_speed_net/${{ steps.release_info.outputs.server_zip_glob }}

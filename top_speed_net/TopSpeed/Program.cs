@@ -3,6 +3,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 #if NETFRAMEWORK
 using System.Windows.Forms;
+#else
+using Eto.Forms;
 #endif
 using TopSpeed.Game;
 using TopSpeed.Localization;
@@ -121,6 +123,32 @@ namespace TopSpeed
                     LocalizationService.Translate(LocalizationService.Mark("Top Speed")),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+            }
+            catch
+            {
+                // Ignore UI failures.
+            }
+#else
+            try
+            {
+                var message = LocalizationService.Format(
+                    LocalizationService.Mark("An unexpected error occurred. A log file was created: {0}"),
+                    logName);
+                var title = LocalizationService.Translate(LocalizationService.Mark("Top Speed"));
+                var application = Application.Instance ?? new Application();
+
+                void ShowDialog()
+                {
+                    MessageBox.Show(
+                        message,
+                        title,
+                        MessageBoxType.Error);
+                }
+
+                if (Application.Instance != null)
+                    application.Invoke(ShowDialog);
+                else
+                    ShowDialog();
             }
             catch
             {

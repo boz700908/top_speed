@@ -42,7 +42,7 @@ namespace TopSpeed.Menu
                     hint: LocalizationService.Mark("Configure default multiplayer hosting settings, including the server port used by the game.")),
                 new MenuItem(LocalizationService.Mark("Restore default settings"),
                     MenuAction.None,
-                    nextMenuId: "options_restore",
+                    onActivate: _settingsActions.ShowRestoreDefaultsDialog,
                     hint: LocalizationService.Mark("Reset all configurable settings back to their default values.")),
                 BackItem()
             };

@@ -43,7 +43,6 @@ namespace TopSpeed.Game
                 },
                 new IControllerBackendFactory[]
                 {
-                    new TopSpeed.Input.Backends.DirectInput.Factory(),
                     new TopSpeed.Input.Backends.Sdl.Factory()
                 });
             var input = new InputService(_window.NativeHandle, backendRegistry, _window as IKeyboardEventSource);
@@ -57,8 +56,6 @@ namespace TopSpeed.Game
             speech.ScreenReaderInterrupt = _settings.ScreenReaderInterrupt;
             speech.PreferredBackendId = _settings.SpeechBackendId;
             speech.PreferredVoiceIndex = _settings.SpeechVoiceIndex;
-            input.ControllerScanTimedOut += () => speech.Speak(LocalizationService.Mark("No controller detected."));
-            input.SetDeviceMode(_settings.DeviceMode);
             _raceInput = new RaceInput(_settings);
             _setup = new RaceSetup();
             _raceModeFactory = new RaceModeFactory(audio, speech, _settings, _raceInput, _fileDialogs);
@@ -104,6 +101,8 @@ namespace TopSpeed.Game
             _settings.SyncAudioCategoriesFromMusicVolume();
             ApplyAudioSettings();
             _needsCalibration = _settings.UsageHints && _settings.ScreenReaderRateMs <= 0f;
+            input.NoControllerDetected += HandleNoControllerDetected;
+            input.SetDeviceMode(_settings.DeviceMode);
         }
 
         public void Initialize()

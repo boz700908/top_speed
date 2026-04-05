@@ -82,9 +82,13 @@ namespace TopSpeed.Input
 
         public string FormatMappingValue(InputAction action, InputMappingMode mode)
         {
-            return mode == InputMappingMode.Keyboard
-                ? KeyMapManager.FormatKey(_raceInput.KeyMap.GetKey(action))
-                : KeyMapManager.FormatAxis(_raceInput.KeyMap.GetAxis(action));
+            if (mode == InputMappingMode.Keyboard)
+                return KeyMapManager.FormatKey(_raceInput.KeyMap.GetKey(action));
+
+            var axis = _raceInput.KeyMap.GetAxis(action);
+            return _input.TryGetControllerDisplayProfile(out var profile)
+                ? KeyMapManager.FormatAxis(axis, profile)
+                : KeyMapManager.FormatAxis(axis, ControllerDisplayProfile.SemanticGamepad);
         }
     }
 }

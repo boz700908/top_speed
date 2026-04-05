@@ -153,10 +153,11 @@ namespace TopSpeed.Tests
 
         private sealed class FakeControllerBackend : IControllerBackend
         {
-            public event Action? ScanTimedOut;
+            public event Action? NoControllerDetected;
             public bool ActiveControllerIsRacingWheel => false;
             public bool IgnoreAxesForMenuNavigation => false;
             public IVibrationDevice? VibrationDevice => null;
+            public bool TryGetDisplayProfile(out ControllerDisplayProfile profile) { profile = default; return false; }
 
             public void SetEnabled(bool enabled) { }
             public void Update() { }
@@ -169,9 +170,9 @@ namespace TopSpeed.Tests
             public void Resume() { }
             public void Dispose() { }
 
-            public void RaiseScanTimedOut()
+            public void RaiseNoControllerDetected()
             {
-                ScanTimedOut?.Invoke();
+                NoControllerDetected?.Invoke();
             }
         }
     }

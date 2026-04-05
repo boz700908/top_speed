@@ -5,7 +5,7 @@ namespace TopSpeed.Speech.Prism
 {
     internal sealed class LinuxMethods : IMethods
     {
-        private const string Library = "lib/libprism.so";
+        private const string Library = "prism";
 
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
         private static extern Config prism_config_init();

@@ -25,7 +25,7 @@ namespace TopSpeed.Input
         public bool ActiveControllerIsRacingWheel => _controllerBackend.ActiveControllerIsRacingWheel;
         public IVibrationDevice? VibrationDevice => _controllerBackend.VibrationDevice;
 
-        public event Action? ControllerScanTimedOut;
+        public event Action? NoControllerDetected;
 
         internal InputService(IntPtr windowHandle, IBackendRegistry backendRegistry, IKeyboardEventSource? keyboardEventSource = null)
         {
@@ -51,7 +51,7 @@ namespace TopSpeed.Input
             _current = new InputState();
             _previous = new InputState();
             _keyLatch = new bool[256];
-            _controllerBackend.ScanTimedOut += OnControllerScanTimedOut;
+            _controllerBackend.NoControllerDetected += OnNoControllerDetected;
         }
 
         internal InputService(IKeyboardDevice keyboardBackend, IControllerBackend controllerBackend)
@@ -61,7 +61,7 @@ namespace TopSpeed.Input
             _current = new InputState();
             _previous = new InputState();
             _keyLatch = new bool[256];
-            _controllerBackend.ScanTimedOut += OnControllerScanTimedOut;
+            _controllerBackend.NoControllerDetected += OnNoControllerDetected;
         }
 
         public bool IsDown(InputKey key) => _current.IsDown(key);
@@ -82,9 +82,14 @@ namespace TopSpeed.Input
             return _controllerBackend.TrySelect(instanceGuid);
         }
 
-        private void OnControllerScanTimedOut()
+        public bool TryGetControllerDisplayProfile(out ControllerDisplayProfile profile)
         {
-            ControllerScanTimedOut?.Invoke();
+            return _controllerBackend.TryGetDisplayProfile(out profile);
+        }
+
+        private void OnNoControllerDetected()
+        {
+            NoControllerDetected?.Invoke();
         }
     }
 }

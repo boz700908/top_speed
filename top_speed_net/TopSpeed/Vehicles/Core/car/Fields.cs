@@ -33,7 +33,6 @@ namespace TopSpeed.Vehicles
         private readonly Func<float> _currentTime;
         private readonly Func<bool> _started;
         private readonly string _legacyRoot;
-        private readonly string _effectsRoot;
         private readonly EventQueue _events;
         private readonly Processor _eventProcessor;
         private readonly IFlow _audioFlow;

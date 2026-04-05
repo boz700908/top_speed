@@ -35,10 +35,13 @@ namespace TopSpeed.Input
             _saveSettings();
             _mappingActive = false;
             var label = _raceInput.KeyMap.GetLabel(_mappingAction);
+            var control = _input.TryGetControllerDisplayProfile(out var profile)
+                ? KeyMapManager.FormatAxis(axis, profile)
+                : KeyMapManager.FormatAxis(axis);
             _speech.Speak(LocalizationService.Format(
                 LocalizationService.Mark("{0} set to {1}."),
                 label,
-                KeyMapManager.FormatAxis(axis)));
+                control));
         }
 
         private AxisOrButton FindTriggeredAxis(State current, State previous)

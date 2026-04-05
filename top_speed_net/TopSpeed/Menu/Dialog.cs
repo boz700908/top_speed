@@ -60,6 +60,7 @@ namespace TopSpeed.Menu
         public Action<int>? OnResult { get; }
         public bool OpenAsOverlay { get; set; }
         public bool IsCancelable { get; set; } = true;
+        public bool FocusFirstButtonByDefault { get; set; } = true;
         public IReadOnlyList<DialogItem> Items { get; }
         public IReadOnlyList<DialogButton> Buttons { get; }
     }
@@ -130,12 +131,14 @@ namespace TopSpeed.Menu
 
             var firstDialogItemIndex = string.IsNullOrWhiteSpace(dialog.Caption) ? 1 : 2;
             var firstButtonIndex = items.Count;
-            defaultIndex = dialog.Items.Count > 0 ? firstDialogItemIndex : firstButtonIndex;
+            defaultIndex = dialog.Items.Count > 0
+                ? firstDialogItemIndex
+                : (dialog.FocusFirstButtonByDefault ? firstButtonIndex : 0);
             var firstDefaultFound = false;
             for (var i = 0; i < dialog.Buttons.Count; i++)
             {
                 var button = dialog.Buttons[i];
-                if (dialog.Items.Count == 0 && !firstDefaultFound && (button.Flags & DialogButtonFlags.Default) != 0)
+                if (!firstDefaultFound && (button.Flags & DialogButtonFlags.Default) != 0)
                 {
                     defaultIndex = firstButtonIndex + i;
                     firstDefaultFound = true;

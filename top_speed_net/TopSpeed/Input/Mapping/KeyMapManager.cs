@@ -86,6 +86,11 @@ namespace TopSpeed.Input
             return InputDisplayText.Axis(axis);
         }
 
+        public static string FormatAxis(AxisOrButton axis, ControllerDisplayProfile profile)
+        {
+            return InputDisplayText.Axis(axis, profile);
+        }
+
         public string GetMappingInstruction(bool keyboard, InputAction action)
         {
             var label = LocalizationService.Translate(GetLabel(action)).ToLowerInvariant();

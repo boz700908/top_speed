@@ -2325,6 +2325,8 @@ namespace MiniAudioEx.Native
         public ma_vfs_ptr pResourceManagerVFS;                    /* A pointer to a pre-allocated VFS object to use with the resource manager. This is ignored if pResourceManager is not NULL. */
         public IntPtr onProcess;               /* Fired at the end of each call to ma_engine_read_pcm_frames(). For engine's that manage their own internal device (the default configuration), this will be fired from the audio thread, and you do not need to call ma_engine_read_pcm_frames() manually in order to trigger this. */
         public IntPtr pProcessUserData;                         /* User data that's passed into onProcess. */
+        public ma_resampler_config resourceManagerResampling;   /* The resampling config to use with the resource manager. */
+        public ma_resampler_config pitchResampling;             /* The resampling config for the pitch and Doppler effects. */
 
         public void SetDataProc(ma_device_data_proc callback)
         {

@@ -5,7 +5,11 @@ namespace TopSpeed.Speech.Prism
 {
     internal sealed class WindowsMethods : IMethods
     {
+#if NETFRAMEWORK
         private const string Library = "lib\\prism.dll";
+#else
+        private const string Library = "prism";
+#endif
 
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
         private static extern Config prism_config_init();

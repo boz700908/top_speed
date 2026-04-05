@@ -12,6 +12,7 @@ namespace TopSpeed.Menu
         IReadOnlyList<SpeechVoiceInfo> GetSpeechVoices();
         SpeechCapabilities GetSpeechCapabilities();
         void ChangeLanguage();
+        void ShowRestoreDefaultsDialog();
         void RestoreDefaults();
         void RecalibrateScreenReaderRate();
         void CheckForUpdates();

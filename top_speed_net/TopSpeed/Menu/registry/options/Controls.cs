@@ -148,17 +148,33 @@ namespace TopSpeed.Menu
             {
                 var definition = action;
                 items.Add(new MenuItem(
-                    () => LocalizationService.Format(
-                        LocalizationService.Mark("{0}: {1}"),
+                    () => FormatLabelValue(
                         LocalizationService.Translate(definition.Label),
                         _mapping.FormatMappingValue(definition.Action, mode)),
                     MenuAction.None,
                     onActivate: () => _mapping.BeginMapping(mode, definition.Action)));
             }
 
+            items.Add(BuildResetMappingsItem(mode));
+
             if (includeBack)
                 items.Add(BackItem());
             return items;
+        }
+
+        private MenuItem BuildResetMappingsItem(InputMappingMode mode)
+        {
+            return mode == InputMappingMode.Keyboard
+                ? new MenuItem(
+                    LocalizationService.Mark("Reset all keyboard mappings"),
+                    MenuAction.None,
+                    onActivate: () => _mapping.ResetMappings(InputMappingMode.Keyboard),
+                    hint: LocalizationService.Mark("Restore all keyboard bindings to their default values."))
+                : new MenuItem(
+                    LocalizationService.Mark("Reset all controller mappings"),
+                    MenuAction.None,
+                    onActivate: () => _mapping.ResetMappings(InputMappingMode.Controller),
+                    hint: LocalizationService.Mark("Restore all controller bindings to their default values."));
         }
 
         private void RebuildShortcutGroupsMenu()
@@ -209,8 +225,7 @@ namespace TopSpeed.Menu
                 var displayName = binding.DisplayName;
                 var description = binding.Description;
                 items.Add(new MenuItem(
-                    () => LocalizationService.Format(
-                        LocalizationService.Mark("{0}: {1}"),
+                    () => FormatLabelValue(
                         LocalizationService.Translate(displayName),
                         GetShortcutKeyText(actionId, binding.Key)),
                     MenuAction.None,
@@ -236,6 +251,11 @@ namespace TopSpeed.Menu
         private static string FormatShortcutKey(InputKey key)
         {
             return InputDisplayText.Key(key);
+        }
+
+        private static string FormatLabelValue(string label, string value)
+        {
+            return string.Concat(label, ": ", value);
         }
     }
 }

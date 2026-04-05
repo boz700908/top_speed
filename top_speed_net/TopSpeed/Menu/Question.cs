@@ -75,6 +75,7 @@ namespace TopSpeed.Menu
         public int CloseResultId { get; }
         public Action<int>? OnResult { get; }
         public bool OpenAsOverlay { get; set; }
+        public bool FocusFirstButtonByDefault { get; set; } = true;
         public IReadOnlyList<QuestionButton> Buttons { get; }
     }
 
@@ -110,7 +111,7 @@ namespace TopSpeed.Menu
                 new MenuItem(question.Caption, MenuAction.None)
             };
 
-            var defaultIndex = 2;
+            var defaultIndex = question.FocusFirstButtonByDefault ? 2 : 0;
             var firstDefaultFound = false;
             for (var i = 0; i < question.Buttons.Count; i++)
             {
