@@ -16,48 +16,43 @@ namespace TopSpeed.Input
             if (!_controllerIsRacingWheel)
                 return GetAxis(axis);
 
-            if (!_hasPedalBaseline)
-            {
-                _pedalBaseline = _lastController;
-                _hasPedalBaseline = true;
-            }
-
-            var baseline = GetAxisComponentValue(_pedalBaseline, component);
+            var index = (int)component;
             var current = GetAxisComponentValue(_lastController, component);
-            var directionPositive = ResolvePedalDirectionPositive(mode, mappedPositive, baseline);
-            var useEndpointScaling = IsEndpointBaseline(baseline);
-            return ResolvePedalValue(component, current, baseline, directionPositive, useEndpointScaling);
+            EnsurePedalCalibration(component, current);
+
+            var rest = _pedalRestValues[index];
+            var min = _pedalMinValues[index];
+            var max = _pedalMaxValues[index];
+            var directionPositive = ResolvePedalDirectionPositive(mode, mappedPositive, rest);
+            return ResolvePedalValue(current, rest, min, max, directionPositive);
         }
 
-        private int ResolvePedalValue(AxisComponent component, int current, int baseline, bool directionPositive, bool useEndpointScaling)
+        private int ResolvePedalValue(int current, int rest, int min, int max, bool directionPositive)
         {
-            if (useEndpointScaling && IsEndpointBaseline(baseline))
+            if (directionPositive)
             {
-                if (directionPositive)
+                var maxTravel = max - rest;
+                if (maxTravel > 0)
                 {
-                    var maxTravel = 100 - baseline;
-                    if (maxTravel <= 0)
-                        return 0;
-                    var movement = current - baseline;
+                    var movement = current - rest;
                     if (movement <= 0)
                         return 0;
                     return ClampPercent((movement * 100) / maxTravel);
                 }
-
-                var negativeTravel = baseline + 100;
-                if (negativeTravel <= 0)
-                    return 0;
-                var reverseMovement = baseline - current;
-                if (reverseMovement <= 0)
-                    return 0;
-                return ClampPercent((reverseMovement * 100) / negativeTravel);
+            }
+            else
+            {
+                var maxTravel = rest - min;
+                if (maxTravel > 0)
+                {
+                    var movement = rest - current;
+                    if (movement <= 0)
+                        return 0;
+                    return ClampPercent((movement * 100) / maxTravel);
+                }
             }
 
-            var center = GetAxisComponentValue(_center, component);
-            var delta = directionPositive ? (current - center) : (center - current);
-            if (delta <= 0)
-                return 0;
-            return ClampPercent(delta);
+            return 0;
         }
 
         private static int ClampPercent(int value)
@@ -78,15 +73,63 @@ namespace TopSpeed.Input
                 case PedalInvertMode.Inverted:
                     return !mappedPositive;
                 default:
-                    if (IsEndpointBaseline(baseline))
+                    if (IsReliablePedalRest(baseline))
                         return baseline < 0;
                     return mappedPositive;
             }
         }
 
-        private static bool IsEndpointBaseline(int value)
+        private void EnsurePedalCalibration(AxisComponent component, int current)
         {
-            return value >= 85 || value <= -85;
+            var index = (int)component;
+            if (!_hasPedalCalibration[index])
+            {
+                _hasPedalCalibration[index] = true;
+                _pedalRestValues[index] = current;
+                _pedalMinValues[index] = current;
+                _pedalMaxValues[index] = current;
+                return;
+            }
+
+            if (current < _pedalMinValues[index])
+                _pedalMinValues[index] = current;
+            if (current > _pedalMaxValues[index])
+                _pedalMaxValues[index] = current;
+            if (ShouldUpdatePedalRest(_pedalRestValues[index], current))
+                _pedalRestValues[index] = current;
+        }
+
+        private void UpdatePedalCalibrationSamples()
+        {
+            EnsurePedalCalibration(AxisComponent.X, _lastController.X);
+            EnsurePedalCalibration(AxisComponent.Y, _lastController.Y);
+            EnsurePedalCalibration(AxisComponent.Z, _lastController.Z);
+            EnsurePedalCalibration(AxisComponent.Rx, _lastController.Rx);
+            EnsurePedalCalibration(AxisComponent.Ry, _lastController.Ry);
+            EnsurePedalCalibration(AxisComponent.Rz, _lastController.Rz);
+            EnsurePedalCalibration(AxisComponent.Slider1, _lastController.Slider1);
+            EnsurePedalCalibration(AxisComponent.Slider2, _lastController.Slider2);
+        }
+
+        private static bool ShouldUpdatePedalRest(int currentRest, int candidate)
+        {
+            var currentAbs = System.Math.Abs(currentRest);
+            var candidateAbs = System.Math.Abs(candidate);
+            if (candidateAbs < 60)
+                return false;
+
+            if (currentAbs < 60)
+                return candidateAbs > currentAbs;
+
+            if (System.Math.Sign(candidate) != System.Math.Sign(currentRest))
+                return false;
+
+            return candidateAbs > currentAbs;
+        }
+
+        private static bool IsReliablePedalRest(int value)
+        {
+            return value >= 60 || value <= -60;
         }
     }
 }

@@ -80,6 +80,7 @@ namespace TopSpeed.Core.Settings
             settings.ControllerPause = ReadController(controller.Pause, settings.ControllerPause, "input.controller.pause", issues);
             settings.ControllerThrottleInvertMode = ReadEnum(controller.ThrottleInvertMode, settings.ControllerThrottleInvertMode, "input.controller.throttleInvertMode", issues);
             settings.ControllerBrakeInvertMode = ReadEnum(controller.BrakeInvertMode, settings.ControllerBrakeInvertMode, "input.controller.brakeInvertMode", issues);
+            settings.ControllerClutchInvertMode = ReadEnum(controller.ClutchInvertMode, settings.ControllerClutchInvertMode, "input.controller.clutchInvertMode", issues);
             settings.ControllerSteeringDeadZone = ClampInt(controller.SteeringDeadZone, settings.ControllerSteeringDeadZone, 1, 5, "input.controller.steeringDeadZone", issues);
 
             if (controller.Center == null)

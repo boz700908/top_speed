@@ -83,6 +83,7 @@ namespace TopSpeed.Core.Settings
                         Pause = (int)settings.ControllerPause,
                         ThrottleInvertMode = (int)settings.ControllerThrottleInvertMode,
                         BrakeInvertMode = (int)settings.ControllerBrakeInvertMode,
+                        ClutchInvertMode = (int)settings.ControllerClutchInvertMode,
                         SteeringDeadZone = settings.ControllerSteeringDeadZone,
                         Center = new SettingsControllerCenterDocument
                         {

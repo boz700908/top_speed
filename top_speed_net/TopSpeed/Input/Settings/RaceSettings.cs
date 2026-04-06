@@ -34,6 +34,7 @@ namespace TopSpeed.Input
         public AxisOrButton ControllerPause { get; set; }
         public PedalInvertMode ControllerThrottleInvertMode { get; set; }
         public PedalInvertMode ControllerBrakeInvertMode { get; set; }
+        public PedalInvertMode ControllerClutchInvertMode { get; set; }
         public int ControllerSteeringDeadZone { get; set; }
         public State ControllerCenter { get; set; }
 
@@ -126,6 +127,7 @@ namespace TopSpeed.Input
             ControllerPause = AxisOrButton.Button14;
             ControllerThrottleInvertMode = PedalInvertMode.Auto;
             ControllerBrakeInvertMode = PedalInvertMode.Auto;
+            ControllerClutchInvertMode = PedalInvertMode.Auto;
             ControllerSteeringDeadZone = 1;
             ControllerCenter = default;
 

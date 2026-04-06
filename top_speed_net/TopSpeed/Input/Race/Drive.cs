@@ -65,7 +65,7 @@ namespace TopSpeed.Input
             if (!_allowDrivingInput || _overlayInputBlocked)
                 return 0;
 
-            var controllerClutch = UseController ? GetAxis(_clutch) : 0;
+            var controllerClutch = UseController ? GetPedalAxis(_clutch, _settings.ControllerClutchInvertMode) : 0;
             if (!UseKeyboard)
                 return controllerClutch;
 

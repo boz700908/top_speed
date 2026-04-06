@@ -167,6 +167,7 @@ namespace TopSpeed.Core.Settings
         [DataMember(Name = "pause")] public int? Pause { get; set; }
         [DataMember(Name = "throttleInvertMode")] public int? ThrottleInvertMode { get; set; }
         [DataMember(Name = "brakeInvertMode")] public int? BrakeInvertMode { get; set; }
+        [DataMember(Name = "clutchInvertMode")] public int? ClutchInvertMode { get; set; }
         [DataMember(Name = "steeringDeadZone")] public int? SteeringDeadZone { get; set; }
         [DataMember(Name = "center")] public SettingsControllerCenterDocument? Center { get; set; }
     }

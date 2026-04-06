@@ -32,8 +32,7 @@ namespace TopSpeed.Input
             _allowAuxiliaryInput = true;
             _overlayInputBlocked = false;
             _controllerIsRacingWheel = false;
-            _hasPedalBaseline = false;
-            _pedalBaseline = default;
+            ResetPedalCalibration();
 
             _kbPlayer1 = Key.F1;
             _kbPlayer2 = Key.F2;

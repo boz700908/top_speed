@@ -128,43 +128,96 @@ namespace TopSpeed.Input.Backends.Sdl
                 return false;
             }
 
-            if (!_handles.TryGetValue(type, out var handle))
-            {
-                if (!_haptic.SupportsEffect(effect))
-                {
-                    _unsupportedEffects.Add(type);
-                    return false;
-                }
+            if (!TryGetOrCreateHandle(type, effect, out var handle))
+                return false;
 
-                handle = _haptic.CreateEffect(effect);
-                if (handle == null)
-                {
-                    _unsupportedEffects.Add(type);
-                    return false;
-                }
-
-                _handles[type] = handle;
-            }
-            else
-            {
-                _haptic.UpdateEffect(handle, effect);
-            }
+            var activeHandle = handle!;
 
             if (state.RunPending)
             {
-                _haptic.RunEffect(handle, 1);
+                if (!TryRunEffect(type, effect, activeHandle))
+                    return false;
+
                 state.RunPending = false;
                 return true;
             }
 
             if (mode == HapticPlaybackMode.Periodic || mode == HapticPlaybackMode.Condition)
             {
-                if (!_haptic.IsEffectPlaying(handle))
-                    _haptic.RunEffect(handle, 1);
+                if (!_haptic.IsEffectPlaying(activeHandle) && !TryRunEffect(type, effect, activeHandle))
+                    return false;
+            }
 
+            return true;
+        }
+
+        private bool TryGetOrCreateHandle(VibrationEffectType type, HapticEffect effect, out HapticEffectHandle? handle)
+        {
+            var haptic = _haptic;
+            if (haptic == null)
+            {
+                handle = null;
+                return false;
+            }
+
+            if (!_handles.TryGetValue(type, out handle))
+            {
+                if (!haptic.SupportsEffect(effect))
+                {
+                    _unsupportedEffects.Add(type);
+                    return false;
+                }
+
+                handle = haptic.CreateEffect(effect);
+                if (handle == null)
+                    return false;
+
+                _handles[type] = handle;
                 return true;
             }
 
+            if (haptic.UpdateEffect(handle, effect))
+                return true;
+
+            return TryRecreateHandle(type, effect, out handle);
+        }
+
+        private bool TryRunEffect(VibrationEffectType type, HapticEffect effect, HapticEffectHandle handle)
+        {
+            var haptic = _haptic;
+            if (haptic == null)
+                return false;
+
+            if (haptic.RunEffect(handle, 1))
+                return true;
+
+            if (!TryRecreateHandle(type, effect, out HapticEffectHandle? recreatedHandle))
+                return false;
+
+            var activeHandle = recreatedHandle!;
+            return haptic.RunEffect(activeHandle, 1);
+        }
+
+        private bool TryRecreateHandle(VibrationEffectType type, HapticEffect effect, out HapticEffectHandle? handle)
+        {
+            var haptic = _haptic;
+            if (haptic == null)
+            {
+                handle = null;
+                return false;
+            }
+
+            if (_handles.TryGetValue(type, out var existing))
+            {
+                existing.Dispose();
+                _handles.Remove(type);
+            }
+
+            handle = haptic.CreateEffect(effect);
+            if (handle == null)
+                return false;
+
+            _handles[type] = handle;
             return true;
         }
 

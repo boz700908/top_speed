@@ -104,10 +104,15 @@ namespace TopSpeed.Input
             }
         }
 
-        private void ResetPedalBaseline()
+        private void ResetPedalCalibration()
         {
-            _hasPedalBaseline = false;
-            _pedalBaseline = default;
+            for (var i = 0; i < _hasPedalCalibration.Length; i++)
+            {
+                _hasPedalCalibration[i] = false;
+                _pedalRestValues[i] = 0;
+                _pedalMinValues[i] = 0;
+                _pedalMaxValues[i] = 0;
+            }
         }
     }
 }

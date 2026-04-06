@@ -90,6 +90,16 @@ namespace TopSpeed.Menu
                     () => (int)_settings.ControllerBrakeInvertMode,
                     value => _settingsActions.UpdateSetting(() => _settings.ControllerBrakeInvertMode = (PedalInvertMode)value),
                     hint: LocalizationService.Mark("Auto detects wheel pedal direction from resting position. Use LEFT or RIGHT to change.")),
+                new RadioButton(LocalizationService.Mark("Clutch pedal direction"),
+                    new[]
+                    {
+                        LocalizationService.Mark("Auto"),
+                        LocalizationService.Mark("Normal"),
+                        LocalizationService.Mark("Inverted")
+                    },
+                    () => (int)_settings.ControllerClutchInvertMode,
+                    value => _settingsActions.UpdateSetting(() => _settings.ControllerClutchInvertMode = (PedalInvertMode)value),
+                    hint: LocalizationService.Mark("Auto detects wheel pedal direction from resting position. Use LEFT or RIGHT to change.")),
                 new RadioButton(LocalizationService.Mark("Steering dead zone"),
                     new[]
                     {

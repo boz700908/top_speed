@@ -134,10 +134,21 @@ namespace TopSpeed.Vehicles
             else
                 _vibration.Gain(VibrationEffectType.Spring, (int)(10000 * speedRatio));
 
-            if (_speed < _topSpeed / 10)
-                _vibration.Gain(VibrationEffectType.Engine, (int)(10000 - _speed * 10 / _topSpeed));
+            var lowSpeedLimit = Math.Max(1f, _topSpeed / 10f);
+            var throttleRatio = Math.Max(0f, Math.Min(100f, _currentThrottle)) / 100f;
+            var coupledIdle = _combustionState == EngineCombustionState.On
+                && !IsNeutralGear()
+                && _drivelineCouplingFactor > 0.20f;
+            if (coupledIdle && _speed < lowSpeedLimit)
+            {
+                var speedFactor = 1f - Math.Max(0f, Math.Min(1f, _speed / lowSpeedLimit));
+                var throttleFactor = 1f - Math.Max(0f, Math.Min(1f, throttleRatio * 1.5f));
+                _vibration.Gain(VibrationEffectType.Engine, (int)Math.Round(10000f * speedFactor * throttleFactor));
+            }
             else
+            {
                 _vibration.Gain(VibrationEffectType.Engine, 0);
+            }
         }
 
         private void EnsureSurfaceLoopPlaying()

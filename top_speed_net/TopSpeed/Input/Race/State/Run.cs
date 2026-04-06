@@ -47,13 +47,10 @@ namespace TopSpeed.Input
             }
 
             if (!wasControllerAvailable || !_controllerAvailable || wheelModeChanged)
-                ResetPedalBaseline();
+                ResetPedalCalibration();
 
-            if (_controllerAvailable && _controllerIsRacingWheel && !_hasPedalBaseline)
-            {
-                _pedalBaseline = _lastController;
-                _hasPedalBaseline = true;
-            }
+            if (_controllerAvailable && _controllerIsRacingWheel)
+                UpdatePedalCalibrationSamples();
 
             UpdateSimulatedInputs(deltaSeconds);
         }

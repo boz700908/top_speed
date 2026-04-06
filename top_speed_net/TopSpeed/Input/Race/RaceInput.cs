@@ -133,8 +133,10 @@ namespace TopSpeed.Input
         private bool _allowAuxiliaryInput;
         private bool _overlayInputBlocked;
         private bool _controllerIsRacingWheel;
-        private bool _hasPedalBaseline;
-        private State _pedalBaseline;
+        private readonly bool[] _hasPedalCalibration = new bool[8];
+        private readonly int[] _pedalRestValues = new int[8];
+        private readonly int[] _pedalMinValues = new int[8];
+        private readonly int[] _pedalMaxValues = new int[8];
         private float _simThrottle;
         private float _simBrake;
         private float _simSteer;

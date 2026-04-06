@@ -6,6 +6,8 @@ namespace TopSpeed.Vehicles
 {
     internal partial class Car
     {
+        private const int ManualShiftClutchThreshold = 70;
+
         public void SetNeutralGear()
         {
             _gear = NeutralGear;
@@ -116,7 +118,7 @@ namespace TopSpeed.Vehicles
 
         private static bool CanShiftManual(int clutch)
         {
-            return clutch >= 90;
+            return clutch >= ManualShiftClutchThreshold;
         }
 
         private void HandleShiftOnDemandShift(bool gearUp, bool gearDown)
