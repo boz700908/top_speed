@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using TopSpeed.Localization;
 using TopSpeed.Protocol;
@@ -23,7 +24,9 @@ namespace TopSpeed.Server
                 return 0;
             }
 
-            using var timerResolution = new WindowsTimerResolution(1);
+            using var timerResolution = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? new WindowsTimerResolution(1)
+                : null;
 
             var loggingEnabled = args.Length > 0;
             var levels = loggingEnabled ? ParseLogLevels(args) : LogLevel.None;

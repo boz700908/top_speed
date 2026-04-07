@@ -1,5 +1,6 @@
 using System;
 using TopSpeed.Protocol;
+using TopSpeed.Runtime;
 
 namespace TopSpeed.Core.Updates
 {
@@ -12,28 +13,32 @@ namespace TopSpeed.Core.Updates
             string infoUrl,
             string latestReleaseApiUrl,
             string assetTemplate,
-            string updaterExeName,
-            string gameExeName)
+            string runtimeAssetTag,
+            string updaterEntryName,
+            string gameEntryName)
         {
             InfoUrl = infoUrl ?? throw new ArgumentNullException(nameof(infoUrl));
             LatestReleaseApiUrl = latestReleaseApiUrl ?? throw new ArgumentNullException(nameof(latestReleaseApiUrl));
             AssetTemplate = assetTemplate ?? throw new ArgumentNullException(nameof(assetTemplate));
-            UpdaterExeName = updaterExeName ?? throw new ArgumentNullException(nameof(updaterExeName));
-            GameExeName = gameExeName ?? throw new ArgumentNullException(nameof(gameExeName));
+            RuntimeAssetTag = runtimeAssetTag ?? throw new ArgumentNullException(nameof(runtimeAssetTag));
+            UpdaterEntryName = updaterEntryName ?? throw new ArgumentNullException(nameof(updaterEntryName));
+            GameEntryName = gameEntryName ?? throw new ArgumentNullException(nameof(gameEntryName));
         }
 
         public string InfoUrl { get; }
         public string LatestReleaseApiUrl { get; }
         public string AssetTemplate { get; }
-        public string UpdaterExeName { get; }
-        public string GameExeName { get; }
+        public string RuntimeAssetTag { get; }
+        public string UpdaterEntryName { get; }
+        public string GameEntryName { get; }
 
         public static UpdateConfig Default { get; } = new UpdateConfig(
             $"https://raw.githubusercontent.com/{RepoOwner}/{RepoName}/main/info.json",
             $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest",
-            "TopSpeed-Release-v-{version}.zip",
-            "Updater.exe",
-            "TopSpeed.exe");
+            "TopSpeed-{runtime}-Release-v-{version}.zip",
+            RuntimeAssetResolver.DetectClientRuntimeAssetTag(),
+            "Updater",
+            "TopSpeed");
 
         public static GameVersion CurrentVersion =>
             new GameVersion(
@@ -44,7 +49,9 @@ namespace TopSpeed.Core.Updates
 
         public string BuildExpectedAssetName(string version)
         {
-            return AssetTemplate.Replace("{version}", version ?? string.Empty);
+            return AssetTemplate
+                .Replace("{runtime}", RuntimeAssetTag)
+                .Replace("{version}", version ?? string.Empty);
         }
     }
 }

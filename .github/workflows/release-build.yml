@@ -8,16 +8,19 @@ on:
       - '.gitignore'
 
 jobs:
-  build:
-    name: Build and Release
-    runs-on: windows-latest
-    permissions:
-      contents: write
-
-    defaults:
-      run:
-        working-directory: top_speed_net
-
+  metadata:
+    name: Release Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release_info.outputs.version }}
+      server_version: ${{ steps.release_info.outputs.server_version }}
+      game_zip_win: ${{ steps.release_info.outputs.game_zip_win }}
+      game_zip_linux: ${{ steps.release_info.outputs.game_zip_linux }}
+      game_zip_osx: ${{ steps.release_info.outputs.game_zip_osx }}
+      game_zip_glob: ${{ steps.release_info.outputs.game_zip_glob }}
+      server_zip_glob: ${{ steps.release_info.outputs.server_zip_glob }}
+      changes_md: ${{ steps.release_info.outputs.changes_md }}
+      server_changes_md: ${{ steps.release_info.outputs.server_changes_md }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -89,17 +92,28 @@ jobs:
         $serverChanges | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+  build_windows:
+    name: Build Windows
+    needs: metadata
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: top_speed_net
+    steps:
+    - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x # Installs .NET 8 SDK (includes msbuild capable of building net472)
+        dotnet-version: 10.0.x
 
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
+        cache: 'pip'
 
-    - name: Install doc render dependencies
+    - name: Install Python dependencies
       shell: pwsh
       run: |
         python -m pip install --upgrade pip
@@ -108,7 +122,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore TopSpeed.sln
 
-    - name: Build
+    - name: Build solution
       run: dotnet build TopSpeed.sln --configuration Release --no-restore
 
     - name: Run shared tests (net10.0)
@@ -117,83 +131,214 @@ jobs:
     - name: Run game tests (net472)
       run: dotnet test TopSpeed.Tests/TopSpeed.Tests.csproj --configuration Release --framework net472 --no-build --verbosity normal
 
-    - name: Publish TopSpeed.Server (all release profiles)
+    - name: Publish Windows server
+      run: dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseWinX64
+
+    - name: Build Windows client
+      run: dotnet build TopSpeed/TopSpeed.csproj --configuration Release --framework net472
+
+    - name: Create Windows archives
       shell: pwsh
       run: |
-        $profiles = @(
-          "ReleaseWinX64",
-          "ReleaseLinuxX64",
-          "ReleaseLinuxArm64",
-          "ReleaseLinuxArm32",
-          "ReleaseLinuxMuslX64",
-          "ReleaseLinuxMuslArm64",
-          "ReleaseLinuxX86FrameworkDependent"
+        $gameZip = "${{ needs.metadata.outputs.game_zip_win }}"
+        $serverZip = "TopSpeed.Server-win-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip"
+
+        if (Test-Path $gameZip) { Remove-Item $gameZip -Force }
+        if (Test-Path $serverZip) { Remove-Item $serverZip -Force }
+
+        Compress-Archive -Path "TopSpeed\bin\Release\net472\*" -DestinationPath $gameZip -CompressionLevel Optimal
+        Compress-Archive -Path "TopSpeed.Server\bin\Publish\win-x64\*" -DestinationPath $serverZip -CompressionLevel Optimal
+
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-assets-windows
+        path: |
+          top_speed_net/${{ needs.metadata.outputs.game_zip_win }}
+          top_speed_net/TopSpeed.Server-win-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
+
+  build_linux:
+    name: Build Linux
+    needs: metadata
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: top_speed_net
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        cache: 'pip'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install markdown
+
+    - name: Install NativeAOT toolchains
+      run: |
+        sudo dpkg --add-architecture arm64
+        sudo apt-get update
+        sudo apt-get install -y clang llvm zlib1g-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
+
+    - name: Run shared tests (net10.0)
+      run: dotnet test TopSpeed.Tests/TopSpeed.Tests.csproj --configuration Release --framework net10.0 --verbosity normal
+
+    - name: Publish Linux servers
+      shell: bash
+      run: |
+        set -euo pipefail
+        dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseLinuxX64 -p:UseNativeAotUpdater=true
+        dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseLinuxArm64 -p:UseNativeAotUpdater=true
+
+        profiles=(
+          ReleaseLinuxArm32
+          ReleaseLinuxMuslX64
+          ReleaseLinuxMuslArm64
         )
 
-        foreach ($profile in $profiles) {
-          dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=$profile
-        }
+        for profile in "${profiles[@]}"; do
+          dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile="$profile" -p:UseTrimmedUpdater=true
+        done
 
-    - name: Build TopSpeed clients
-      shell: pwsh
+        dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseLinuxX86FrameworkDependent
+
+    - name: Build Linux client with AOT updater
+      run: dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=linux-x64 -p:UseNativeAotUpdater=true
+
+    - name: Create Linux archives
+      shell: bash
       run: |
-        function Clear-ClientBuildState {
-          $paths = @(
-            "TopSpeed/obj",
-            "TS.Audio/obj",
-            "TS.Sdl/obj",
-            "MiniAudioExNET/obj",
-            "SteamAudio.NET/Src/obj",
-            "TopSpeed.Shared/obj"
+        set -euo pipefail
+
+        game_zip="${{ needs.metadata.outputs.game_zip_linux }}"
+        rm -f "$game_zip"
+        (
+          cd TopSpeed/bin/Release/net10.0/linux-x64
+          zip -rq "$GITHUB_WORKSPACE/top_speed_net/$game_zip" .
+        )
+
+        server_version="${{ needs.metadata.outputs.server_version }}"
+        targets=(
+          linux-x64
+          linux-arm64
+          linux-arm32
+          linux-musl-x64
+          linux-musl-arm64
+          linux-x86-fdd
+        )
+
+        for rid in "${targets[@]}"; do
+          destination="$GITHUB_WORKSPACE/top_speed_net/TopSpeed.Server-$rid-Release-v-$server_version.zip"
+          rm -f "$destination"
+          (
+            cd "TopSpeed.Server/bin/Publish/$rid"
+            zip -rq "$destination" .
           )
+        done
 
-          foreach ($path in $paths) {
-            if (Test-Path $path) {
-              Remove-Item -LiteralPath $path -Recurse -Force
-            }
-          }
-        }
+    - name: Upload Linux artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-assets-linux
+        path: |
+          top_speed_net/${{ needs.metadata.outputs.game_zip_linux }}
+          top_speed_net/TopSpeed.Server-linux-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
+          top_speed_net/TopSpeed.Server-linux-arm64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
+          top_speed_net/TopSpeed.Server-linux-arm32-Release-v-${{ needs.metadata.outputs.server_version }}.zip
+          top_speed_net/TopSpeed.Server-linux-musl-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
+          top_speed_net/TopSpeed.Server-linux-musl-arm64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
+          top_speed_net/TopSpeed.Server-linux-x86-fdd-Release-v-${{ needs.metadata.outputs.server_version }}.zip
 
-        Clear-ClientBuildState
-        dotnet build TopSpeed/TopSpeed.csproj --configuration Release --framework net472
+  build_macos:
+    name: Build macOS
+    needs: metadata
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: top_speed_net
+    steps:
+    - uses: actions/checkout@v4
 
-        Clear-ClientBuildState
-        dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=linux-x64
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
 
-        Clear-ClientBuildState
-        dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=osx-x64
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        cache: 'pip'
 
-    - name: Create Zip Archive
-      shell: powershell
+    - name: Install Python dependencies
       run: |
-        $clientTargets = @(
-          @{ Source = "TopSpeed\bin\Release\net472\*"; Destination = "${{ steps.release_info.outputs.game_zip_win }}" },
-          @{ Source = "TopSpeed\bin\Release\net10.0\linux-x64\*"; Destination = "${{ steps.release_info.outputs.game_zip_linux }}" },
-          @{ Source = "TopSpeed\bin\Release\net10.0\osx-x64\*"; Destination = "${{ steps.release_info.outputs.game_zip_osx }}" }
+        python -m pip install --upgrade pip
+        python -m pip install markdown
+
+    - name: Run shared tests (net10.0)
+      run: dotnet test TopSpeed.Tests/TopSpeed.Tests.csproj --configuration Release --framework net10.0 --verbosity normal
+
+    - name: Build macOS client with AOT updater
+      run: dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=osx-x64 -p:UseNativeAotUpdater=true
+
+    - name: Publish macOS server with AOT updater
+      run: dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseMacX64 -p:UseNativeAotUpdater=true
+
+    - name: Create macOS archives
+      shell: bash
+      run: |
+        set -euo pipefail
+        game_zip="${{ needs.metadata.outputs.game_zip_osx }}"
+        server_zip="TopSpeed.Server-mac-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip"
+        rm -f "$game_zip"
+        rm -f "$server_zip"
+        (
+          cd TopSpeed/bin/Release/net10.0/osx-x64
+          zip -rq "$GITHUB_WORKSPACE/top_speed_net/$game_zip" .
+        )
+        (
+          cd TopSpeed.Server/bin/Publish/mac-x64
+          zip -rq "$GITHUB_WORKSPACE/top_speed_net/$server_zip" .
         )
 
-        foreach ($target in $clientTargets) {
-          if (Test-Path $target.Destination) { Remove-Item $target.Destination -Force }
-          Compress-Archive -Path $target.Source -DestinationPath $target.Destination -CompressionLevel Optimal
-        }
+    - name: Upload macOS artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-assets-macos
+        path: |
+          top_speed_net/${{ needs.metadata.outputs.game_zip_osx }}
+          top_speed_net/TopSpeed.Server-mac-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
 
-        $serverVersion = "${{ steps.release_info.outputs.server_version }}"
-        $targets = @(
-          "win-x64",
-          "linux-x64",
-          "linux-arm64",
-          "linux-arm32",
-          "linux-musl-x64",
-          "linux-musl-arm64",
-          "linux-x86-fdd"
-        )
+  release:
+    name: Publish Release
+    needs:
+      - metadata
+      - build_windows
+      - build_linux
+      - build_macos
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-        foreach ($rid in $targets) {
-          $source = "TopSpeed.Server\publish\$rid\*"
-          $destination = "TopSpeed.Server-$rid-Release-v-$serverVersion.zip"
-          if (Test-Path $destination) { Remove-Item $destination -Force }
-          Compress-Archive -Path $source -DestinationPath $destination -CompressionLevel Optimal
-        }
+    - name: Download release artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: release-assets-*
+        path: release-assets
+        merge-multiple: true
 
     - name: Generate Commit Log
       id: changelog
@@ -253,16 +398,16 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: release-build
-        name: Release Build v${{ steps.release_info.outputs.version }}
+        name: Release Build v${{ needs.metadata.outputs.version }}
         body: |
-          Game version: ${{ steps.release_info.outputs.version }}
-          Server version: ${{ steps.release_info.outputs.server_version }}
+          Game version: ${{ needs.metadata.outputs.version }}
+          Server version: ${{ needs.metadata.outputs.server_version }}
 
           ### Game Changes
-          ${{ steps.release_info.outputs.changes_md }}
+          ${{ needs.metadata.outputs.changes_md }}
 
           ### Server Changes
-          ${{ steps.release_info.outputs.server_changes_md }}
+          ${{ needs.metadata.outputs.server_changes_md }}
 
           ### Recent Commits
           ${{ steps.changelog.outputs.COMMIT_LOG }}
@@ -271,6 +416,4 @@ jobs:
           *Build from commit ${{ github.sha }}*
         draft: false
         prerelease: false
-        files: |
-          top_speed_net/${{ steps.release_info.outputs.game_zip_glob }}
-          top_speed_net/${{ steps.release_info.outputs.server_zip_glob }}
+        files: release-assets/*.zip

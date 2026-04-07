@@ -18,10 +18,12 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>linux-x64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != ''">
@@ -35,6 +37,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == 'osx-x64'">
+    <MacBuildBundle>false</MacBuildBundle>
     <PublishDir>bin\Publish\osx-x64\</PublishDir>
   </PropertyGroup>
 
@@ -193,9 +196,20 @@
   </Target>
 
   <Target Name="CopyUpdater" AfterTargets="Build" Condition="'$(TargetFramework)' == 'net472'">
-    <MSBuild Projects="..\Updater\Updater.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+    <MSBuild Projects="..\Updater\Updater.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=net472" />
     <Copy SourceFiles="..\Updater\bin\$(Configuration)\net472\Updater.exe" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="..\Updater\bin\$(Configuration)\net472\Updater.pdb" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('..\Updater\bin\$(Configuration)\net472\Updater.pdb')" />
+  </Target>
+
+  <Target Name="CopyUpdaterNet10" AfterTargets="Build" Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != ''">
+    <PropertyGroup>
+      <_UpdaterBinaryName Condition="'$(RuntimeIdentifier)' == 'win-x64'">Updater.exe</_UpdaterBinaryName>
+      <_UpdaterBinaryName Condition="'$(_UpdaterBinaryName)' == ''">Updater</_UpdaterBinaryName>
+      <_UpdaterPublishDir>..\Updater\bin\$(Configuration)\net10.0\$(RuntimeIdentifier)\publish\</_UpdaterPublishDir>
+    </PropertyGroup>
+    <MSBuild Projects="..\Updater\Updater.csproj" Targets="Restore;Publish" Properties="Configuration=$(Configuration);TargetFramework=net10.0;RuntimeIdentifier=$(RuntimeIdentifier);UseNativeAotUpdater=$(UseNativeAotUpdater);UseTrimmedUpdater=$(UseTrimmedUpdater)" />
+    <Copy SourceFiles="$(_UpdaterPublishDir)$(_UpdaterBinaryName)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(_UpdaterPublishDir)Updater.pdb" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('$(_UpdaterPublishDir)Updater.pdb')" />
   </Target>
 
   <Target Name="ValidateNet10RuntimeIdentifier" BeforeTargets="Build;Publish" Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == ''">
@@ -206,5 +220,4 @@
     <Error Text="net10.0-windows must be built/published with runtime identifier win-x64." />
   </Target>
 
-  <Target Name="MacCopyPublishFiles" Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == 'osx-x64'" />
 </Project>

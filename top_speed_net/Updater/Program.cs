@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 
 namespace TopSpeed.Updater
 {
@@ -106,8 +107,7 @@ namespace TopSpeed.Updater
                     if (string.IsNullOrEmpty(entry.Name))
                         continue;
 
-                    if (!string.IsNullOrWhiteSpace(options.SkipFileName) &&
-                        string.Equals(entry.Name, options.SkipFileName, StringComparison.OrdinalIgnoreCase))
+                    if (ShouldSkipEntry(options.SkipFileName, entry.Name))
                     {
                         continue;
                     }
@@ -131,7 +131,9 @@ namespace TopSpeed.Updater
         {
             var gamePath = ResolveGamePath(options.TargetDir, options.GameExeName);
             if (string.IsNullOrWhiteSpace(gamePath) || !File.Exists(gamePath))
-                throw new FileNotFoundException("Updated game executable was not found.", Path.Combine(options.TargetDir, options.GameExeName));
+                throw new FileNotFoundException(
+                    "Updated game executable was not found.",
+                    Path.Combine(options.TargetDir, ResolveExecutableFileName(options.GameExeName)));
 
             var workingDirectory = Path.GetDirectoryName(gamePath);
             if (string.IsNullOrWhiteSpace(workingDirectory))
@@ -147,11 +149,12 @@ namespace TopSpeed.Updater
 
         private static string ResolveGamePath(string targetDir, string gameExeName)
         {
-            var directPath = Path.Combine(targetDir, gameExeName);
+            var resolvedFileName = ResolveExecutableFileName(gameExeName);
+            var directPath = Path.Combine(targetDir, resolvedFileName);
             if (File.Exists(directPath))
                 return directPath;
 
-            var matches = Directory.GetFiles(targetDir, gameExeName, SearchOption.AllDirectories);
+            var matches = Directory.GetFiles(targetDir, resolvedFileName, SearchOption.AllDirectories);
             if (matches.Length == 0)
                 return directPath;
             if (matches.Length == 1)
@@ -173,6 +176,19 @@ namespace TopSpeed.Updater
             return bestMatch;
         }
 
+        private static bool ShouldSkipEntry(string skipStem, string entryName)
+        {
+            if (string.IsNullOrWhiteSpace(skipStem) || string.IsNullOrWhiteSpace(entryName))
+                return false;
+
+            var runtimeFileName = ResolveExecutableFileName(skipStem);
+            if (string.Equals(entryName, runtimeFileName, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            var entryStem = Path.GetFileNameWithoutExtension(entryName);
+            return string.Equals(entryStem, skipStem, StringComparison.OrdinalIgnoreCase);
+        }
+
         private static int GetPathDepth(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -186,6 +202,16 @@ namespace TopSpeed.Updater
 
             var segments = relative.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
             return segments.Length;
+        }
+
+        private static string ResolveExecutableFileName(string stem)
+        {
+            if (string.IsNullOrWhiteSpace(stem))
+                throw new ArgumentException("Executable stem is required.", nameof(stem));
+
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? stem + ".exe"
+                : stem;
         }
 
 

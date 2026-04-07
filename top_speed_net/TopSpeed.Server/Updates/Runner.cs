@@ -6,6 +6,7 @@ using System.Threading;
 using TopSpeed.Server.Logging;
 
 using TopSpeed.Localization;
+using TopSpeed.Runtime;
 namespace TopSpeed.Server.Updates
 {
     internal sealed class ServerUpdateRunner
@@ -111,10 +112,12 @@ namespace TopSpeed.Server.Updates
         private bool StartUpdater(string zipPath)
         {
             var root = AppContext.BaseDirectory;
-            var updaterPath = Path.Combine(root, _config.UpdaterExeName);
+            var updaterPath = ResolveExecutablePath(root, _config.UpdaterEntryName);
             if (!File.Exists(updaterPath))
             {
-                ConsoleSink.WriteLineFormat(LocalizationService.Mark("Updater not found: {0}"), _config.UpdaterExeName);
+                ConsoleSink.WriteLineFormat(
+                    LocalizationService.Mark("Updater not found: {0}"),
+                    RuntimeAssetResolver.ResolveExecutableFileName(_config.UpdaterEntryName));
                 return false;
             }
 
@@ -135,9 +138,9 @@ namespace TopSpeed.Server.Updates
                 startInfo.ArgumentList.Add("--dir");
                 startInfo.ArgumentList.Add(root);
                 startInfo.ArgumentList.Add("--game");
-                startInfo.ArgumentList.Add(_config.ServerExeName);
+                startInfo.ArgumentList.Add(_config.ServerEntryName);
                 startInfo.ArgumentList.Add("--skip");
-                startInfo.ArgumentList.Add(_config.UpdaterExeName);
+                startInfo.ArgumentList.Add(_config.UpdaterEntryName);
                 Process.Start(startInfo);
                 return true;
             }
@@ -149,6 +152,23 @@ namespace TopSpeed.Server.Updates
                 ConsoleSink.WriteLineFormat(LocalizationService.Mark("Could not launch updater: {0}"), ex.Message);
                 return false;
             }
+        }
+
+        private static string ResolveExecutablePath(string root, string executableStem)
+        {
+            var fileName = RuntimeAssetResolver.ResolveExecutableFileName(executableStem);
+            var directPath = Path.Combine(root, fileName);
+            if (File.Exists(directPath))
+                return directPath;
+
+            var matches = Directory.GetFiles(root, fileName, SearchOption.AllDirectories);
+            if (matches.Length == 0)
+                return directPath;
+            if (matches.Length == 1)
+                return matches[0];
+
+            Array.Sort(matches, StringComparer.OrdinalIgnoreCase);
+            return matches[0];
         }
 
         private static bool TryPromptYesNo(string prompt, out bool value)

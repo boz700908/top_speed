@@ -1,16 +1,11 @@
 {
-  "version": "2026.4.6.2",
-  "serverVersion": "2026.4.6.1",
+  "version": "2026.4.7.1",
+  "serverVersion": "2026.4.7.1",
   "changes": [
-    "Fixed some bugs when the vehicle crosses the finish line.",
-    "Improved and retuned all official vehicles significantly and fixed the problem of unusable top gears.",
-    "Rewrote the drag model to be more physical-based instead of using synthetic numbers. Now it also handles wind, and track weather is affected by that. This is still a partial work and tracks need to be updated.",
-    "Fixed a few errors with speech backend switching.",
-    "Menu movement speech is now interruptable. This fixes the problem of SAPI speaking old text while moving in menus."
+    "Fixed a few updater issues."
   ],
   "serverChanges": [
-    "Some server protocol changes, mostly for tracks.",
-    "Updated server room model and explicit race finish events for players.",
-    "Fixed bugs with race finish events."
+    "Reworked server updater to actually work for Linux and Mac. Previously it was trying to use a Windows executable for all platforms, which was a major bug.",
+    "Upgraded the server to net-10.0 to align with the modern client for all platforms other than Windows. This has very little effect for the normal user."
   ]
 }

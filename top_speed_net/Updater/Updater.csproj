@@ -1,16 +1,49 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace>TopSpeed.Updater</RootNamespace>
     <AssemblyName>Updater</AssemblyName>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
-  <ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PlatformTarget>x64</PlatformTarget>
+    <PublishAot>false</PublishAot>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;linux-arm64;linux-arm;linux-musl-x64;linux-musl-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' != ''">
+    <UseNativeAotUpdater Condition="'$(UseNativeAotUpdater)' == ''">false</UseNativeAotUpdater>
+    <UseTrimmedUpdater Condition="'$(UseTrimmedUpdater)' == ''">false</UseTrimmedUpdater>
+    <SelfContained Condition="'$(UseNativeAotUpdater)' != 'true'">true</SelfContained>
+    <PublishSingleFile Condition="'$(UseNativeAotUpdater)' != 'true'">true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(UseNativeAotUpdater)' != 'true'">true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed Condition="'$(UseNativeAotUpdater)' != 'true' and '$(UseTrimmedUpdater)' != 'true'">false</PublishTrimmed>
+    <PublishTrimmed Condition="'$(UseTrimmedUpdater)' == 'true'">true</PublishTrimmed>
+    <TrimMode Condition="'$(UseTrimmedUpdater)' == 'true'">partial</TrimMode>
+    <InvariantGlobalization Condition="'$(UseTrimmedUpdater)' == 'true'">true</InvariantGlobalization>
+    <UseSystemResourceKeys Condition="'$(UseTrimmedUpdater)' == 'true'">true</UseSystemResourceKeys>
+    <PublishAot Condition="'$(UseNativeAotUpdater)' == 'true'">true</PublishAot>
+    <PublishTrimmed Condition="'$(UseNativeAotUpdater)' == 'true'">true</PublishTrimmed>
+    <StripSymbols Condition="'$(UseNativeAotUpdater)' == 'true'">true</StripSymbols>
+    <DebugType Condition="'$(UseNativeAotUpdater)' == 'true'">None</DebugType>
+    <InvariantGlobalization Condition="'$(UseNativeAotUpdater)' == 'true'">true</InvariantGlobalization>
+    <IlcOptimizationPreference Condition="'$(UseNativeAotUpdater)' == 'true'">Size</IlcOptimizationPreference>
+    <UseSystemResourceKeys Condition="'$(UseNativeAotUpdater)' == 'true'">true</UseSystemResourceKeys>
+    <DebuggerSupport Condition="'$(UseNativeAotUpdater)' == 'true'">false</DebuggerSupport>
+    <EventSourceSupport Condition="'$(UseNativeAotUpdater)' == 'true'">false</EventSourceSupport>
+    <MetadataUpdaterSupport Condition="'$(UseNativeAotUpdater)' == 'true'">false</MetadataUpdaterSupport>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
+
 </Project>
