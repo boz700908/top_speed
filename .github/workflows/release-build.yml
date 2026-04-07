@@ -148,10 +148,27 @@ jobs:
         Compress-Archive -Path "TopSpeed\bin\Release\net472\*" -DestinationPath $gameZip -CompressionLevel Optimal
         Compress-Archive -Path "TopSpeed.Server\bin\Publish\win-x64\*" -DestinationPath $serverZip -CompressionLevel Optimal
 
+    - name: Verify Windows archives
+      shell: pwsh
+      run: |
+        $gameZip = "${{ needs.metadata.outputs.game_zip_win }}"
+        $serverZip = "TopSpeed.Server-win-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip"
+
+        if (-not (Test-Path $gameZip)) {
+          throw "Missing Windows client archive: $gameZip"
+        }
+
+        if (-not (Test-Path $serverZip)) {
+          throw "Missing Windows server archive: $serverZip"
+        }
+
+        Get-Item $gameZip, $serverZip | Select-Object Name, Length
+
     - name: Upload Windows artifacts
       uses: actions/upload-artifact@v4
       with:
         name: release-assets-windows
+        if-no-files-found: error
         path: |
           top_speed_net/${{ needs.metadata.outputs.game_zip_win }}
           top_speed_net/TopSpeed.Server-win-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
@@ -260,6 +277,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-assets-linux
+        if-no-files-found: error
         path: |
           top_speed_net/${{ needs.metadata.outputs.game_zip_linux }}
           top_speed_net/TopSpeed.Server-linux-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
@@ -324,6 +342,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-assets-macos
+        if-no-files-found: error
         path: |
           top_speed_net/${{ needs.metadata.outputs.game_zip_osx }}
           top_speed_net/TopSpeed.Server-mac-x64-Release-v-${{ needs.metadata.outputs.server_version }}.zip
@@ -349,6 +368,12 @@ jobs:
         pattern: release-assets-*
         path: release-assets
         merge-multiple: true
+
+    - name: Verify downloaded release artifacts
+      shell: bash
+      run: |
+        set -euo pipefail
+        find release-assets -type f -name '*.zip' | sort
 
     - name: Generate Commit Log
       id: changelog
@@ -426,4 +451,4 @@ jobs:
           *Build from commit ${{ github.sha }}*
         draft: false
         prerelease: false
-        files: release-assets/*.zip
+        files: release-assets/**/*.zip
