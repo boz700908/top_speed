@@ -208,7 +208,6 @@ jobs:
       run: |
         set -euo pipefail
         dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseLinuxX64 -p:UseNativeAotUpdater=true
-#         dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseLinuxArm64 -p:UseNativeAotUpdater=true
         dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseLinuxArm64 -p:UseTrimmedUpdater=true
 
         profiles=(
