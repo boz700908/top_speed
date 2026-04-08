@@ -49,7 +49,12 @@ namespace TopSpeed.Vehicles
 
             coupledRpm = Math.Max(minimumOperationalRpm, Math.Min(_revLimiter, coupledRpm));
             var clampedCouplingFactor = Math.Max(0f, Math.Min(1f, couplingFactor));
-            var baseRpm = lockToDriveline ? coupledRpm : (_rpm > 0f ? _rpm : coupledRpm);
+            var canBackDriveThroughCoupling = !disengaged && clampedCouplingFactor > 0.001f;
+            var baseRpm = lockToDriveline
+                ? coupledRpm
+                : (_rpm > 0f
+                    ? _rpm
+                    : (canBackDriveThroughCoupling ? coupledRpm : 0f));
             var clampedBaseRpm = Math.Max(minimumOperationalRpm, Math.Min(_revLimiter, baseRpm));
             var torqueAvailable = _torqueCurve.EvaluateTorque(clampedBaseRpm);
             var maximumEngineTorque = torqueAvailable * _powerFactor;
