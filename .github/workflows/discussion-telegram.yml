@@ -1,0 +1,120 @@
+name: Discussion Telegram Notifications
+
+on:
+  discussion:
+    types:
+      - created
+  discussion_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  discussions: read
+
+jobs:
+  notify_telegram:
+    name: Notify Telegram
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Telegram secrets
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+            echo "Missing repository secret: TELEGRAM_BOT_TOKEN" >&2
+            exit 1
+          fi
+
+          if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
+            echo "Missing repository secret: TELEGRAM_CHAT_ID" >&2
+            exit 1
+          fi
+
+      - name: Build Telegram message
+        id: message
+        shell: bash
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import html
+          import json
+          import os
+
+          event_path = os.environ["GITHUB_EVENT_PATH"]
+          event_name = os.environ["GITHUB_EVENT_NAME"]
+
+          with open(event_path, "r", encoding="utf-8") as handle:
+              payload = json.load(handle)
+
+          def clean_text(value: str | None, limit: int = 3500) -> str:
+              if not value:
+                  return ""
+              text = str(value).replace("\r\n", "\n").replace("\r", "\n").strip()
+              if len(text) <= limit:
+                  return text
+              return text[: limit - 3].rstrip() + "..."
+
+          discussion = payload["discussion"]
+          discussion_title = html.escape(discussion.get("title", "Discussion"))
+          discussion_url = discussion.get("html_url", "")
+          discussion_number = discussion.get("number", "")
+          category = html.escape((discussion.get("category") or {}).get("name", "Uncategorized"))
+          author = html.escape((discussion.get("user") or {}).get("login", "unknown"))
+
+          if event_name == "discussion":
+              body_preview = html.escape(clean_text(discussion.get("body", "")))
+              lines = [
+                  f"<b>New GitHub discussion #{discussion_number}:</b> {discussion_title}",
+                  f"<b>By:</b> {author}",
+                  f"<b>Category:</b> {category}",
+              ]
+              if body_preview:
+                  lines.append(f"<b>Description:</b>\n{body_preview}")
+              lines.append(f'<a href="{html.escape(discussion_url, quote=True)}">Open discussion</a>')
+          elif event_name == "discussion_comment":
+              comment = payload["comment"]
+              comment_author = html.escape((comment.get("user") or {}).get("login", "unknown"))
+              comment_url = comment.get("html_url") or discussion_url
+              comment_preview = html.escape(clean_text(comment.get("body", "")))
+              lines = [
+                  f"<b>New comment on discussion #{discussion_number}:</b> {discussion_title}",
+                  f"<b>By:</b> {comment_author}",
+              ]
+              if comment_preview:
+                  lines.append(comment_preview)
+              lines.append(f'<a href="{html.escape(comment_url, quote=True)}">Open comment</a>')
+          else:
+              raise SystemExit(f"Unsupported event type: {event_name}")
+
+          message = "\n".join(lines)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("text<<EOF\n")
+              output.write(message)
+              output.write("\nEOF\n")
+          PY
+
+      - name: Send Telegram notification
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TEXT: ${{ steps.message.outputs.text }}
+        run: |
+          set -euo pipefail
+
+          curl --fail --silent --show-error \
+            --request POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TELEGRAM_TEXT}" \
+            --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_web_page_preview=true"

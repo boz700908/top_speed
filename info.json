@@ -4,7 +4,7 @@
   "changes": [
     "Update the drag and resistance model to be more explicit and more customizable per vehicle.",
     "Fixed a bug with deceleration when clutch is helled. The vehicle wouldn't apply wheel losses.",
-    "Fixed a bug with the engine where if you hold the clutch and the vehicle is coasting it would try to constantly start after you turn it off.",
+    "Fixed a bug with the engine where if you hold the clutch and the vehicle is coasting it would try to constantly start after you turn it off."
   ],
   "serverChanges": [
     "Reworked server updater to actually work for Linux and Mac. Previously it was trying to use a Windows executable for all platforms, which was a major bug.",
