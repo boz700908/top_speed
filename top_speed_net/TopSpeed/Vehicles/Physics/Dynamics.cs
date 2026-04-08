@@ -6,6 +6,8 @@ namespace TopSpeed.Vehicles
 {
     internal partial class Car
     {
+        private const float ParkingHoldBrakeInput = 1f;
+
         internal void RunDynamics(float elapsed, in CarControlIntent controlIntent)
         {
             if (_state == CarState.Running && _started())
@@ -87,9 +89,33 @@ namespace TopSpeed.Vehicles
         {
             _currentThrottle = 0;
             _currentBrake = 0;
-            _speed -= (elapsed * 100f * _deceleration);
-            if (_speed < 0f)
-                _speed = 0f;
+            var result = LongitudinalStep.Compute(
+                new LongitudinalStepInput(
+                    _powertrainConfiguration,
+                    elapsed,
+                    Math.Max(0f, _speed / 3.6f),
+                    throttle: 0f,
+                    brake: ParkingHoldBrakeInput,
+                    surfaceTractionModifier: 1f,
+                    surfaceBrakeModifier: ResolveSurfaceBrakeModifier(),
+                    surfaceRollingResistanceModifier: ResolveSurfaceRollingResistanceModifier(),
+                    longitudinalGripFactor: 1f,
+                    GetDriveGear(),
+                    _gear == ReverseGear,
+                    IsNeutralGear(),
+                    EffectiveTransmissionType(),
+                    _drivelineCouplingFactor,
+                    creepAccelerationMps2: 0f,
+                    currentEngineRpm: _engine.Rpm,
+                    requestDrive: false,
+                    requestBrake: true,
+                    applyEngineBraking: false,
+                    resistanceEnvironment: _track.GetResistanceEnvironment(),
+                    driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null,
+                    gearPathEngaged: HasSelectedGearPath()));
+            _speed = Math.Max(0f, _speed + result.SpeedDeltaKph);
+            _speedDiff = result.SpeedDeltaKph;
+            _lastDriveRpm = 0f;
 
             SyncEngineFromSpeed(elapsed, out var couplingMode, out var rawCoupledDriveRpm);
             UpdateEngineRotationState(couplingMode, rawCoupledDriveRpm);

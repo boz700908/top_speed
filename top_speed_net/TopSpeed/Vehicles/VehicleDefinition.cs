@@ -20,7 +20,6 @@ namespace TopSpeed.Vehicles
         /// Base traction scaling used for surface modifiers (higher = more grip).
         /// </summary>
         public float SurfaceTractionFactor { get; set; }
-        public float Deceleration { get; set; }
         public float TopSpeed { get; set; }
         public int IdleFreq { get; set; }
         public int TopFreq { get; set; }
@@ -53,6 +52,8 @@ namespace TopSpeed.Vehicles
         public float SideAreaM2 { get; set; } = -1f;
         public float RollingResistanceCoefficient { get; set; } = 0.015f;
         public float RollingResistanceSpeedFactor { get; set; } = -1f;
+        public float WheelSideDragBaseN { get; set; } = -1f;
+        public float WheelSideDragLinearNPerMps { get; set; } = -1f;
         public float LaunchRpm { get; set; } = 1800f;
         public float CoupledDrivelineDragNm { get; set; } = -1f;
         public float CoupledDrivelineViscousDragNmPerKrpm { get; set; } = -1f;

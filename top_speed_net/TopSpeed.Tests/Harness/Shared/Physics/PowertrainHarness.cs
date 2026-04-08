@@ -19,7 +19,7 @@ namespace TopSpeed.Tests
                 spec.PeakTorqueNm,
                 spec.RedlineTorqueNm);
 
-            return new Config(
+            return PowertrainBuild.Create(new BuildInput(
                 massKg: spec.MassKg,
                 drivetrainEfficiency: spec.DrivetrainEfficiency,
                 engineBrakingTorqueNm: spec.EngineBrakingTorqueNm,
@@ -40,9 +40,12 @@ namespace TopSpeed.Tests
                 sideAreaM2: spec.SideAreaM2 > 0f ? spec.SideAreaM2 : spec.FrontalAreaM2 * 1.8f,
                 rollingResistanceCoefficient: spec.RollingResistanceCoefficient,
                 rollingResistanceSpeedFactor: spec.RollingResistanceSpeedFactor >= 0f ? spec.RollingResistanceSpeedFactor : 0.01f,
+                wheelSideDragBaseN: spec.WheelSideDragBaseN >= 0f ? spec.WheelSideDragBaseN : 0f,
+                wheelSideDragLinearNPerMps: spec.WheelSideDragLinearNPerMps >= 0f ? spec.WheelSideDragLinearNPerMps : 0f,
                 launchRpm: spec.LaunchRpm,
                 reversePowerFactor: spec.ReversePowerFactor,
                 reverseGearRatio: spec.ReverseGearRatio,
+                reverseMaxSpeedKph: spec.ReverseMaxSpeedKph,
                 engineInertiaKgm2: spec.EngineInertiaKgm2,
                 engineFrictionTorqueNm: spec.EngineFrictionTorqueNm,
                 drivelineCouplingRate: spec.DrivelineCouplingRate,
@@ -51,15 +54,15 @@ namespace TopSpeed.Tests
                 torqueCurve: torqueCurve,
                 coupledDrivelineDragNm: spec.CoupledDrivelineDragNm >= 0f ? spec.CoupledDrivelineDragNm : 18f,
                 coupledDrivelineViscousDragNmPerKrpm: spec.CoupledDrivelineViscousDragNmPerKrpm >= 0f ? spec.CoupledDrivelineViscousDragNmPerKrpm : 6f,
-                engineFrictionLinearNmPerKrpm: spec.FrictionLinearNmPerKrpm >= 0f ? spec.FrictionLinearNmPerKrpm : 0f,
-                engineFrictionQuadraticNmPerKrpm2: spec.FrictionQuadraticNmPerKrpm2 >= 0f ? spec.FrictionQuadraticNmPerKrpm2 : 0f,
+                frictionLinearNmPerKrpm: spec.FrictionLinearNmPerKrpm >= 0f ? spec.FrictionLinearNmPerKrpm : 0f,
+                frictionQuadraticNmPerKrpm2: spec.FrictionQuadraticNmPerKrpm2 >= 0f ? spec.FrictionQuadraticNmPerKrpm2 : 0f,
                 idleControlWindowRpm: spec.IdleControlWindowRpm >= 0f ? spec.IdleControlWindowRpm : 150f,
                 idleControlGainNmPerRpm: spec.IdleControlGainNmPerRpm >= 0f ? spec.IdleControlGainNmPerRpm : 0.08f,
                 minCoupledRiseIdleRpmPerSecond: spec.MinCoupledRiseIdleRpmPerSecond >= 0f ? spec.MinCoupledRiseIdleRpmPerSecond : 2200f,
                 minCoupledRiseFullRpmPerSecond: spec.MinCoupledRiseFullRpmPerSecond >= 0f ? spec.MinCoupledRiseFullRpmPerSecond : 6200f,
                 engineOverrunIdleLossFraction: spec.EngineOverrunIdleLossFraction >= 0f ? spec.EngineOverrunIdleLossFraction : 0.35f,
                 overrunCurveExponent: spec.OverrunCurveExponent >= 0f ? spec.OverrunCurveExponent : 1f,
-                engineBrakeTransferEfficiency: spec.EngineBrakeTransferEfficiency >= 0f ? spec.EngineBrakeTransferEfficiency : 0.68f);
+                engineBrakeTransferEfficiency: spec.EngineBrakeTransferEfficiency >= 0f ? spec.EngineBrakeTransferEfficiency : 0.68f)).Powertrain;
         }
 
         public static CoastTrace SimulateNeutralCoast(OfficialVehicleSpec spec, float startSpeedKph = 100f, float seconds = 8f)
@@ -73,17 +76,37 @@ namespace TopSpeed.Tests
             for (var i = 0; i < steps; i++)
             {
                 var speedMps = speedKph / 3.6f;
-                var aerodynamicDecel = Calculator.AerodynamicDecelKph(config, speedMps, ResistanceEnvironment.Calm);
-                var rollingDecel = Calculator.RollingResistanceDecelKph(config, speedMps, 1f);
-                speedKph = Math.Max(0f, speedKph - ((aerodynamicDecel + rollingDecel) * elapsed));
+                var result = LongitudinalStep.Compute(new LongitudinalStepInput(
+                    config,
+                    elapsed,
+                    speedMps,
+                    throttle: 0f,
+                    brake: 0f,
+                    surfaceTractionModifier: 1f,
+                    surfaceBrakeModifier: 1f,
+                    surfaceRollingResistanceModifier: 1f,
+                    longitudinalGripFactor: 1f,
+                    gear: config.Gears,
+                    inReverse: false,
+                    isNeutral: true,
+                    transmissionType: spec.PrimaryTransmissionType,
+                    drivelineCouplingFactor: 0f,
+                    creepAccelerationMps2: 0f,
+                    currentEngineRpm: config.IdleRpm,
+                    requestDrive: false,
+                    requestBrake: false,
+                    applyEngineBraking: false,
+                    resistanceEnvironment: ResistanceEnvironment.Calm));
+                speedKph = Math.Max(0f, speedKph + result.SpeedDeltaKph);
 
                 if (i % 20 == 0 || i == steps - 1)
                 {
                     samples.Add(new CoastSample(
                         TimeSeconds: Rounding.F((i + 1) * elapsed, 2),
                         SpeedKph: Rounding.F(speedKph, 2),
-                        AerodynamicDecelKph: Rounding.F(aerodynamicDecel),
-                        RollingResistanceDecelKph: Rounding.F(rollingDecel)));
+                        AerodynamicDecelKph: Rounding.F(result.AerodynamicDecelKph),
+                        RollingResistanceDecelKph: Rounding.F(result.RollingResistanceDecelKph),
+                        WheelSideDragDecelKph: Rounding.F(result.WheelSideDragDecelKph)));
                 }
             }
 
@@ -106,6 +129,8 @@ namespace TopSpeed.Tests
                     PreviousGearKph: spec.GearRatios.Length > 1 ? Rounding.F(GearTopSpeedKph(spec, spec.GearRatios.Length - 1), 1) : 0f,
                     SideAreaM2: Rounding.F(spec.SideAreaM2 > 0f ? spec.SideAreaM2 : spec.FrontalAreaM2 * 1.8f),
                     RollingResistanceSpeedFactor: Rounding.F(spec.RollingResistanceSpeedFactor >= 0f ? spec.RollingResistanceSpeedFactor : 0.01f),
+                    WheelSideDragBaseN: Rounding.F(spec.WheelSideDragBaseN >= 0f ? spec.WheelSideDragBaseN : 0f),
+                    WheelSideDragLinearNPerMps: Rounding.F(spec.WheelSideDragLinearNPerMps >= 0f ? spec.WheelSideDragLinearNPerMps : 0f),
                     CoupledDrivelineDragNm: Rounding.F(spec.CoupledDrivelineDragNm >= 0f ? spec.CoupledDrivelineDragNm : 18f),
                     CoupledDrivelineViscousDragNmPerKrpm: Rounding.F(spec.CoupledDrivelineViscousDragNmPerKrpm >= 0f ? spec.CoupledDrivelineViscousDragNmPerKrpm : 6f)))
                 .ToArray();
@@ -168,6 +193,7 @@ namespace TopSpeed.Tests
                     gear,
                     false,
                     isNeutral,
+                    spec.PrimaryTransmissionType,
                     coupling,
                     0f,
                     rpm,
@@ -214,7 +240,8 @@ internal sealed record CoastSample(
     float TimeSeconds,
     float SpeedKph,
     float AerodynamicDecelKph,
-    float RollingResistanceDecelKph);
+    float RollingResistanceDecelKph,
+    float WheelSideDragDecelKph);
 
     internal sealed record VehicleCatalogSnapshot(
         string Vehicle,
@@ -225,6 +252,8 @@ internal sealed record CoastSample(
     float PreviousGearKph,
     float SideAreaM2,
     float RollingResistanceSpeedFactor,
+    float WheelSideDragBaseN,
+    float WheelSideDragLinearNPerMps,
     float CoupledDrivelineDragNm,
     float CoupledDrivelineViscousDragNmPerKrpm);
 

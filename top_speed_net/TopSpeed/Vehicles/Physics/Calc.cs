@@ -21,7 +21,7 @@ namespace TopSpeed.Vehicles
 
         private void ApplySurfaceModifiers()
         {
-            var modifiers = SurfaceModel.Resolve(_surface, _surfaceTractionFactor, _deceleration);
+            var modifiers = SurfaceModel.Resolve(_surface, _surfaceTractionFactor);
             _currentSurfaceTractionFactor = modifiers.Traction;
             _currentSurfaceBrakeFactor = modifiers.Brake;
             _currentSurfaceRollingResistanceFactor = modifiers.RollingResistance;

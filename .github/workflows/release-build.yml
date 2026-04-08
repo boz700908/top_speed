@@ -315,8 +315,8 @@ jobs:
     - name: Run shared tests (net10.0)
       run: dotnet test TopSpeed.Tests/TopSpeed.Tests.csproj --configuration Release --framework net10.0 --verbosity normal
 
-    - name: Build macOS client with AOT updater
-      run: dotnet build TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=osx-x64 -p:UseNativeAotUpdater=true
+    - name: Publish macOS client with AOT updater
+      run: dotnet publish TopSpeed/TopSpeed.csproj --configuration Release -p:RuntimeIdentifier=osx-x64 -p:UseNativeAotUpdater=true
 
     - name: Publish macOS server with AOT updater
       run: dotnet publish TopSpeed.Server/TopSpeed.Server.csproj --configuration Release -p:ServerPublishProfile=ReleaseMacX64 -p:UseNativeAotUpdater=true
@@ -330,8 +330,8 @@ jobs:
         rm -f "$game_zip"
         rm -f "$server_zip"
         (
-          cd TopSpeed/bin/Release/net10.0/osx-x64
-          zip -rq "$GITHUB_WORKSPACE/top_speed_net/$game_zip" .
+          cd TopSpeed/bin/Publish/osx-x64
+          ditto -c -k --sequesterRsrc --keepParent TopSpeed.app "$GITHUB_WORKSPACE/top_speed_net/$game_zip"
         )
         (
           cd TopSpeed.Server/bin/Publish/mac-x64

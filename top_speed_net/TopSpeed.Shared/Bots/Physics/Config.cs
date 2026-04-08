@@ -9,7 +9,6 @@ namespace TopSpeed.Bots
     {
         public BotPhysicsConfig(
             float surfaceTractionFactor,
-            float deceleration,
             float topSpeedKph,
             float massKg,
             float drivetrainEfficiency,
@@ -31,6 +30,8 @@ namespace TopSpeed.Bots
             float sideAreaM2,
             float rollingResistanceCoefficient,
             float rollingResistanceSpeedFactor,
+            float wheelSideDragBaseN,
+            float wheelSideDragLinearNPerMps,
             float launchRpm,
             float reversePowerFactor,
             float reverseGearRatio,
@@ -98,6 +99,8 @@ namespace TopSpeed.Bots
                     sideAreaM2: sideAreaM2,
                     rollingResistanceCoefficient: rollingResistanceCoefficient,
                     rollingResistanceSpeedFactor: rollingResistanceSpeedFactor,
+                    wheelSideDragBaseN: wheelSideDragBaseN,
+                    wheelSideDragLinearNPerMps: wheelSideDragLinearNPerMps,
                     launchRpm: launchRpm,
                     reversePowerFactor: reversePowerFactor,
                     reverseGearRatio: reverseGearRatio,
@@ -121,7 +124,6 @@ namespace TopSpeed.Bots
                     engineBrakeTransferEfficiency: engineBrakeTransferEfficiency));
 
             SurfaceTractionFactor = Math.Max(0.01f, surfaceTractionFactor);
-            Deceleration = Math.Max(0.01f, deceleration);
             TopSpeedKph = Math.Max(1f, topSpeedKph);
             MassKg = build.Powertrain.MassKg;
             DrivetrainEfficiency = build.Powertrain.DrivetrainEfficiency;
@@ -143,6 +145,8 @@ namespace TopSpeed.Bots
             SideAreaM2 = build.Powertrain.SideAreaM2;
             RollingResistanceCoefficient = build.Powertrain.RollingResistanceCoefficient;
             RollingResistanceSpeedFactor = build.Powertrain.RollingResistanceSpeedFactor;
+            WheelSideDragBaseN = build.WheelSideDragBaseN;
+            WheelSideDragLinearNPerMps = build.WheelSideDragLinearNPerMps;
             LaunchRpm = build.Powertrain.LaunchRpm;
             ReversePowerFactor = build.Powertrain.ReversePowerFactor;
             ReverseGearRatio = build.Powertrain.ReverseGearRatio;
@@ -193,7 +197,6 @@ namespace TopSpeed.Bots
         }
 
         public float SurfaceTractionFactor { get; }
-        public float Deceleration { get; }
         public float TopSpeedKph { get; }
         public float MassKg { get; }
         public float DrivetrainEfficiency { get; }
@@ -215,6 +218,8 @@ namespace TopSpeed.Bots
         public float SideAreaM2 { get; }
         public float RollingResistanceCoefficient { get; }
         public float RollingResistanceSpeedFactor { get; }
+        public float WheelSideDragBaseN { get; }
+        public float WheelSideDragLinearNPerMps { get; }
         public float LaunchRpm { get; }
         public float ReversePowerFactor { get; }
         public float ReverseGearRatio { get; }

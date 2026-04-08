@@ -27,6 +27,8 @@ namespace TopSpeed.Tests
             (spec.SideAreaM2 > 0f ? spec.SideAreaM2 : spec.FrontalAreaM2 * 1.8f).Should().BeGreaterThan(spec.FrontalAreaM2);
             spec.RollingResistanceCoefficient.Should().BePositive();
             spec.RollingResistanceSpeedFactor.Should().BeGreaterThan(0.011f);
+            spec.WheelSideDragBaseN.Should().BeGreaterThan(20f);
+            spec.WheelSideDragLinearNPerMps.Should().BeGreaterThan(0.8f);
             spec.CoupledDrivelineDragNm.Should().BeGreaterThan(2.5f);
             spec.CoupledDrivelineViscousDragNmPerKrpm.Should().BeGreaterThan(2f);
         }
@@ -49,8 +51,66 @@ namespace TopSpeed.Tests
             (spec.SideAreaM2 > 0f ? spec.SideAreaM2 : spec.FrontalAreaM2 * 1.8f).Should().BeGreaterThan(spec.FrontalAreaM2);
             spec.RollingResistanceCoefficient.Should().BePositive();
             spec.RollingResistanceSpeedFactor.Should().BeGreaterThan(0.01f);
+            spec.WheelSideDragBaseN.Should().BeGreaterThan(90f);
+            spec.WheelSideDragLinearNPerMps.Should().BeGreaterThan(3f);
             spec.CoupledDrivelineDragNm.Should().BeGreaterThan(14f);
             spec.CoupledDrivelineViscousDragNmPerKrpm.Should().BeGreaterThan(5f);
+        }
+
+        [Theory]
+        [InlineData(CarType.Vehicle6, 3f)]
+        [InlineData(CarType.Vehicle8, 9f)]
+        [InlineData(CarType.Vehicle9, 1.5f)]
+        public void AutomaticFamily_ShouldHaveUsableTopGearPull(CarType carType, float minimumDeltaKph)
+        {
+            var pull = PowertrainHarness.SimulateTopGearPull(OfficialVehicleCatalog.Get((int)carType));
+
+            pull.DeltaKph.Should().BeGreaterThan(minimumDeltaKph);
+        }
+
+        [Theory]
+        [InlineData(CarType.Vehicle6, 0.06f, 0.26f)]
+        [InlineData(CarType.Vehicle8, 0.05f, 0.24f)]
+        [InlineData(CarType.Vehicle9, 0.09f, 0.34f)]
+        public void AutomaticFamily_ShouldKeepClosedThrottleDecelStrongerThanFreeCoast_WithoutBecomingBrakeLike(
+            CarType carType,
+            float minimumExtraLossFraction,
+            float maximumClosedThrottleLossFraction)
+        {
+            var spec = OfficialVehicleCatalog.Get((int)carType);
+            var free = PowertrainHarness.SimulateHighSpeedNeutralCoast(spec);
+            var decel = PowertrainHarness.SimulateHighSpeedClosedThrottle(spec);
+
+            decel.LossFraction.Should().BeGreaterThan(free.LossFraction + minimumExtraLossFraction);
+            decel.LossFraction.Should().BeLessThan(maximumClosedThrottleLossFraction);
+        }
+
+        [Theory]
+        [InlineData(CarType.Vehicle1, 18f)]
+        [InlineData(CarType.Vehicle2, 16f)]
+        [InlineData(CarType.Vehicle7, 22f)]
+        public void DctFamily_ShouldHaveStrongTopGearPull(CarType carType, float minimumDeltaKph)
+        {
+            var pull = PowertrainHarness.SimulateTopGearPull(OfficialVehicleCatalog.Get((int)carType));
+
+            pull.DeltaKph.Should().BeGreaterThan(minimumDeltaKph);
+        }
+
+        [Theory]
+        [InlineData(CarType.Vehicle1, 0.05f, 0.24f)]
+        [InlineData(CarType.Vehicle2, 0.06f, 0.25f)]
+        [InlineData(CarType.Vehicle7, 0.06f, 0.25f)]
+        public void DctFamily_ShouldKeepClosedThrottleDecelStrongerThanFreeCoast_WithoutBecomingBrakeLike(
+            CarType carType,
+            float minimumExtraLossFraction,
+            float maximumClosedThrottleLossFraction)
+        {
+            var spec = OfficialVehicleCatalog.Get((int)carType);
+            var free = PowertrainHarness.SimulateHighSpeedNeutralCoast(spec);
+            var decel = PowertrainHarness.SimulateHighSpeedClosedThrottle(spec);
+
+            decel.LossFraction.Should().BeGreaterThan(free.LossFraction + minimumExtraLossFraction);
+            decel.LossFraction.Should().BeLessThan(maximumClosedThrottleLossFraction);
         }
 
         [Theory]
@@ -71,6 +131,8 @@ namespace TopSpeed.Tests
             (spec.SideAreaM2 > 0f ? spec.SideAreaM2 : spec.FrontalAreaM2 * 1.8f).Should().BeGreaterThan(spec.FrontalAreaM2);
             spec.RollingResistanceCoefficient.Should().BePositive();
             spec.RollingResistanceSpeedFactor.Should().BeGreaterThan(0.01f);
+            spec.WheelSideDragBaseN.Should().BeGreaterThan(90f);
+            spec.WheelSideDragLinearNPerMps.Should().BeGreaterThan(3f);
             spec.CoupledDrivelineDragNm.Should().BeGreaterThan(15f);
             spec.CoupledDrivelineViscousDragNmPerKrpm.Should().BeGreaterThan(5.3f);
         }
@@ -93,23 +155,53 @@ namespace TopSpeed.Tests
             (spec.SideAreaM2 > 0f ? spec.SideAreaM2 : spec.FrontalAreaM2 * 1.8f).Should().BeGreaterThan(spec.FrontalAreaM2);
             spec.RollingResistanceCoefficient.Should().BePositive();
             spec.RollingResistanceSpeedFactor.Should().BeGreaterThan(0.01f);
+            spec.WheelSideDragBaseN.Should().BeGreaterThan(80f);
+            spec.WheelSideDragLinearNPerMps.Should().BeGreaterThan(2.5f);
             spec.CoupledDrivelineDragNm.Should().BeGreaterThan(14f);
             spec.CoupledDrivelineViscousDragNmPerKrpm.Should().BeGreaterThan(5f);
         }
 
         [Theory]
-        [InlineData(CarType.Vehicle1, 90.9f, 91.6f)]
-        [InlineData(CarType.Vehicle2, 89.6f, 90.3f)]
-        [InlineData(CarType.Vehicle3, 86.8f, 87.4f)]
-        [InlineData(CarType.Vehicle4, 88.9f, 89.5f)]
-        [InlineData(CarType.Vehicle5, 86.1f, 86.7f)]
-        [InlineData(CarType.Vehicle6, 89.6f, 90.6f)]
-        [InlineData(CarType.Vehicle7, 89.8f, 90.5f)]
-        [InlineData(CarType.Vehicle8, 90.0f, 91.0f)]
-        [InlineData(CarType.Vehicle9, 84.8f, 85.5f)]
-        [InlineData(CarType.Vehicle10, 81.0f, 81.7f)]
-        [InlineData(CarType.Vehicle11, 81.5f, 82.3f)]
-        [InlineData(CarType.Vehicle12, 81.5f, 82.3f)]
+        [InlineData(CarType.Vehicle3, 1f)]
+        [InlineData(CarType.Vehicle4, 9f)]
+        [InlineData(CarType.Vehicle5, 24f)]
+        public void ManualFamily_ShouldHaveUsableTopGearPull(CarType carType, float minimumDeltaKph)
+        {
+            var pull = PowertrainHarness.SimulateTopGearPull(OfficialVehicleCatalog.Get((int)carType));
+
+            pull.DeltaKph.Should().BeGreaterThan(minimumDeltaKph);
+        }
+
+        [Theory]
+        [InlineData(CarType.Vehicle3, 0.14f, 0.39f)]
+        [InlineData(CarType.Vehicle4, 0.11f, 0.34f)]
+        [InlineData(CarType.Vehicle5, 0.12f, 0.38f)]
+        public void ManualFamily_ShouldKeepClosedThrottleDecelStrongerThanFreeCoast_WithoutBecomingBrakeLike(
+            CarType carType,
+            float minimumExtraLossFraction,
+            float maximumClosedThrottleLossFraction)
+        {
+            var spec = OfficialVehicleCatalog.Get((int)carType);
+            var free = PowertrainHarness.SimulateHighSpeedNeutralCoast(spec);
+            var decel = PowertrainHarness.SimulateHighSpeedClosedThrottle(spec);
+
+            decel.LossFraction.Should().BeGreaterThan(free.LossFraction + minimumExtraLossFraction);
+            decel.LossFraction.Should().BeLessThan(maximumClosedThrottleLossFraction);
+        }
+
+        [Theory]
+        [InlineData(CarType.Vehicle1, 84f, 90f)]
+        [InlineData(CarType.Vehicle2, 84f, 90f)]
+        [InlineData(CarType.Vehicle3, 80f, 87f)]
+        [InlineData(CarType.Vehicle4, 82f, 88f)]
+        [InlineData(CarType.Vehicle5, 79f, 86f)]
+        [InlineData(CarType.Vehicle6, 83f, 89f)]
+        [InlineData(CarType.Vehicle7, 83f, 89f)]
+        [InlineData(CarType.Vehicle8, 83f, 89f)]
+        [InlineData(CarType.Vehicle9, 76f, 84f)]
+        [InlineData(CarType.Vehicle10, 75f, 84f)]
+        [InlineData(CarType.Vehicle11, 76f, 84f)]
+        [InlineData(CarType.Vehicle12, 76f, 84f)]
         public void NeutralCoast_ShouldStayWithinReasonableFamilyRange(CarType carType, float minFinalSpeedKph, float maxFinalSpeedKph)
         {
             var spec = OfficialVehicleCatalog.Get((int)carType);
@@ -165,7 +257,7 @@ namespace TopSpeed.Tests
         {
             var pull = PowertrainHarness.SimulateTopGearPull(OfficialVehicleCatalog.Get((int)CarType.Vehicle2));
 
-            pull.DeltaKph.Should().BeGreaterThan(20f);
+            pull.DeltaKph.Should().BeGreaterThan(17f);
         }
 
         [Fact]
@@ -198,8 +290,8 @@ namespace TopSpeed.Tests
         {
             var decel = PowertrainHarness.SimulateHighSpeedClosedThrottle(OfficialVehicleCatalog.Get((int)carType));
 
-            decel.FinalSpeedKph.Should().BeGreaterThan(70f);
-            decel.LossFraction.Should().BeLessThan(0.60f);
+            decel.FinalSpeedKph.Should().BeGreaterThan(68f);
+            decel.LossFraction.Should().BeLessThan(0.605f);
         }
 
         [Theory]

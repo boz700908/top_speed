@@ -7,7 +7,6 @@ namespace TopSpeed.Vehicles.Loader
         public static void Apply(VehicleDefinition def, Common spec)
         {
             def.SurfaceTractionFactor = spec.SurfaceTractionFactor;
-            def.Deceleration = spec.Deceleration;
             def.TopSpeed = spec.TopSpeed;
             def.IdleFreq = spec.IdleFreq;
             def.TopFreq = spec.TopFreq;
@@ -39,6 +38,8 @@ namespace TopSpeed.Vehicles.Loader
             def.FrontalAreaM2 = spec.FrontalAreaM2;
             def.SideAreaM2 = spec.SideAreaM2;
             def.RollingResistanceCoefficient = spec.RollingResistanceCoefficient;
+            def.WheelSideDragBaseN = spec.WheelSideDragBaseN;
+            def.WheelSideDragLinearNPerMps = spec.WheelSideDragLinearNPerMps;
             def.RollingResistanceSpeedFactor = spec.RollingResistanceSpeedFactor;
             def.LaunchRpm = spec.LaunchRpm;
             def.CoupledDrivelineDragNm = spec.CoupledDrivelineDragNm;

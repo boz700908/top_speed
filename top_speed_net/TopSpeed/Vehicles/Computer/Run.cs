@@ -3,12 +3,15 @@ using TopSpeed.Bots;
 using TopSpeed.Common;
 using TopSpeed.Data;
 using TopSpeed.Physics.Powertrain;
+using TopSpeed.Physics.Surface;
 using TopSpeed.Tracks;
 
 namespace TopSpeed.Vehicles
 {
     internal sealed partial class ComputerPlayer
     {
+        private const float ParkingHoldBrakeInput = 1f;
+
         public void Run(float elapsed, float playerX, float playerY)
         {
             RefreshCategoryVolumes();
@@ -121,13 +124,43 @@ namespace TopSpeed.Vehicles
             }
             else if (_state == ComputerState.Stopping)
             {
-                _speed -= (elapsed * 100 * _deceleration);
-                if (_speed < 0)
-                    _speed = 0;
+                var surface = SurfaceModel.Resolve(_surface, _surfaceTractionFactor);
+                var longitudinal = LongitudinalStep.Compute(
+                    new LongitudinalStepInput(
+                        _physicsConfig.Powertrain,
+                        elapsed,
+                        System.Math.Max(0f, _speed / 3.6f),
+                        throttle: 0f,
+                        brake: ParkingHoldBrakeInput,
+                        surfaceTractionModifier: 1f,
+                        surfaceBrakeModifier: surface.Brake > 0f ? surface.Brake : 1f,
+                        surfaceRollingResistanceModifier: surface.RollingResistance > 0f ? surface.RollingResistance : 1f,
+                        longitudinalGripFactor: 1f,
+                        _gear,
+                        inReverse: false,
+                        isNeutral: false,
+                        transmissionType: _activeTransmissionType,
+                        drivelineCouplingFactor: _automaticCouplingFactor,
+                        creepAccelerationMps2: 0f,
+                        currentEngineRpm: _engine.Rpm,
+                        requestDrive: false,
+                        requestBrake: true,
+                        applyEngineBraking: false,
+                        resistanceEnvironment: ResistanceEnvironment.Calm,
+                        driveRatioOverride: _effectiveDriveRatio > 0f ? _effectiveDriveRatio : (float?)null));
+                _speed = System.Math.Max(0f, _speed + longitudinal.SpeedDeltaKph);
+                _speedDiff = longitudinal.SpeedDeltaKph;
                 UpdateEngineFreq();
                 if (_frame % 4 == 0)
                 {
                     _frame = 0;
+                }
+                if (_speed <= 0.05f)
+                {
+                    _speed = 0f;
+                    _speedDiff = 0f;
+                    _state = ComputerState.Stopped;
+                    _soundEngine.Stop();
                 }
                 _frame++;
             }

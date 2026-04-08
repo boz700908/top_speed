@@ -173,12 +173,12 @@ namespace TopSpeed.Vehicles
                 Math.Max(0f, _speed / 3.6f),
                 ResolveSurfaceRollingResistanceModifier(),
                 applyDrivelineDrag: false,
-                drivelineCouplingFactor: 0f,
+                drivelineDragParticipation: 0f,
                 gear: GetDriveGear(),
                 inReverse: _gear == ReverseGear,
                 isNeutral: true,
                 _track.GetResistanceEnvironment());
-            var passiveDecel = ((resistance.AerodynamicForceN + resistance.RollingResistanceForceN) / Math.Max(1f, _massKg)) * 3.6f;
+            var passiveDecel = ((resistance.AerodynamicForceN + resistance.RollingResistanceForceN + resistance.WheelSideDragForceN) / Math.Max(1f, _massKg)) * 3.6f;
             _speedDiff = -(brakeDecel + passiveDecel) * elapsed;
             _lastDriveRpm = 0f;
         }

@@ -5,16 +5,14 @@ namespace TopSpeed.Bots
 {
     public readonly struct BotVehicleProfile
     {
-        public BotVehicleProfile(float topSpeedKph, float powerFactor, float deceleration)
+        public BotVehicleProfile(float topSpeedKph, float powerFactor)
         {
             TopSpeedKph = topSpeedKph;
             PowerFactor = powerFactor;
-            Deceleration = deceleration;
         }
 
         public float TopSpeedKph { get; }
         public float PowerFactor { get; }
-        public float Deceleration { get; }
     }
 
     public static class BotSharedModel
@@ -193,19 +191,19 @@ namespace TopSpeed.Bots
         {
             return car switch
             {
-                CarType.Vehicle1 => new BotVehicleProfile(315f, 0.70f, 0.40f),
-                CarType.Vehicle2 => new BotVehicleProfile(312f, 0.75f, 0.45f),
-                CarType.Vehicle3 => new BotVehicleProfile(160f, 0.35f, 0.30f),
-                CarType.Vehicle4 => new BotVehicleProfile(235f, 0.45f, 0.35f),
-                CarType.Vehicle5 => new BotVehicleProfile(200f, 0.40f, 0.35f),
-                CarType.Vehicle6 => new BotVehicleProfile(210f, 0.50f, 0.30f),
-                CarType.Vehicle7 => new BotVehicleProfile(350f, 0.80f, 0.80f),
-                CarType.Vehicle8 => new BotVehicleProfile(250f, 0.55f, 0.40f),
-                CarType.Vehicle9 => new BotVehicleProfile(160f, 0.30f, 0.20f),
-                CarType.Vehicle10 => new BotVehicleProfile(299f, 0.85f, 0.50f),
-                CarType.Vehicle11 => new BotVehicleProfile(310f, 0.90f, 0.55f),
-                CarType.Vehicle12 => new BotVehicleProfile(299f, 0.80f, 0.48f),
-                _ => new BotVehicleProfile(220f, 0.50f, 0.35f)
+                CarType.Vehicle1 => new BotVehicleProfile(315f, 0.70f),
+                CarType.Vehicle2 => new BotVehicleProfile(312f, 0.75f),
+                CarType.Vehicle3 => new BotVehicleProfile(160f, 0.35f),
+                CarType.Vehicle4 => new BotVehicleProfile(235f, 0.45f),
+                CarType.Vehicle5 => new BotVehicleProfile(200f, 0.40f),
+                CarType.Vehicle6 => new BotVehicleProfile(210f, 0.50f),
+                CarType.Vehicle7 => new BotVehicleProfile(350f, 0.80f),
+                CarType.Vehicle8 => new BotVehicleProfile(250f, 0.55f),
+                CarType.Vehicle9 => new BotVehicleProfile(160f, 0.30f),
+                CarType.Vehicle10 => new BotVehicleProfile(299f, 0.85f),
+                CarType.Vehicle11 => new BotVehicleProfile(310f, 0.90f),
+                CarType.Vehicle12 => new BotVehicleProfile(299f, 0.80f),
+                _ => new BotVehicleProfile(220f, 0.50f)
             };
         }
     }

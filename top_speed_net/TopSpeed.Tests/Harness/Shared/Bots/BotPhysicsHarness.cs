@@ -28,8 +28,7 @@ internal static class BotPhysicsHarness
                     RollingResistanceSpeedFactor: Rounding.F(config.RollingResistanceSpeedFactor),
                     CoupledDrivelineDragNm: Rounding.F(config.CoupledDrivelineDragNm),
                     CoupledDrivelineViscousDragNmPerKrpm: Rounding.F(config.CoupledDrivelineViscousDragNmPerKrpm),
-                    SurfaceTractionFactor: Rounding.F(config.SurfaceTractionFactor),
-                    Deceleration: Rounding.F(config.Deceleration));
+                    SurfaceTractionFactor: Rounding.F(config.SurfaceTractionFactor));
             })
             .ToArray();
     }
@@ -150,5 +149,4 @@ internal sealed record BotCatalogSnapshot(
     float RollingResistanceSpeedFactor,
     float CoupledDrivelineDragNm,
     float CoupledDrivelineViscousDragNmPerKrpm,
-    float SurfaceTractionFactor,
-    float Deceleration);
+    float SurfaceTractionFactor);

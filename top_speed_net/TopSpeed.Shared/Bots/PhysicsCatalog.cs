@@ -25,7 +25,6 @@ namespace TopSpeed.Bots
 
             return new BotPhysicsConfig(
                 spec.SurfaceTractionFactor,
-                spec.Deceleration,
                 spec.TopSpeed,
                 spec.MassKg,
                 spec.DrivetrainEfficiency,
@@ -47,6 +46,8 @@ namespace TopSpeed.Bots
                 spec.SideAreaM2,
                 spec.RollingResistanceCoefficient,
                 spec.RollingResistanceSpeedFactor,
+                spec.WheelSideDragBaseN,
+                spec.WheelSideDragLinearNPerMps,
                 spec.LaunchRpm,
                 spec.ReversePowerFactor,
                 spec.ReverseGearRatio,
@@ -78,6 +79,8 @@ namespace TopSpeed.Bots
                 torqueCurve,
                 spec.GearRatios,
                 spec.TransmissionPolicy,
+                spec.PrimaryTransmissionType,
+                spec.AutomaticTuning,
                 coupledDrivelineDragNm: spec.CoupledDrivelineDragNm,
                 coupledDrivelineViscousDragNmPerKrpm: spec.CoupledDrivelineViscousDragNmPerKrpm,
                 frictionLinearNmPerKrpm: spec.FrictionLinearNmPerKrpm,

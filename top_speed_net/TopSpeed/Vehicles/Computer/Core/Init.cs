@@ -74,7 +74,6 @@ namespace TopSpeed.Vehicles
 
             var definition = VehicleLoader.LoadOfficial(vehicleIndex, track.Weather);
             _surfaceTractionFactor = definition.SurfaceTractionFactor;
-            _deceleration = definition.Deceleration;
             _topSpeed = definition.TopSpeed;
             var torqueCurve = PowertrainProfileBuilder.Build(definition);
             var build = PowertrainBuild.Create(
@@ -99,6 +98,8 @@ namespace TopSpeed.Vehicles
                     sideAreaM2: definition.SideAreaM2,
                     rollingResistanceCoefficient: definition.RollingResistanceCoefficient,
                     rollingResistanceSpeedFactor: definition.RollingResistanceSpeedFactor,
+                    wheelSideDragBaseN: definition.WheelSideDragBaseN,
+                    wheelSideDragLinearNPerMps: definition.WheelSideDragLinearNPerMps,
                     launchRpm: definition.LaunchRpm,
                     reversePowerFactor: definition.ReversePowerFactor,
                     reverseGearRatio: definition.ReverseGearRatio,
@@ -141,6 +142,8 @@ namespace TopSpeed.Vehicles
             _sideAreaM2 = build.Powertrain.SideAreaM2;
             _rollingResistanceCoefficient = build.Powertrain.RollingResistanceCoefficient;
             _rollingResistanceSpeedFactor = build.Powertrain.RollingResistanceSpeedFactor;
+            _wheelSideDragBaseN = build.Powertrain.WheelSideDragBaseN;
+            _wheelSideDragLinearNPerMps = build.Powertrain.WheelSideDragLinearNPerMps;
             _launchRpm = build.Powertrain.LaunchRpm;
             _coupledDrivelineDragNm = build.Powertrain.CoupledDrivelineDragNm;
             _coupledDrivelineViscousDragNmPerKrpm = build.Powertrain.CoupledDrivelineViscousDragNmPerKrpm;
@@ -198,7 +201,6 @@ namespace TopSpeed.Vehicles
 
             _physicsConfig = new BotPhysicsConfig(
                 _surfaceTractionFactor,
-                _deceleration,
                 _topSpeed,
                 _massKg,
                 _drivetrainEfficiency,
@@ -220,6 +222,8 @@ namespace TopSpeed.Vehicles
                 _sideAreaM2,
                 _rollingResistanceCoefficient,
                 _rollingResistanceSpeedFactor,
+                build.WheelSideDragBaseN,
+                build.WheelSideDragLinearNPerMps,
                 _launchRpm,
                 definition.ReversePowerFactor,
                 definition.ReverseGearRatio,

@@ -3,6 +3,7 @@ using FsCheck.Fluent;
 using FsCheck.Xunit;
 using TopSpeed.Physics.Powertrain;
 using TopSpeed.Physics.Torque;
+using TopSpeed.Vehicles;
 using Xunit;
 
 namespace TopSpeed.Tests
@@ -16,11 +17,14 @@ namespace TopSpeed.Tests
             var config = scenario.BuildConfig();
             var aerodynamic = Calculator.AerodynamicDecelKph(config, scenario.SpeedMps, ResistanceEnvironment.Calm);
             var rolling = Calculator.RollingResistanceDecelKph(config, scenario.SpeedMps, 1f);
+            var wheelSide = Calculator.WheelSideDragDecelKph(config, scenario.SpeedMps);
 
             (!float.IsNaN(aerodynamic) && !float.IsInfinity(aerodynamic)).Should().BeTrue();
             (!float.IsNaN(rolling) && !float.IsInfinity(rolling)).Should().BeTrue();
+            (!float.IsNaN(wheelSide) && !float.IsInfinity(wheelSide)).Should().BeTrue();
             aerodynamic.Should().BeGreaterThanOrEqualTo(0f);
             rolling.Should().BeGreaterThanOrEqualTo(0f);
+            wheelSide.Should().BeGreaterThanOrEqualTo(0f);
         }
 
         [Property(MaxTest = 100, Arbitrary = new[] { typeof(PowertrainArbitraries) })]
@@ -32,9 +36,29 @@ namespace TopSpeed.Tests
             for (var i = 0; i < scenario.Steps; i++)
             {
                 var speedMps = speedKph / 3.6f;
-                var aerodynamic = Calculator.AerodynamicDecelKph(config, speedMps, ResistanceEnvironment.Calm);
-                var rolling = Calculator.RollingResistanceDecelKph(config, speedMps, 1f);
-                speedKph = Math.Max(0f, speedKph - ((aerodynamic + rolling) * scenario.ElapsedSeconds));
+                var result = LongitudinalStep.Compute(
+                    new LongitudinalStepInput(
+                        config,
+                        scenario.ElapsedSeconds,
+                        speedMps,
+                        throttle: 0f,
+                        brake: 0f,
+                        surfaceTractionModifier: 1f,
+                        surfaceBrakeModifier: 1f,
+                        surfaceRollingResistanceModifier: 1f,
+                        longitudinalGripFactor: 1f,
+                        gear: 6,
+                        inReverse: false,
+                        isNeutral: true,
+                        transmissionType: TransmissionType.Manual,
+                        drivelineCouplingFactor: 0f,
+                        creepAccelerationMps2: 0f,
+                        currentEngineRpm: config.IdleRpm,
+                        requestDrive: false,
+                        requestBrake: false,
+                        applyEngineBraking: false,
+                        resistanceEnvironment: ResistanceEnvironment.Calm));
+                speedKph = Math.Max(0f, speedKph + result.SpeedDeltaKph);
             }
 
             (!float.IsNaN(speedKph) && !float.IsInfinity(speedKph)).Should().BeTrue();
@@ -68,6 +92,8 @@ namespace TopSpeed.Tests
         float SideAreaM2,
         float RollingResistanceCoefficient,
         float RollingResistanceSpeedFactor,
+        float WheelSideDragBaseN,
+        float WheelSideDragLinearNPerMps,
         float CoupledDrivelineDragNm,
         float CoupledDrivelineViscousDragNmPerKrpm,
         float SpeedMps,
@@ -100,6 +126,8 @@ namespace TopSpeed.Tests
                 sideAreaM2: SideAreaM2,
                 rollingResistanceCoefficient: RollingResistanceCoefficient,
                 rollingResistanceSpeedFactor: RollingResistanceSpeedFactor,
+                wheelSideDragBaseN: WheelSideDragBaseN,
+                wheelSideDragLinearNPerMps: WheelSideDragLinearNPerMps,
                 launchRpm: 2200f,
                 reversePowerFactor: 0.55f,
                 reverseGearRatio: 3.2f,
@@ -125,6 +153,8 @@ namespace TopSpeed.Tests
                 from sideArea in Gen.Choose(30, 65)
                 from rr in Gen.Choose(10, 18)
                 from rrSpeedFactor in Gen.Choose(0, 30)
+                from wheelDragBase in Gen.Choose(0, 200)
+                from wheelDragLinear in Gen.Choose(0, 60)
                 from drivelineDrag in Gen.Choose(5, 40)
                 from drivelineViscous in Gen.Choose(0, 20)
                 from speed in Gen.Choose(0, 80)
@@ -139,6 +169,8 @@ namespace TopSpeed.Tests
                     SideAreaM2: sideArea / 10f,
                     RollingResistanceCoefficient: rr / 1000f,
                     RollingResistanceSpeedFactor: rrSpeedFactor / 1000f,
+                    WheelSideDragBaseN: wheelDragBase,
+                    WheelSideDragLinearNPerMps: wheelDragLinear / 10f,
                     CoupledDrivelineDragNm: drivelineDrag,
                     CoupledDrivelineViscousDragNmPerKrpm: drivelineViscous,
                     SpeedMps: speed,

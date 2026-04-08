@@ -35,7 +35,6 @@ namespace TopSpeed.Vehicles
         private float _trackLength;
 
         private float _surfaceTractionFactor;
-        private float _deceleration;
         private float _topSpeed;
         private float _massKg;
         private float _drivetrainEfficiency;
@@ -57,6 +56,8 @@ namespace TopSpeed.Vehicles
         private float _sideAreaM2;
         private float _rollingResistanceCoefficient;
         private float _rollingResistanceSpeedFactor;
+        private float _wheelSideDragBaseN;
+        private float _wheelSideDragLinearNPerMps;
         private float _launchRpm;
         private float _coupledDrivelineDragNm;
         private float _coupledDrivelineViscousDragNmPerKrpm;

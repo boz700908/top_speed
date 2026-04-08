@@ -32,7 +32,6 @@ namespace TopSpeed.Vehicles.Parsing
         private static void ParseGeneralValues(Section section, ParsedValues values, List<VehicleTsvIssue> issues)
         {
             values.SurfaceTractionFactor = RequireFloatRange(section, "surface_traction_factor", 0f, 5f, issues);
-            values.Deceleration = RequireFloatRange(section, "deceleration", 0f, 5f, issues);
             values.TopSpeed = RequireFloatRange(section, "max_speed", 10f, 500f, issues);
             values.HasWipers = RequireBoolInt(section, "has_wipers", issues);
         }

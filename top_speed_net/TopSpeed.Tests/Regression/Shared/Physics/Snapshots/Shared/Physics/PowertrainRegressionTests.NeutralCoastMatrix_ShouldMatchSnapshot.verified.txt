@@ -2,732 +2,840 @@
   {
     Vehicle: Nissan GT-R Nismo,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 91.28,
+    FinalSpeedKph: 88.42,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.94,
+        SpeedKph: 99.92,
         AerodynamicDecelKph: 0.544,
-        RollingResistanceDecelKph: 0.599
+        RollingResistanceDecelKph: 0.602,
+        WheelSideDragDecelKph: 0.382
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.81,
-        AerodynamicDecelKph: 0.531,
-        RollingResistanceDecelKph: 0.598
+        SpeedKph: 98.41,
+        AerodynamicDecelKph: 0.527,
+        RollingResistanceDecelKph: 0.6,
+        WheelSideDragDecelKph: 0.379
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 97.69,
-        AerodynamicDecelKph: 0.519,
-        RollingResistanceDecelKph: 0.596
+        SpeedKph: 96.91,
+        AerodynamicDecelKph: 0.511,
+        RollingResistanceDecelKph: 0.597,
+        WheelSideDragDecelKph: 0.377
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 96.58,
-        AerodynamicDecelKph: 0.508,
-        RollingResistanceDecelKph: 0.594
+        SpeedKph: 95.44,
+        AerodynamicDecelKph: 0.496,
+        RollingResistanceDecelKph: 0.595,
+        WheelSideDragDecelKph: 0.374
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 95.48,
-        AerodynamicDecelKph: 0.496,
-        RollingResistanceDecelKph: 0.593
+        SpeedKph: 93.98,
+        AerodynamicDecelKph: 0.481,
+        RollingResistanceDecelKph: 0.593,
+        WheelSideDragDecelKph: 0.371
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 94.4,
-        AerodynamicDecelKph: 0.485,
-        RollingResistanceDecelKph: 0.591
+        SpeedKph: 92.55,
+        AerodynamicDecelKph: 0.466,
+        RollingResistanceDecelKph: 0.591,
+        WheelSideDragDecelKph: 0.369
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 93.33,
-        AerodynamicDecelKph: 0.474,
-        RollingResistanceDecelKph: 0.59
+        SpeedKph: 91.13,
+        AerodynamicDecelKph: 0.452,
+        RollingResistanceDecelKph: 0.589,
+        WheelSideDragDecelKph: 0.366
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 92.27,
-        AerodynamicDecelKph: 0.463,
-        RollingResistanceDecelKph: 0.588
+        SpeedKph: 89.73,
+        AerodynamicDecelKph: 0.438,
+        RollingResistanceDecelKph: 0.587,
+        WheelSideDragDecelKph: 0.363
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 91.28,
-        AerodynamicDecelKph: 0.453,
-        RollingResistanceDecelKph: 0.587
+        SpeedKph: 88.42,
+        AerodynamicDecelKph: 0.426,
+        RollingResistanceDecelKph: 0.585,
+        WheelSideDragDecelKph: 0.361
       }
     ]
   },
   {
     Vehicle: Porsche 911 GT3 RS,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 90.3,
+    FinalSpeedKph: 87.14,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.94,
+        SpeedKph: 99.91,
         AerodynamicDecelKph: 0.687,
-        RollingResistanceDecelKph: 0.597
+        RollingResistanceDecelKph: 0.593,
+        WheelSideDragDecelKph: 0.436
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.66,
-        AerodynamicDecelKph: 0.67,
-        RollingResistanceDecelKph: 0.595
+        SpeedKph: 98.21,
+        AerodynamicDecelKph: 0.664,
+        RollingResistanceDecelKph: 0.591,
+        WheelSideDragDecelKph: 0.433
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 97.41,
-        AerodynamicDecelKph: 0.653,
-        RollingResistanceDecelKph: 0.593
+        SpeedKph: 96.54,
+        AerodynamicDecelKph: 0.642,
+        RollingResistanceDecelKph: 0.588,
+        WheelSideDragDecelKph: 0.429
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 96.17,
-        AerodynamicDecelKph: 0.637,
-        RollingResistanceDecelKph: 0.591
+        SpeedKph: 94.9,
+        AerodynamicDecelKph: 0.62,
+        RollingResistanceDecelKph: 0.586,
+        WheelSideDragDecelKph: 0.426
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 94.95,
-        AerodynamicDecelKph: 0.621,
-        RollingResistanceDecelKph: 0.59
+        SpeedKph: 93.28,
+        AerodynamicDecelKph: 0.599,
+        RollingResistanceDecelKph: 0.584,
+        WheelSideDragDecelKph: 0.422
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 93.75,
-        AerodynamicDecelKph: 0.605,
-        RollingResistanceDecelKph: 0.588
+        SpeedKph: 91.69,
+        AerodynamicDecelKph: 0.579,
+        RollingResistanceDecelKph: 0.582,
+        WheelSideDragDecelKph: 0.419
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 92.57,
-        AerodynamicDecelKph: 0.59,
-        RollingResistanceDecelKph: 0.586
+        SpeedKph: 90.12,
+        AerodynamicDecelKph: 0.559,
+        RollingResistanceDecelKph: 0.58,
+        WheelSideDragDecelKph: 0.416
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 91.4,
-        AerodynamicDecelKph: 0.575,
-        RollingResistanceDecelKph: 0.585
+        SpeedKph: 88.58,
+        AerodynamicDecelKph: 0.54,
+        RollingResistanceDecelKph: 0.578,
+        WheelSideDragDecelKph: 0.412
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 90.3,
-        AerodynamicDecelKph: 0.561,
-        RollingResistanceDecelKph: 0.583
+        SpeedKph: 87.14,
+        AerodynamicDecelKph: 0.523,
+        RollingResistanceDecelKph: 0.576,
+        WheelSideDragDecelKph: 0.409
       }
     ]
   },
   {
     Vehicle: Fiat 500,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 87.11,
+    FinalSpeedKph: 82.73,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.91,
+        SpeedKph: 99.88,
         AerodynamicDecelKph: 1.169,
-        RollingResistanceDecelKph: 0.599
+        RollingResistanceDecelKph: 0.592,
+        WheelSideDragDecelKph: 0.632
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.17,
-        AerodynamicDecelKph: 1.129,
-        RollingResistanceDecelKph: 0.597
+        SpeedKph: 97.52,
+        AerodynamicDecelKph: 1.115,
+        RollingResistanceDecelKph: 0.588,
+        WheelSideDragDecelKph: 0.625
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 96.46,
-        AerodynamicDecelKph: 1.09,
-        RollingResistanceDecelKph: 0.594
+        SpeedKph: 95.23,
+        AerodynamicDecelKph: 1.063,
+        RollingResistanceDecelKph: 0.585,
+        WheelSideDragDecelKph: 0.618
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 94.8,
-        AerodynamicDecelKph: 1.053,
-        RollingResistanceDecelKph: 0.592
+        SpeedKph: 92.99,
+        AerodynamicDecelKph: 1.014,
+        RollingResistanceDecelKph: 0.582,
+        WheelSideDragDecelKph: 0.612
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 93.17,
-        AerodynamicDecelKph: 1.017,
-        RollingResistanceDecelKph: 0.59
+        SpeedKph: 90.81,
+        AerodynamicDecelKph: 0.967,
+        RollingResistanceDecelKph: 0.579,
+        WheelSideDragDecelKph: 0.605
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 91.59,
-        AerodynamicDecelKph: 0.983,
-        RollingResistanceDecelKph: 0.587
+        SpeedKph: 88.69,
+        AerodynamicDecelKph: 0.922,
+        RollingResistanceDecelKph: 0.577,
+        WheelSideDragDecelKph: 0.599
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 90.04,
-        AerodynamicDecelKph: 0.95,
-        RollingResistanceDecelKph: 0.585
+        SpeedKph: 86.62,
+        AerodynamicDecelKph: 0.879,
+        RollingResistanceDecelKph: 0.574,
+        WheelSideDragDecelKph: 0.593
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 88.52,
-        AerodynamicDecelKph: 0.918,
-        RollingResistanceDecelKph: 0.583
+        SpeedKph: 84.6,
+        AerodynamicDecelKph: 0.839,
+        RollingResistanceDecelKph: 0.571,
+        WheelSideDragDecelKph: 0.587
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 87.11,
-        AerodynamicDecelKph: 0.889,
-        RollingResistanceDecelKph: 0.581
+        SpeedKph: 82.73,
+        AerodynamicDecelKph: 0.802,
+        RollingResistanceDecelKph: 0.569,
+        WheelSideDragDecelKph: 0.581
       }
     ]
   },
   {
     Vehicle: Mini Cooper S,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 89.22,
+    FinalSpeedKph: 85.65,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.93,
+        SpeedKph: 99.9,
         AerodynamicDecelKph: 0.839,
-        RollingResistanceDecelKph: 0.606
+        RollingResistanceDecelKph: 0.606,
+        WheelSideDragDecelKph: 0.493
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.5,
-        AerodynamicDecelKph: 0.815,
-        RollingResistanceDecelKph: 0.603
+        SpeedKph: 97.99,
+        AerodynamicDecelKph: 0.807,
+        RollingResistanceDecelKph: 0.603,
+        WheelSideDragDecelKph: 0.489
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 97.09,
-        AerodynamicDecelKph: 0.792,
-        RollingResistanceDecelKph: 0.601
+        SpeedKph: 96.11,
+        AerodynamicDecelKph: 0.777,
+        RollingResistanceDecelKph: 0.6,
+        WheelSideDragDecelKph: 0.484
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 95.71,
-        AerodynamicDecelKph: 0.77,
-        RollingResistanceDecelKph: 0.599
+        SpeedKph: 94.27,
+        AerodynamicDecelKph: 0.747,
+        RollingResistanceDecelKph: 0.597,
+        WheelSideDragDecelKph: 0.48
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 94.35,
-        AerodynamicDecelKph: 0.748,
-        RollingResistanceDecelKph: 0.597
+        SpeedKph: 92.46,
+        AerodynamicDecelKph: 0.719,
+        RollingResistanceDecelKph: 0.595,
+        WheelSideDragDecelKph: 0.476
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 93.02,
-        AerodynamicDecelKph: 0.727,
-        RollingResistanceDecelKph: 0.595
+        SpeedKph: 90.69,
+        AerodynamicDecelKph: 0.692,
+        RollingResistanceDecelKph: 0.592,
+        WheelSideDragDecelKph: 0.471
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 91.71,
-        AerodynamicDecelKph: 0.707,
-        RollingResistanceDecelKph: 0.594
+        SpeedKph: 88.95,
+        AerodynamicDecelKph: 0.665,
+        RollingResistanceDecelKph: 0.589,
+        WheelSideDragDecelKph: 0.467
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 90.42,
-        AerodynamicDecelKph: 0.687,
-        RollingResistanceDecelKph: 0.592
+        SpeedKph: 87.25,
+        AerodynamicDecelKph: 0.64,
+        RollingResistanceDecelKph: 0.587,
+        WheelSideDragDecelKph: 0.463
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 89.22,
-        AerodynamicDecelKph: 0.669,
-        RollingResistanceDecelKph: 0.59
+        SpeedKph: 85.65,
+        AerodynamicDecelKph: 0.617,
+        RollingResistanceDecelKph: 0.585,
+        WheelSideDragDecelKph: 0.459
       }
     ]
   },
   {
     Vehicle: Ford Mustang 1969,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 86.38,
+    FinalSpeedKph: 82.6,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.91,
+        SpeedKph: 99.88,
         AerodynamicDecelKph: 1.129,
-        RollingResistanceDecelKph: 0.737
+        RollingResistanceDecelKph: 0.737,
+        WheelSideDragDecelKph: 0.539
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.06,
-        AerodynamicDecelKph: 1.088,
-        RollingResistanceDecelKph: 0.734
+        SpeedKph: 97.51,
+        AerodynamicDecelKph: 1.076,
+        RollingResistanceDecelKph: 0.733,
+        WheelSideDragDecelKph: 0.533
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 96.27,
-        AerodynamicDecelKph: 1.048,
-        RollingResistanceDecelKph: 0.73
+        SpeedKph: 95.2,
+        AerodynamicDecelKph: 1.026,
+        RollingResistanceDecelKph: 0.728,
+        WheelSideDragDecelKph: 0.527
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 94.51,
-        AerodynamicDecelKph: 1.01,
-        RollingResistanceDecelKph: 0.727
+        SpeedKph: 92.95,
+        AerodynamicDecelKph: 0.978,
+        RollingResistanceDecelKph: 0.724,
+        WheelSideDragDecelKph: 0.521
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 92.79,
-        AerodynamicDecelKph: 0.974,
-        RollingResistanceDecelKph: 0.724
+        SpeedKph: 90.76,
+        AerodynamicDecelKph: 0.932,
+        RollingResistanceDecelKph: 0.72,
+        WheelSideDragDecelKph: 0.515
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 91.12,
-        AerodynamicDecelKph: 0.939,
-        RollingResistanceDecelKph: 0.72
+        SpeedKph: 88.62,
+        AerodynamicDecelKph: 0.889,
+        RollingResistanceDecelKph: 0.716,
+        WheelSideDragDecelKph: 0.509
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 89.48,
-        AerodynamicDecelKph: 0.905,
-        RollingResistanceDecelKph: 0.717
+        SpeedKph: 86.53,
+        AerodynamicDecelKph: 0.847,
+        RollingResistanceDecelKph: 0.712,
+        WheelSideDragDecelKph: 0.504
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 87.87,
-        AerodynamicDecelKph: 0.873,
-        RollingResistanceDecelKph: 0.714
+        SpeedKph: 84.49,
+        AerodynamicDecelKph: 0.808,
+        RollingResistanceDecelKph: 0.708,
+        WheelSideDragDecelKph: 0.498
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 86.38,
-        AerodynamicDecelKph: 0.844,
-        RollingResistanceDecelKph: 0.711
+        SpeedKph: 82.6,
+        AerodynamicDecelKph: 0.772,
+        RollingResistanceDecelKph: 0.704,
+        WheelSideDragDecelKph: 0.493
       }
     ]
   },
   {
     Vehicle: Toyota Camry,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 90.11,
+    FinalSpeedKph: 86.67,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.93,
+        SpeedKph: 99.91,
         AerodynamicDecelKph: 0.7,
-        RollingResistanceDecelKph: 0.612
+        RollingResistanceDecelKph: 0.609,
+        WheelSideDragDecelKph: 0.473
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.63,
-        AerodynamicDecelKph: 0.682,
-        RollingResistanceDecelKph: 0.61
+        SpeedKph: 98.15,
+        AerodynamicDecelKph: 0.675,
+        RollingResistanceDecelKph: 0.607,
+        WheelSideDragDecelKph: 0.469
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 97.35,
-        AerodynamicDecelKph: 0.664,
-        RollingResistanceDecelKph: 0.608
+        SpeedKph: 96.41,
+        AerodynamicDecelKph: 0.652,
+        RollingResistanceDecelKph: 0.604,
+        WheelSideDragDecelKph: 0.465
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 96.09,
-        AerodynamicDecelKph: 0.647,
-        RollingResistanceDecelKph: 0.606
+        SpeedKph: 94.7,
+        AerodynamicDecelKph: 0.629,
+        RollingResistanceDecelKph: 0.602,
+        WheelSideDragDecelKph: 0.461
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 94.85,
-        AerodynamicDecelKph: 0.631,
-        RollingResistanceDecelKph: 0.604
+        SpeedKph: 93.03,
+        AerodynamicDecelKph: 0.607,
+        RollingResistanceDecelKph: 0.599,
+        WheelSideDragDecelKph: 0.457
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 93.62,
-        AerodynamicDecelKph: 0.614,
-        RollingResistanceDecelKph: 0.602
+        SpeedKph: 91.38,
+        AerodynamicDecelKph: 0.586,
+        RollingResistanceDecelKph: 0.597,
+        WheelSideDragDecelKph: 0.453
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 92.41,
-        AerodynamicDecelKph: 0.599,
-        RollingResistanceDecelKph: 0.6
+        SpeedKph: 89.76,
+        AerodynamicDecelKph: 0.565,
+        RollingResistanceDecelKph: 0.594,
+        WheelSideDragDecelKph: 0.45
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 91.22,
-        AerodynamicDecelKph: 0.583,
-        RollingResistanceDecelKph: 0.599
+        SpeedKph: 88.16,
+        AerodynamicDecelKph: 0.545,
+        RollingResistanceDecelKph: 0.592,
+        WheelSideDragDecelKph: 0.446
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 90.11,
-        AerodynamicDecelKph: 0.569,
-        RollingResistanceDecelKph: 0.597
+        SpeedKph: 86.67,
+        AerodynamicDecelKph: 0.527,
+        RollingResistanceDecelKph: 0.589,
+        WheelSideDragDecelKph: 0.443
       }
     ]
   },
   {
     Vehicle: Lamborghini Aventador,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 90.17,
+    FinalSpeedKph: 86.9,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.93,
+        SpeedKph: 99.91,
         AerodynamicDecelKph: 0.663,
-        RollingResistanceDecelKph: 0.638
+        RollingResistanceDecelKph: 0.642,
+        WheelSideDragDecelKph: 0.442
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.64,
-        AerodynamicDecelKph: 0.646,
-        RollingResistanceDecelKph: 0.636
+        SpeedKph: 98.18,
+        AerodynamicDecelKph: 0.64,
+        RollingResistanceDecelKph: 0.639,
+        WheelSideDragDecelKph: 0.438
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 97.37,
-        AerodynamicDecelKph: 0.629,
-        RollingResistanceDecelKph: 0.634
+        SpeedKph: 96.48,
+        AerodynamicDecelKph: 0.618,
+        RollingResistanceDecelKph: 0.637,
+        WheelSideDragDecelKph: 0.434
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 96.12,
-        AerodynamicDecelKph: 0.613,
-        RollingResistanceDecelKph: 0.632
+        SpeedKph: 94.8,
+        AerodynamicDecelKph: 0.596,
+        RollingResistanceDecelKph: 0.634,
+        WheelSideDragDecelKph: 0.431
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 94.88,
-        AerodynamicDecelKph: 0.597,
-        RollingResistanceDecelKph: 0.63
+        SpeedKph: 93.16,
+        AerodynamicDecelKph: 0.576,
+        RollingResistanceDecelKph: 0.631,
+        WheelSideDragDecelKph: 0.427
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 93.66,
-        AerodynamicDecelKph: 0.582,
-        RollingResistanceDecelKph: 0.628
+        SpeedKph: 91.54,
+        AerodynamicDecelKph: 0.556,
+        RollingResistanceDecelKph: 0.629,
+        WheelSideDragDecelKph: 0.423
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 92.46,
-        AerodynamicDecelKph: 0.567,
-        RollingResistanceDecelKph: 0.627
+        SpeedKph: 89.94,
+        AerodynamicDecelKph: 0.537,
+        RollingResistanceDecelKph: 0.626,
+        WheelSideDragDecelKph: 0.42
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 91.28,
-        AerodynamicDecelKph: 0.553,
-        RollingResistanceDecelKph: 0.625
+        SpeedKph: 88.37,
+        AerodynamicDecelKph: 0.518,
+        RollingResistanceDecelKph: 0.624,
+        WheelSideDragDecelKph: 0.416
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 90.17,
-        AerodynamicDecelKph: 0.539,
-        RollingResistanceDecelKph: 0.623
+        SpeedKph: 86.9,
+        AerodynamicDecelKph: 0.501,
+        RollingResistanceDecelKph: 0.622,
+        WheelSideDragDecelKph: 0.413
       }
     ]
   },
   {
     Vehicle: BMW 3 Series,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 90.57,
+    FinalSpeedKph: 87.47,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.94,
+        SpeedKph: 99.92,
         AerodynamicDecelKph: 0.633,
-        RollingResistanceDecelKph: 0.612
+        RollingResistanceDecelKph: 0.607,
+        WheelSideDragDecelKph: 0.425
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 98.7,
-        AerodynamicDecelKph: 0.617,
-        RollingResistanceDecelKph: 0.61
+        SpeedKph: 98.27,
+        AerodynamicDecelKph: 0.612,
+        RollingResistanceDecelKph: 0.604,
+        WheelSideDragDecelKph: 0.422
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 97.48,
-        AerodynamicDecelKph: 0.602,
-        RollingResistanceDecelKph: 0.608
+        SpeedKph: 96.64,
+        AerodynamicDecelKph: 0.592,
+        RollingResistanceDecelKph: 0.602,
+        WheelSideDragDecelKph: 0.419
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 96.28,
-        AerodynamicDecelKph: 0.587,
-        RollingResistanceDecelKph: 0.606
+        SpeedKph: 95.04,
+        AerodynamicDecelKph: 0.573,
+        RollingResistanceDecelKph: 0.6,
+        WheelSideDragDecelKph: 0.416
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 95.1,
-        AerodynamicDecelKph: 0.573,
-        RollingResistanceDecelKph: 0.605
+        SpeedKph: 93.47,
+        AerodynamicDecelKph: 0.554,
+        RollingResistanceDecelKph: 0.597,
+        WheelSideDragDecelKph: 0.412
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 93.93,
-        AerodynamicDecelKph: 0.559,
-        RollingResistanceDecelKph: 0.603
+        SpeedKph: 91.92,
+        AerodynamicDecelKph: 0.535,
+        RollingResistanceDecelKph: 0.595,
+        WheelSideDragDecelKph: 0.409
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 92.77,
-        AerodynamicDecelKph: 0.545,
-        RollingResistanceDecelKph: 0.601
+        SpeedKph: 90.39,
+        AerodynamicDecelKph: 0.518,
+        RollingResistanceDecelKph: 0.593,
+        WheelSideDragDecelKph: 0.406
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 91.64,
-        AerodynamicDecelKph: 0.532,
-        RollingResistanceDecelKph: 0.599
+        SpeedKph: 88.88,
+        AerodynamicDecelKph: 0.501,
+        RollingResistanceDecelKph: 0.591,
+        WheelSideDragDecelKph: 0.403
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 90.57,
-        AerodynamicDecelKph: 0.52,
-        RollingResistanceDecelKph: 0.598
+        SpeedKph: 87.47,
+        AerodynamicDecelKph: 0.485,
+        RollingResistanceDecelKph: 0.588,
+        WheelSideDragDecelKph: 0.4
       }
     ]
   },
   {
     Vehicle: Mercedes Sprinter,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 85.13,
+    FinalSpeedKph: 80.94,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.9,
+        SpeedKph: 99.87,
         AerodynamicDecelKph: 1.037,
-        RollingResistanceDecelKph: 0.998
+        RollingResistanceDecelKph: 1.007,
+        WheelSideDragDecelKph: 0.591
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 97.89,
-        AerodynamicDecelKph: 0.996,
-        RollingResistanceDecelKph: 0.991
+        SpeedKph: 97.27,
+        AerodynamicDecelKph: 0.984,
+        RollingResistanceDecelKph: 0.998,
+        WheelSideDragDecelKph: 0.584
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 95.93,
-        AerodynamicDecelKph: 0.957,
-        RollingResistanceDecelKph: 0.984
+        SpeedKph: 94.74,
+        AerodynamicDecelKph: 0.934,
+        RollingResistanceDecelKph: 0.989,
+        WheelSideDragDecelKph: 0.577
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 94.01,
-        AerodynamicDecelKph: 0.919,
-        RollingResistanceDecelKph: 0.978
+        SpeedKph: 92.27,
+        AerodynamicDecelKph: 0.886,
+        RollingResistanceDecelKph: 0.98,
+        WheelSideDragDecelKph: 0.57
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 92.14,
-        AerodynamicDecelKph: 0.882,
-        RollingResistanceDecelKph: 0.971
+        SpeedKph: 89.87,
+        AerodynamicDecelKph: 0.84,
+        RollingResistanceDecelKph: 0.971,
+        WheelSideDragDecelKph: 0.563
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 90.3,
-        AerodynamicDecelKph: 0.848,
-        RollingResistanceDecelKph: 0.965
+        SpeedKph: 87.53,
+        AerodynamicDecelKph: 0.797,
+        RollingResistanceDecelKph: 0.963,
+        WheelSideDragDecelKph: 0.556
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 88.51,
-        AerodynamicDecelKph: 0.814,
-        RollingResistanceDecelKph: 0.959
+        SpeedKph: 85.24,
+        AerodynamicDecelKph: 0.756,
+        RollingResistanceDecelKph: 0.955,
+        WheelSideDragDecelKph: 0.55
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 86.76,
-        AerodynamicDecelKph: 0.782,
-        RollingResistanceDecelKph: 0.952
+        SpeedKph: 83.01,
+        AerodynamicDecelKph: 0.717,
+        RollingResistanceDecelKph: 0.947,
+        WheelSideDragDecelKph: 0.543
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 85.13,
-        AerodynamicDecelKph: 0.753,
-        RollingResistanceDecelKph: 0.947
+        SpeedKph: 80.94,
+        AerodynamicDecelKph: 0.681,
+        RollingResistanceDecelKph: 0.94,
+        WheelSideDragDecelKph: 0.537
       }
     ]
   },
   {
     Vehicle: Kawasaki Ninja ZX-10R,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 81.39,
+    FinalSpeedKph: 76.3,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.86,
+        SpeedKph: 99.83,
         AerodynamicDecelKph: 2.022,
-        RollingResistanceDecelKph: 0.69
+        RollingResistanceDecelKph: 0.685,
+        WheelSideDragDecelKph: 0.788
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 97.21,
-        AerodynamicDecelKph: 1.916,
-        RollingResistanceDecelKph: 0.685
+        SpeedKph: 96.41,
+        AerodynamicDecelKph: 1.886,
+        RollingResistanceDecelKph: 0.679,
+        WheelSideDragDecelKph: 0.775
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 94.67,
-        AerodynamicDecelKph: 1.817,
-        RollingResistanceDecelKph: 0.68
+        SpeedKph: 93.15,
+        AerodynamicDecelKph: 1.76,
+        RollingResistanceDecelKph: 0.674,
+        WheelSideDragDecelKph: 0.761
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 92.22,
-        AerodynamicDecelKph: 1.724,
-        RollingResistanceDecelKph: 0.676
+        SpeedKph: 90.02,
+        AerodynamicDecelKph: 1.644,
+        RollingResistanceDecelKph: 0.668,
+        WheelSideDragDecelKph: 0.749
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 89.87,
-        AerodynamicDecelKph: 1.637,
-        RollingResistanceDecelKph: 0.672
+        SpeedKph: 87.03,
+        AerodynamicDecelKph: 1.537,
+        RollingResistanceDecelKph: 0.663,
+        WheelSideDragDecelKph: 0.736
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 87.6,
-        AerodynamicDecelKph: 1.556,
-        RollingResistanceDecelKph: 0.668
+        SpeedKph: 84.16,
+        AerodynamicDecelKph: 1.437,
+        RollingResistanceDecelKph: 0.658,
+        WheelSideDragDecelKph: 0.725
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 85.42,
-        AerodynamicDecelKph: 1.479,
-        RollingResistanceDecelKph: 0.664
+        SpeedKph: 81.39,
+        AerodynamicDecelKph: 1.344,
+        RollingResistanceDecelKph: 0.653,
+        WheelSideDragDecelKph: 0.713
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 83.32,
-        AerodynamicDecelKph: 1.407,
-        RollingResistanceDecelKph: 0.66
+        SpeedKph: 78.74,
+        AerodynamicDecelKph: 1.258,
+        RollingResistanceDecelKph: 0.649,
+        WheelSideDragDecelKph: 0.703
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 81.39,
-        AerodynamicDecelKph: 1.343,
-        RollingResistanceDecelKph: 0.657
+        SpeedKph: 76.3,
+        AerodynamicDecelKph: 1.181,
+        RollingResistanceDecelKph: 0.644,
+        WheelSideDragDecelKph: 0.693
       }
     ]
   },
   {
     Vehicle: Ducati Panigale V4,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 81.96,
+    FinalSpeedKph: 76.71,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.87,
+        SpeedKph: 99.83,
         AerodynamicDecelKph: 1.945,
-        RollingResistanceDecelKph: 0.668
+        RollingResistanceDecelKph: 0.664,
+        WheelSideDragDecelKph: 0.81
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 97.31,
-        AerodynamicDecelKph: 1.847,
-        RollingResistanceDecelKph: 0.664
+        SpeedKph: 96.49,
+        AerodynamicDecelKph: 1.817,
+        RollingResistanceDecelKph: 0.659,
+        WheelSideDragDecelKph: 0.796
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 94.85,
-        AerodynamicDecelKph: 1.755,
-        RollingResistanceDecelKph: 0.66
+        SpeedKph: 93.29,
+        AerodynamicDecelKph: 1.699,
+        RollingResistanceDecelKph: 0.654,
+        WheelSideDragDecelKph: 0.783
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 92.48,
-        AerodynamicDecelKph: 1.668,
-        RollingResistanceDecelKph: 0.656
+        SpeedKph: 90.22,
+        AerodynamicDecelKph: 1.589,
+        RollingResistanceDecelKph: 0.649,
+        WheelSideDragDecelKph: 0.77
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 90.2,
-        AerodynamicDecelKph: 1.587,
-        RollingResistanceDecelKph: 0.652
+        SpeedKph: 87.28,
+        AerodynamicDecelKph: 1.487,
+        RollingResistanceDecelKph: 0.644,
+        WheelSideDragDecelKph: 0.757
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 88.01,
-        AerodynamicDecelKph: 1.511,
-        RollingResistanceDecelKph: 0.649
+        SpeedKph: 84.45,
+        AerodynamicDecelKph: 1.392,
+        RollingResistanceDecelKph: 0.639,
+        WheelSideDragDecelKph: 0.745
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 85.89,
-        AerodynamicDecelKph: 1.439,
-        RollingResistanceDecelKph: 0.645
+        SpeedKph: 81.73,
+        AerodynamicDecelKph: 1.304,
+        RollingResistanceDecelKph: 0.635,
+        WheelSideDragDecelKph: 0.734
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 83.84,
-        AerodynamicDecelKph: 1.371,
-        RollingResistanceDecelKph: 0.642
+        SpeedKph: 79.11,
+        AerodynamicDecelKph: 1.221,
+        RollingResistanceDecelKph: 0.63,
+        WheelSideDragDecelKph: 0.722
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 81.96,
-        AerodynamicDecelKph: 1.31,
-        RollingResistanceDecelKph: 0.638
+        SpeedKph: 76.71,
+        AerodynamicDecelKph: 1.148,
+        RollingResistanceDecelKph: 0.626,
+        WheelSideDragDecelKph: 0.712
       }
     ]
   },
   {
     Vehicle: Yamaha YZF-R1,
     StartSpeedKph: 100.0,
-    FinalSpeedKph: 81.97,
+    FinalSpeedKph: 76.81,
     Samples: [
       {
         TimeSeconds: 0.05,
-        SpeedKph: 99.87,
+        SpeedKph: 99.83,
         AerodynamicDecelKph: 1.93,
-        RollingResistanceDecelKph: 0.681
+        RollingResistanceDecelKph: 0.678,
+        WheelSideDragDecelKph: 0.793
       },
       {
         TimeSeconds: 1.05,
-        SpeedKph: 97.31,
-        AerodynamicDecelKph: 1.832,
-        RollingResistanceDecelKph: 0.676
+        SpeedKph: 96.51,
+        AerodynamicDecelKph: 1.804,
+        RollingResistanceDecelKph: 0.672,
+        WheelSideDragDecelKph: 0.779
       },
       {
         TimeSeconds: 2.05,
-        SpeedKph: 94.86,
-        AerodynamicDecelKph: 1.741,
-        RollingResistanceDecelKph: 0.672
+        SpeedKph: 93.32,
+        AerodynamicDecelKph: 1.686,
+        RollingResistanceDecelKph: 0.667,
+        WheelSideDragDecelKph: 0.766
       },
       {
         TimeSeconds: 3.05,
-        SpeedKph: 92.49,
-        AerodynamicDecelKph: 1.655,
-        RollingResistanceDecelKph: 0.668
+        SpeedKph: 90.27,
+        AerodynamicDecelKph: 1.578,
+        RollingResistanceDecelKph: 0.662,
+        WheelSideDragDecelKph: 0.754
       },
       {
         TimeSeconds: 4.05,
-        SpeedKph: 90.21,
-        AerodynamicDecelKph: 1.575,
-        RollingResistanceDecelKph: 0.664
+        SpeedKph: 87.34,
+        AerodynamicDecelKph: 1.477,
+        RollingResistanceDecelKph: 0.657,
+        WheelSideDragDecelKph: 0.742
       },
       {
         TimeSeconds: 5.05,
-        SpeedKph: 88.02,
-        AerodynamicDecelKph: 1.499,
-        RollingResistanceDecelKph: 0.66
+        SpeedKph: 84.52,
+        AerodynamicDecelKph: 1.383,
+        RollingResistanceDecelKph: 0.652,
+        WheelSideDragDecelKph: 0.73
       },
       {
         TimeSeconds: 6.05,
-        SpeedKph: 85.9,
-        AerodynamicDecelKph: 1.427,
-        RollingResistanceDecelKph: 0.657
+        SpeedKph: 81.81,
+        AerodynamicDecelKph: 1.296,
+        RollingResistanceDecelKph: 0.647,
+        WheelSideDragDecelKph: 0.719
       },
       {
         TimeSeconds: 7.05,
-        SpeedKph: 83.85,
-        AerodynamicDecelKph: 1.36,
-        RollingResistanceDecelKph: 0.653
+        SpeedKph: 79.2,
+        AerodynamicDecelKph: 1.215,
+        RollingResistanceDecelKph: 0.643,
+        WheelSideDragDecelKph: 0.709
       },
       {
         TimeSeconds: 8.0,
-        SpeedKph: 81.97,
-        AerodynamicDecelKph: 1.3,
-        RollingResistanceDecelKph: 0.65
+        SpeedKph: 76.81,
+        AerodynamicDecelKph: 1.142,
+        RollingResistanceDecelKph: 0.639,
+        WheelSideDragDecelKph: 0.699
       }
     ]
   }

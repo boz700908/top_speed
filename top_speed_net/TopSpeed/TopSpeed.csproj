@@ -38,7 +38,13 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == 'osx-x64'">
     <MacBuildBundle>false</MacBuildBundle>
-    <PublishDir>bin/Publish/osx-x64/</PublishDir>
+    <MacPublishRoot>bin/Publish/osx-x64/</MacPublishRoot>
+    <MacPublishStagingDir>$(MacPublishRoot)_staging/</MacPublishStagingDir>
+    <MacAppBundleName>TopSpeed.app</MacAppBundleName>
+    <MacAppBundleDir>$(MacPublishRoot)$(MacAppBundleName)/</MacAppBundleDir>
+    <MacAppBundleContentsDir>$(MacAppBundleDir)Contents/</MacAppBundleContentsDir>
+    <MacAppBundleMacOSDir>$(MacAppBundleContentsDir)MacOS/</MacAppBundleMacOSDir>
+    <PublishDir>$(MacPublishStagingDir)</PublishDir>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows' and '$(RuntimeIdentifier)' == 'win-x64'">
@@ -175,8 +181,21 @@
   <ItemGroup>
     <Content Include="..\Sounds\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>Sounds\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <TargetPath>Sounds\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+    </Content>
+    <Content Include="..\Tracks\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Link>Tracks\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <TargetPath>Tracks\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+    </Content>
+    <Content Include="..\Vehicles\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Link>Vehicles\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <TargetPath>Vehicles\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>
     <Content Include="..\languages\client\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -186,6 +205,7 @@
     </Content>
     <Content Include="..\..\docs\**\*" Exclude="..\..\docs\**\*.md;..\..\docs\render_docs.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>docs\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <TargetPath>docs\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>
@@ -210,6 +230,27 @@
       <_UpdaterProjectPath>$(MSBuildThisFileDirectory)../Updater/Updater.csproj</_UpdaterProjectPath>
     </PropertyGroup>
     <MSBuild Projects="$(_UpdaterProjectPath)" Targets="Restore;Publish" Properties="Configuration=$(Configuration);TargetFramework=net10.0;RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=true;PublishDir=$(OutDir);UseNativeAotUpdater=$(UseNativeAotUpdater);UseTrimmedUpdater=$(UseTrimmedUpdater)" />
+  </Target>
+
+  <Target Name="PublishUpdaterNet10" AfterTargets="Publish" Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != ''">
+    <PropertyGroup>
+      <_UpdaterProjectPath>$(MSBuildThisFileDirectory)../Updater/Updater.csproj</_UpdaterProjectPath>
+      <_PublishDestinationPath>$([System.IO.Path]::GetFullPath('$(PublishDir)'))</_PublishDestinationPath>
+    </PropertyGroup>
+    <MSBuild Projects="$(_UpdaterProjectPath)" Targets="Restore;Publish" Properties="Configuration=$(Configuration);TargetFramework=net10.0;RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=true;PublishDir=$(_PublishDestinationPath);UseNativeAotUpdater=$(UseNativeAotUpdater);UseTrimmedUpdater=$(UseTrimmedUpdater)" />
+  </Target>
+
+  <Target Name="CreateMacAppBundle" AfterTargets="Publish" DependsOnTargets="PublishUpdaterNet10" Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == 'osx-x64'">
+    <ItemGroup>
+      <_MacBundleSourceFiles Include="$(MacPublishStagingDir)**\*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(MacAppBundleDir)" Condition="Exists('$(MacAppBundleDir)')" />
+    <MakeDir Directories="$(MacAppBundleMacOSDir)" />
+    <Copy SourceFiles="@(_MacBundleSourceFiles)" DestinationFiles="@(_MacBundleSourceFiles->'$(MacAppBundleMacOSDir)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)Build\osx\Info.plist" DestinationFiles="$(MacAppBundleContentsDir)Info.plist" />
+    <WriteLinesToFile File="$(MacAppBundleContentsDir)PkgInfo" Lines="APPLTSPD" Overwrite="true" />
+    <RemoveDir Directories="$(MacPublishStagingDir)" Condition="Exists('$(MacPublishStagingDir)')" />
+    <Message Importance="high" Text="Created macOS app bundle at $(MacAppBundleDir)" />
   </Target>
 
   <Target Name="ValidateNet10RuntimeIdentifier" BeforeTargets="Build;Publish" Condition="'$(TargetFramework)' == 'net10.0' and '$(RuntimeIdentifier)' == ''">

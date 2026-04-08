@@ -89,13 +89,16 @@ namespace TopSpeed.Physics.Powertrain
                 speedMps,
                 rollingResistanceModifier,
                 applyDrivelineDrag: false,
-                drivelineCouplingFactor: 0f,
+                drivelineDragParticipation: 0f,
                 gear,
                 inReverse,
                 isNeutral: false,
                 resistanceEnvironment,
                 driveRatioOverride);
-            var netForce = wheelForce - passiveResistance.AerodynamicForceN - passiveResistance.RollingResistanceForceN;
+            var netForce = wheelForce
+                - passiveResistance.AerodynamicForceN
+                - passiveResistance.RollingResistanceForceN
+                - passiveResistance.WheelSideDragForceN;
             return netForce / config.MassKg;
         }
     }

@@ -36,6 +36,8 @@ namespace TopSpeed.Physics.Powertrain
             int gears,
             CurveProfile torqueCurve,
             float[]? gearRatios = null,
+            float wheelSideDragBaseN = -1f,
+            float wheelSideDragLinearNPerMps = -1f,
             float coupledDrivelineDragNm = -1f,
             float coupledDrivelineViscousDragNmPerKrpm = -1f,
             float frictionLinearNmPerKrpm = -1f,
@@ -78,6 +80,8 @@ namespace TopSpeed.Physics.Powertrain
             Gears = gears;
             TorqueCurve = torqueCurve ?? throw new ArgumentNullException(nameof(torqueCurve));
             GearRatios = gearRatios;
+            WheelSideDragBaseN = wheelSideDragBaseN;
+            WheelSideDragLinearNPerMps = wheelSideDragLinearNPerMps;
             CoupledDrivelineDragNm = coupledDrivelineDragNm;
             CoupledDrivelineViscousDragNmPerKrpm = coupledDrivelineViscousDragNmPerKrpm;
             FrictionLinearNmPerKrpm = frictionLinearNmPerKrpm;
@@ -121,6 +125,8 @@ namespace TopSpeed.Physics.Powertrain
         public int Gears { get; }
         public CurveProfile TorqueCurve { get; }
         public float[]? GearRatios { get; }
+        public float WheelSideDragBaseN { get; }
+        public float WheelSideDragLinearNPerMps { get; }
         public float CoupledDrivelineDragNm { get; }
         public float CoupledDrivelineViscousDragNmPerKrpm { get; }
         public float FrictionLinearNmPerKrpm { get; }

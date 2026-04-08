@@ -105,7 +105,7 @@ namespace TopSpeed
             var logName = $"topspeed_error_{timestamp}.log";
             try
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), logName);
+                var path = Path.Combine(AppContext.BaseDirectory, logName);
                 File.WriteAllText(path, exception.ToString());
             }
             catch

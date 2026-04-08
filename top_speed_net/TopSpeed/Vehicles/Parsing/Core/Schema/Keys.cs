@@ -13,7 +13,7 @@ namespace TopSpeed.Vehicles.Parsing
             {
                 ["meta"] = Set("name", "version", "description"),
                 ["sounds"] = Set("engine", "start", "stop", "horn", "throttle", "crash", "brake", "backfire", "idle_freq", "top_freq", "shift_freq", "pitch_curve_exponent"),
-                ["general"] = Set("surface_traction_factor", "deceleration", "max_speed", "has_wipers"),
+                ["general"] = Set("surface_traction_factor", "max_speed", "has_wipers"),
                 ["engine"] = Set(
                     "idle_rpm", "max_rpm", "rev_limiter", "auto_shift_rpm", "engine_braking", "mass_kg", "drivetrain_efficiency",
                     "launch_rpm"),
@@ -38,6 +38,8 @@ namespace TopSpeed.Vehicles.Parsing
                     "frontal_area",
                     "side_area",
                     "rolling_resistance",
+                    "wheel_side_drag_n",
+                    "wheel_side_drag_linear_n_per_mps",
                     "rolling_speed_factor",
                     "driveline_drag_nm",
                     "driveline_viscous_drag_nm_per_krpm"),

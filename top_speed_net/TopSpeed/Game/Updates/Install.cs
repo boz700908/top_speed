@@ -10,7 +10,7 @@ namespace TopSpeed.Game
     {
         private void LaunchUpdaterAndExit()
         {
-            var root = Directory.GetCurrentDirectory();
+            var root = AppContext.BaseDirectory;
             var updaterPath = ResolveExecutablePath(root, _updateConfig.UpdaterEntryName);
             if (!File.Exists(updaterPath))
             {

@@ -14,7 +14,6 @@ namespace TopSpeed.Data
         public string Name { get; }
         public int HasWipers { get; }
         public float SurfaceTractionFactor { get; }
-        public float Deceleration { get; }
         public float TopSpeed { get; }
         public int IdleFreq { get; }
         public int TopFreq { get; }
@@ -45,6 +44,8 @@ namespace TopSpeed.Data
         public float SideAreaM2 { get; }
         public float RollingResistanceCoefficient { get; }
         public float RollingResistanceSpeedFactor { get; }
+        public float WheelSideDragBaseN { get; }
+        public float WheelSideDragLinearNPerMps { get; }
         public float LaunchRpm { get; }
         public float CoupledDrivelineDragNm { get; }
         public float CoupledDrivelineViscousDragNmPerKrpm { get; }
@@ -105,7 +106,6 @@ namespace TopSpeed.Data
             string? stopSound,
             int hasWipers,
             float surfaceTractionFactor,
-            float deceleration,
             float topSpeed,
             int idleFreq,
             int topFreq,
@@ -134,6 +134,8 @@ namespace TopSpeed.Data
             float sideAreaM2 = -1f,
             float rollingResistanceCoefficient = 0.015f,
             float rollingResistanceSpeedFactor = -1f,
+            float wheelSideDragBaseN = -1f,
+            float wheelSideDragLinearNPerMps = -1f,
             float launchRpm = 1800f,
             float coupledDrivelineDragNm = -1f,
             float coupledDrivelineViscousDragNmPerKrpm = -1f,
@@ -195,7 +197,6 @@ namespace TopSpeed.Data
 
             HasWipers = hasWipers;
             SurfaceTractionFactor = surfaceTractionFactor;
-            Deceleration = deceleration;
             TopSpeed = topSpeed;
             IdleFreq = idleFreq;
             TopFreq = topFreq;
@@ -228,6 +229,8 @@ namespace TopSpeed.Data
             SideAreaM2 = sideAreaM2;
             RollingResistanceCoefficient = rollingResistanceCoefficient;
             RollingResistanceSpeedFactor = rollingResistanceSpeedFactor;
+            WheelSideDragBaseN = wheelSideDragBaseN;
+            WheelSideDragLinearNPerMps = wheelSideDragLinearNPerMps;
             LaunchRpm = launchRpm;
             CoupledDrivelineDragNm = coupledDrivelineDragNm;
             CoupledDrivelineViscousDragNmPerKrpm = coupledDrivelineViscousDragNmPerKrpm;
@@ -299,7 +302,6 @@ namespace TopSpeed.Data
                 spec.Name, null, null, null, null, null, null, null, null,
                 spec.HasWipers,
                 spec.SurfaceTractionFactor,
-                spec.Deceleration,
                 spec.TopSpeed,
                 spec.IdleFreq,
                 spec.TopFreq,
@@ -328,6 +330,8 @@ namespace TopSpeed.Data
                 spec.SideAreaM2,
                 spec.RollingResistanceCoefficient,
                 spec.RollingResistanceSpeedFactor,
+                spec.WheelSideDragBaseN,
+                spec.WheelSideDragLinearNPerMps,
                 spec.LaunchRpm,
                 spec.CoupledDrivelineDragNm,
                 spec.CoupledDrivelineViscousDragNmPerKrpm,

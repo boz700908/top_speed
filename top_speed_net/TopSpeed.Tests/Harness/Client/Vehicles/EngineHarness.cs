@@ -274,6 +274,7 @@ namespace TopSpeed.Tests
                     launchGear,
                     inReverse: false,
                     isNeutral: false,
+                    transmissionType: spec.PrimaryTransmissionType,
                     drivelineCouplingFactor: coupling,
                     creepAccelerationMps2: autoOutput.CreepAccelerationMps2,
                     currentEngineRpm: engine.Rpm,

@@ -49,6 +49,7 @@ namespace TopSpeed.Vehicles
                     GetDriveGear(),
                     inReverse,
                     isNeutral: false,
+                    transmissionType: EffectiveTransmissionType(),
                     drivelineCouplingFactor,
                     creepAccelerationMps2: 0f,
                     currentEngineRpm: _engine.Rpm,
@@ -57,7 +58,8 @@ namespace TopSpeed.Vehicles
                     applyEngineBraking: false,
                     resistanceEnvironment: _track.GetResistanceEnvironment(),
                     driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null,
-                    driveAccelerationScale: _factor1 / 100f));
+                    driveAccelerationScale: _factor1 / 100f,
+                    gearPathEngaged: HasSelectedGearPath()));
             _speedDiff = result.SpeedDeltaKph;
             _lastDriveRpm = result.CoupledDriveRpm;
             if (_backfirePlayed)
@@ -96,6 +98,7 @@ namespace TopSpeed.Vehicles
                     GetDriveGear(),
                     inReverse,
                     isNeutral: false,
+                    transmissionType: EffectiveTransmissionType(),
                     drivelineCouplingFactor,
                     creepAccelerationMps2: 0f,
                     currentEngineRpm: _engine.Rpm,
@@ -103,7 +106,8 @@ namespace TopSpeed.Vehicles
                     requestBrake: false,
                     applyEngineBraking: true,
                     resistanceEnvironment: _track.GetResistanceEnvironment(),
-                    driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null));
+                    driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null,
+                    gearPathEngaged: HasSelectedGearPath()));
             _speedDiff = result.SpeedDeltaKph;
             _lastDriveRpm = 0f;
         }
@@ -125,21 +129,34 @@ namespace TopSpeed.Vehicles
                     GetDriveGear(),
                     _gear == ReverseGear,
                     IsNeutralGear(),
+                    EffectiveTransmissionType(),
                     _drivelineCouplingFactor,
                     _automaticCreepAccelMps2,
                     _engine.Rpm,
                     requestDrive: false,
                     requestBrake: _thrust < -10,
-                    applyEngineBraking: !IsNeutralGear() && _drivelineCouplingFactor > 0.05f,
+                    applyEngineBraking: !IsNeutralGear(),
                     resistanceEnvironment: _track.GetResistanceEnvironment(),
-                    driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null));
+                    driveRatioOverride: _effectiveDriveRatioOverride > 0f ? _effectiveDriveRatioOverride : (float?)null,
+                    gearPathEngaged: HasSelectedGearPath()));
             _speedDiff = result.SpeedDeltaKph;
             _lastDriveRpm = 0f;
         }
 
+        private bool HasSelectedGearPath()
+        {
+            if (IsNeutralGear())
+                return false;
+
+            if (!_manualTransmission)
+                return true;
+
+            return _switchingGear == 0;
+        }
+
         private float ResolveSurfaceBrakeModifier()
         {
-            return _deceleration > 0f ? _currentSurfaceBrakeFactor / _deceleration : 1.0f;
+            return _currentSurfaceBrakeFactor > 0f ? _currentSurfaceBrakeFactor : 1.0f;
         }
 
         private float ResolveSurfaceRollingResistanceModifier()

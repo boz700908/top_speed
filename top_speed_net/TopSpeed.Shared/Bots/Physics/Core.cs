@@ -22,7 +22,7 @@ namespace TopSpeed.Bots
             if (state.CvtRatio <= 0f)
                 state.CvtRatio = config.AutomaticTuning.Cvt.RatioMax;
 
-            var surface = SurfaceModel.Resolve(input.Surface, config.SurfaceTractionFactor, config.Deceleration);
+            var surface = SurfaceModel.Resolve(input.Surface, config.SurfaceTractionFactor);
             var surfaceTraction = surface.Traction;
             var surfaceBrake = surface.Brake;
             var surfaceRollingResistance = surface.RollingResistance;
@@ -80,7 +80,7 @@ namespace TopSpeed.Bots
                 longitudinalGripFactor = tireOutput.LongitudinalGripFactor;
             }
 
-            var surfaceBrakeMod = config.Deceleration > 0f ? surfaceBrake / config.Deceleration : 1f;
+            var surfaceBrakeMod = surfaceBrake > 0f ? surfaceBrake : 1f;
             var couplingFactor = automaticFamily ? state.AutomaticCouplingFactor : 1f;
             var engineRpmEstimate = Calculator.RpmAtSpeed(
                 config.Powertrain,
@@ -101,6 +101,7 @@ namespace TopSpeed.Bots
                     state.Gear,
                     inReverse: false,
                     isNeutral: false,
+                    transmissionType: activeTransmissionType,
                     couplingFactor,
                     automaticFamily ? autoOutput.CreepAccelerationMps2 : 0f,
                     engineRpmEstimate,

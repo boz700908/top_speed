@@ -39,6 +39,15 @@ namespace TopSpeed.Physics.Powertrain
             return (ResistanceModel.RollingResistanceForce(config, speedMps, rollingResistanceModifier) / Math.Max(1f, config.MassKg)) * 3.6f;
         }
 
+        public static float WheelSideDragDecelKph(
+            Config config,
+            float speedMps)
+        {
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+            return (ResistanceModel.WheelSideDragForce(config, speedMps) / Math.Max(1f, config.MassKg)) * 3.6f;
+        }
+
         public static float EngineBrakeDecelKph(
             Config config,
             int gear,

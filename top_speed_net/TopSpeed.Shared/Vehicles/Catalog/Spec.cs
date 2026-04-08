@@ -10,7 +10,6 @@ namespace TopSpeed.Vehicles
             string name,
             int hasWipers,
             float surfaceTractionFactor,
-            float deceleration,
             float topSpeed,
             int idleFreq,
             int topFreq,
@@ -75,6 +74,8 @@ namespace TopSpeed.Vehicles
             TransmissionPolicy? transmissionPolicy = null,
             float sideAreaM2 = -1f,
             float rollingResistanceSpeedFactor = -1f,
+            float wheelSideDragBaseN = -1f,
+            float wheelSideDragLinearNPerMps = -1f,
             float coupledDrivelineDragNm = -1f,
             float coupledDrivelineViscousDragNmPerKrpm = -1f,
             float engineOverrunIdleLossFraction = -1f,
@@ -91,7 +92,6 @@ namespace TopSpeed.Vehicles
             Name = name;
             HasWipers = hasWipers;
             SurfaceTractionFactor = surfaceTractionFactor;
-            Deceleration = deceleration;
             TopSpeed = topSpeed;
             IdleFreq = idleFreq;
             TopFreq = topFreq;
@@ -159,6 +159,8 @@ namespace TopSpeed.Vehicles
             ShiftOnDemand = shiftOnDemand;
             AutomaticTuning = automaticTuning ?? AutomaticDrivelineTuning.Default;
             TransmissionPolicy = transmissionPolicy ?? TransmissionPolicy.Default;
+            WheelSideDragBaseN = wheelSideDragBaseN;
+            WheelSideDragLinearNPerMps = wheelSideDragLinearNPerMps;
             CoupledDrivelineDragNm = coupledDrivelineDragNm;
             CoupledDrivelineViscousDragNmPerKrpm = coupledDrivelineViscousDragNmPerKrpm;
             EngineOverrunIdleLossFraction = engineOverrunIdleLossFraction;
@@ -176,7 +178,6 @@ namespace TopSpeed.Vehicles
         public string Name { get; }
         public int HasWipers { get; }
         public float SurfaceTractionFactor { get; }
-        public float Deceleration { get; }
         public float TopSpeed { get; }
         public int IdleFreq { get; }
         public int TopFreq { get; }
@@ -202,6 +203,8 @@ namespace TopSpeed.Vehicles
         public float RollingResistanceCoefficient { get; }
         public float RollingResistanceSpeedFactor { get; }
         public float LaunchRpm { get; }
+        public float WheelSideDragBaseN { get; }
+        public float WheelSideDragLinearNPerMps { get; }
         public float CoupledDrivelineDragNm { get; }
         public float CoupledDrivelineViscousDragNmPerKrpm { get; }
         public float EngineInertiaKgm2 { get; }

@@ -28,7 +28,7 @@ namespace TopSpeed.Core.Settings
         public SettingsManager(string? settingsPath = null)
         {
             _settingsPath = string.IsNullOrWhiteSpace(settingsPath)
-                ? Path.Combine(Directory.GetCurrentDirectory(), SettingsFileName)
+                ? Path.Combine(AppContext.BaseDirectory, SettingsFileName)
                 : settingsPath!;
         }
     }

@@ -37,6 +37,8 @@ namespace TopSpeed.Physics.Powertrain
             int gears,
             float[] gearRatios,
             CurveProfile torqueCurve,
+            float wheelSideDragBaseN = 0f,
+            float wheelSideDragLinearNPerMps = 0f,
             float coupledDrivelineDragNm = 0f,
             float coupledDrivelineViscousDragNmPerKrpm = 0f,
             float engineFrictionLinearNmPerKrpm = 0f,
@@ -75,6 +77,8 @@ namespace TopSpeed.Physics.Powertrain
             EngineInertiaKgm2 = Math.Max(0.01f, engineInertiaKgm2);
             EngineFrictionTorqueNm = Math.Max(0f, engineFrictionTorqueNm);
             DrivelineCouplingRate = Math.Max(0.1f, drivelineCouplingRate);
+            WheelSideDragBaseN = Math.Max(0f, wheelSideDragBaseN);
+            WheelSideDragLinearNPerMps = Math.Max(0f, wheelSideDragLinearNPerMps);
             CoupledDrivelineDragNm = Math.Max(0f, coupledDrivelineDragNm);
             CoupledDrivelineViscousDragNmPerKrpm = Math.Max(0f, coupledDrivelineViscousDragNmPerKrpm);
             EngineFrictionLinearNmPerKrpm = Math.Max(0f, engineFrictionLinearNmPerKrpm);
@@ -121,6 +125,8 @@ namespace TopSpeed.Physics.Powertrain
         public float EngineFrictionLinearNmPerKrpm { get; }
         public float EngineFrictionQuadraticNmPerKrpm2 { get; }
         public float DrivelineCouplingRate { get; }
+        public float WheelSideDragBaseN { get; }
+        public float WheelSideDragLinearNPerMps { get; }
         public float CoupledDrivelineDragNm { get; }
         public float CoupledDrivelineViscousDragNmPerKrpm { get; }
         public float IdleControlWindowRpm { get; }

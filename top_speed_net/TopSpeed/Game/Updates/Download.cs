@@ -34,7 +34,7 @@ namespace TopSpeed.Game
             _updateDownloadTask = Task.Run(() =>
                 _updateService.DownloadAsync(
                     update,
-                    Directory.GetCurrentDirectory(),
+                    AppContext.BaseDirectory,
                     OnUpdateProgress,
                     _updateDownloadCts.Token));
         }

@@ -10,7 +10,6 @@ namespace TopSpeed.Vehicles.Loader
             return new Common
             {
                 SurfaceTractionFactor = parameters.SurfaceTractionFactor,
-                Deceleration = parameters.Deceleration,
                 TopSpeed = parameters.TopSpeed,
                 IdleFreq = parameters.IdleFreq,
                 TopFreq = parameters.TopFreq,
@@ -40,6 +39,8 @@ namespace TopSpeed.Vehicles.Loader
                 FrontalAreaM2 = parameters.FrontalAreaM2,
                 SideAreaM2 = parameters.SideAreaM2,
                 RollingResistanceCoefficient = parameters.RollingResistanceCoefficient,
+                WheelSideDragBaseN = parameters.WheelSideDragBaseN,
+                WheelSideDragLinearNPerMps = parameters.WheelSideDragLinearNPerMps,
                 RollingResistanceSpeedFactor = parameters.RollingResistanceSpeedFactor,
                 LaunchRpm = parameters.LaunchRpm,
                 CoupledDrivelineDragNm = parameters.CoupledDrivelineDragNm,

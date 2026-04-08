@@ -12,7 +12,7 @@ namespace TopSpeed.Physics.Powertrain
             float speedMps,
             float rollingResistanceModifier,
             bool applyDrivelineDrag,
-            float drivelineCouplingFactor,
+            float drivelineDragParticipation,
             int gear,
             bool inReverse,
             bool isNeutral,
@@ -24,17 +24,18 @@ namespace TopSpeed.Physics.Powertrain
 
             var aeroForce = AerodynamicForce(config, speedMps, in environment);
             var rollingForce = RollingResistanceForce(config, speedMps, rollingResistanceModifier);
-            var drivelineForce = applyDrivelineDrag
-                ? DrivelineDragForce(
+            var wheelSideForce = WheelSideDragForce(config, speedMps);
+            var coupledDrivelineForce = applyDrivelineDrag
+                ? CoupledDrivelineDragForce(
                     config,
                     speedMps,
-                    drivelineCouplingFactor,
+                    drivelineDragParticipation,
                     gear,
                     inReverse,
                     isNeutral,
                     driveRatioOverride)
                 : 0f;
-            return new ResistanceBreakdown(aeroForce, rollingForce, drivelineForce);
+            return new ResistanceBreakdown(aeroForce, rollingForce, wheelSideForce, coupledDrivelineForce);
         }
 
         public static float AerodynamicForce(Config config, float speedMps, in ResistanceEnvironment environment)
@@ -72,16 +73,24 @@ namespace TopSpeed.Physics.Powertrain
                 * Math.Max(0f, rollingResistanceModifier);
         }
 
-        public static float DrivelineDragForce(
+        public static float WheelSideDragForce(Config config, float speedMps)
+        {
+            if (speedMps <= 0f)
+                return 0f;
+
+            return config.WheelSideDragBaseN + (config.WheelSideDragLinearNPerMps * Math.Max(0f, speedMps));
+        }
+
+        public static float CoupledDrivelineDragForce(
             Config config,
             float speedMps,
-            float drivelineCouplingFactor,
+            float drivelineDragParticipation,
             int gear,
             bool inReverse,
             bool isNeutral,
             float? driveRatioOverride = null)
         {
-            if (isNeutral || drivelineCouplingFactor <= 0f || speedMps <= 0f || config.WheelRadiusM <= 0f)
+            if (isNeutral || drivelineDragParticipation <= 0f || speedMps <= 0f || config.WheelRadiusM <= 0f)
                 return 0f;
 
             var ratio = inReverse
@@ -103,7 +112,7 @@ namespace TopSpeed.Physics.Powertrain
                 return 0f;
 
             var wheelTorqueNm = engineLossTorqueNm * ratio * config.FinalDriveRatio * config.DrivetrainEfficiency;
-            return Math.Max(0f, wheelTorqueNm / config.WheelRadiusM) * Math.Max(0f, drivelineCouplingFactor);
+            return Math.Max(0f, wheelTorqueNm / config.WheelRadiusM) * Math.Max(0f, drivelineDragParticipation);
         }
     }
 }

@@ -31,7 +31,6 @@ namespace TopSpeed.Vehicles.Parsing
                     BackfireVariants = values.BackfireVariants
                 },
                 SurfaceTractionFactor = values.SurfaceTractionFactor,
-                Deceleration = values.Deceleration,
                 TopSpeed = values.TopSpeed,
                 HasWipers = values.HasWipers ? 1 : 0,
                 IdleFreq = values.IdleFreq,
@@ -60,6 +59,8 @@ namespace TopSpeed.Vehicles.Parsing
                 FrontalAreaM2 = values.FrontalArea,
                 SideAreaM2 = values.SideArea,
                 RollingResistanceCoefficient = values.RollingResistance,
+                WheelSideDragBaseN = values.WheelSideDragBaseN,
+                WheelSideDragLinearNPerMps = values.WheelSideDragLinearNPerMps,
                 RollingResistanceSpeedFactor = values.RollingResistanceSpeedFactor,
                 LaunchRpm = values.LaunchRpm,
                 CoupledDrivelineDragNm = values.CoupledDrivelineDragNm,

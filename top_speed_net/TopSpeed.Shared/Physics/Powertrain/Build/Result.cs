@@ -8,6 +8,8 @@ namespace TopSpeed.Physics.Powertrain
             Config powertrain,
             float reverseMaxSpeedKph,
             float[] gearRatios,
+            float wheelSideDragBaseN,
+            float wheelSideDragLinearNPerMps,
             float coupledDrivelineDragNm,
             float coupledDrivelineViscousDragNmPerKrpm,
             float frictionLinearNmPerKrpm,
@@ -23,6 +25,8 @@ namespace TopSpeed.Physics.Powertrain
             Powertrain = powertrain ?? throw new ArgumentNullException(nameof(powertrain));
             ReverseMaxSpeedKph = reverseMaxSpeedKph;
             GearRatios = gearRatios ?? throw new ArgumentNullException(nameof(gearRatios));
+            WheelSideDragBaseN = wheelSideDragBaseN;
+            WheelSideDragLinearNPerMps = wheelSideDragLinearNPerMps;
             CoupledDrivelineDragNm = coupledDrivelineDragNm;
             CoupledDrivelineViscousDragNmPerKrpm = coupledDrivelineViscousDragNmPerKrpm;
             FrictionLinearNmPerKrpm = frictionLinearNmPerKrpm;
@@ -39,6 +43,8 @@ namespace TopSpeed.Physics.Powertrain
         public Config Powertrain { get; }
         public float ReverseMaxSpeedKph { get; }
         public float[] GearRatios { get; }
+        public float WheelSideDragBaseN { get; }
+        public float WheelSideDragLinearNPerMps { get; }
         public float CoupledDrivelineDragNm { get; }
         public float CoupledDrivelineViscousDragNmPerKrpm { get; }
         public float FrictionLinearNmPerKrpm { get; }

@@ -50,7 +50,6 @@ namespace TopSpeed.Vehicles.Parsing
             public float PitchCurveExponent { get; set; }
 
             public float SurfaceTractionFactor { get; set; }
-            public float Deceleration { get; set; }
             public float TopSpeed { get; set; }
             public bool HasWipers { get; set; }
 
@@ -74,6 +73,8 @@ namespace TopSpeed.Vehicles.Parsing
             public float FrontalArea { get; set; }
             public float SideArea { get; set; } = -1f;
             public float RollingResistance { get; set; }
+            public float WheelSideDragBaseN { get; set; } = -1f;
+            public float WheelSideDragLinearNPerMps { get; set; } = -1f;
             public float RollingResistanceSpeedFactor { get; set; } = -1f;
             public float CoupledDrivelineDragNm { get; set; } = -1f;
             public float CoupledDrivelineViscousDragNmPerKrpm { get; set; } = -1f;

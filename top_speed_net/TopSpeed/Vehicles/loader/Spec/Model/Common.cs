@@ -5,7 +5,6 @@ namespace TopSpeed.Vehicles.Loader
         internal sealed class Common
         {
             public float SurfaceTractionFactor { get; set; }
-            public float Deceleration { get; set; }
             public float TopSpeed { get; set; }
             public int IdleFreq { get; set; }
             public int TopFreq { get; set; }
@@ -35,6 +34,8 @@ namespace TopSpeed.Vehicles.Loader
             public float FrontalAreaM2 { get; set; }
             public float SideAreaM2 { get; set; } = -1f;
             public float RollingResistanceCoefficient { get; set; }
+            public float WheelSideDragBaseN { get; set; } = -1f;
+            public float WheelSideDragLinearNPerMps { get; set; } = -1f;
             public float RollingResistanceSpeedFactor { get; set; } = -1f;
             public float LaunchRpm { get; set; }
             public float CoupledDrivelineDragNm { get; set; } = -1f;

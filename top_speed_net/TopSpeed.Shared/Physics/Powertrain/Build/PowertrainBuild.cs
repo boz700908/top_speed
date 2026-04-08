@@ -12,6 +12,12 @@ namespace TopSpeed.Physics.Powertrain
             var rollingResistanceSpeedFactor = input.RollingResistanceSpeedFactor >= 0f
                 ? input.RollingResistanceSpeedFactor
                 : 0.01f;
+            var wheelSideDragBaseN = input.WheelSideDragBaseN >= 0f
+                ? input.WheelSideDragBaseN
+                : 0f;
+            var wheelSideDragLinearNPerMps = input.WheelSideDragLinearNPerMps >= 0f
+                ? input.WheelSideDragLinearNPerMps
+                : 0f;
             var coupledDrivelineDragNm = input.CoupledDrivelineDragNm >= 0f
                 ? input.CoupledDrivelineDragNm
                 : 18f;
@@ -63,6 +69,8 @@ namespace TopSpeed.Physics.Powertrain
                 gears,
                 gearRatios,
                 input.TorqueCurve,
+                wheelSideDragBaseN: wheelSideDragBaseN,
+                wheelSideDragLinearNPerMps: wheelSideDragLinearNPerMps,
                 coupledDrivelineDragNm: coupledDrivelineDragNm,
                 coupledDrivelineViscousDragNmPerKrpm: coupledDrivelineViscousDragNmPerKrpm,
                 engineFrictionLinearNmPerKrpm: frictionLinearNmPerKrpm,
@@ -79,6 +87,8 @@ namespace TopSpeed.Physics.Powertrain
                 powertrain,
                 reverseMaxSpeedKph,
                 powertrain.GetGearRatios(),
+                powertrain.WheelSideDragBaseN,
+                powertrain.WheelSideDragLinearNPerMps,
                 powertrain.CoupledDrivelineDragNm,
                 powertrain.CoupledDrivelineViscousDragNmPerKrpm,
                 powertrain.EngineFrictionLinearNmPerKrpm,

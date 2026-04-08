@@ -193,7 +193,7 @@
 <p><code>N</code> (Newton) is force. Wheel force is what actually pushes the vehicle forward on the road after torque has been converted through wheel radius. Acceleration comes from net force after resistance is removed.</p>
 <p><code>m</code> (meter) is distance, and <code>m^2</code> (square meter) is area. <code>wheelbase</code> is in meters, and <code>frontal_area</code> is in square meters. Frontal area is used with drag coefficient to model how strongly air resists the vehicle at speed.</p>
 <p><code>rpm</code> means revolutions per minute. It is how fast the engine is spinning, not how powerful the engine is by itself. RPM decides where you are on the torque curve.</p>
-<p><code>m/s^2</code> is acceleration or deceleration rate. For example, <code>coast_base_mps2</code> is a coast deceleration term: how quickly speed drops per second during lift-off, before other terms are added.</p>
+<p><code>m/s^2</code> is acceleration or deceleration rate. The physics model uses it for forces that turn into vehicle slowdown or acceleration over time.</p>
 <p><code>kg*m^2</code> (written as <code>kgm2</code> in key names like <code>inertia_kgm2</code>) is rotational inertia. This is one of the most confusing units for beginners, so treat it simply: it controls how quickly RPM can change. Higher inertia means slower RPM rise and slower RPM fall. Lower inertia means the engine revs up and down faster.</p>
 <p>You may also see <code>km/h/s</code> in some transmission keys such as <code>creep_accel_kphps</code>. That unit means "how many km/h of speed are added each second" during creep behavior.</p>
 <p>The new custom format uses direct values only. There is no legacy divide-by-100 encoding. If you want 170 km/h target speed, write <code>max_speed=170</code>. If you want 0.10 traction factor, write <code>surface_traction_factor=0.10</code>. If you want steering response of 1.8, write <code>steering_response=1.8</code>.</p>
@@ -206,7 +206,7 @@
 <p>That engine torque is multiplied by the current gear ratio and the <code>final_drive</code> ratio, then reduced by <code>drivetrain_efficiency</code>. This gives wheel torque. Wheel torque is then converted into wheel force using tire radius derived from tire circumference.</p>
 <p>The wheel force is capped by grip. Even if the engine could theoretically push harder, the tires can only transmit so much force to the road. That is where <code>tire_grip</code>, surface behavior, and related handling values matter.</p>
 <p>Finally, the game subtracts resistance forces. Rolling resistance acts all the time and is noticeable at lower speeds. Aerodynamic drag grows rapidly with speed and becomes dominant near top speed. The remaining force becomes acceleration after dividing by <code>mass_kg</code>.</p>
-<p>During lift-off and coast, the runtime computes total deceleration from multiple components: passive resistance, configurable chassis coast drag, engine-brake transfer through gearing, and optional brake input. This is why high-gear lift-off, low-gear lift-off, and neutral coast can now behave differently but still remain physically consistent.</p>
+<p>During lift-off and coast, the runtime computes total deceleration from multiple components: aerodynamic drag, rolling resistance, wheel-side resistance, coupled driveline drag when connected, engine-brake transfer through gearing, and optional brake input. This is why high-gear lift-off, low-gear lift-off, and neutral coast can now behave differently but still remain physically consistent.</p>
 <p>The result is a system where low-speed acceleration, mid-speed pull, and high-speed pull can all be tuned differently using different parameters.</p>
 <p><a id="sec-2-4-rpm-torque-and-why-some-gears-feel-stronger-than-others"></a></p>
 <h2 id="24-rpm-torque-and-why-some-gears-feel-stronger-than-others">2.4 RPM, Torque, and Why Some Gears Feel Stronger Than Others</h2>
@@ -269,7 +269,7 @@
 <p>When the vehicle is in neutral or the clutch is disengaged, wheel speed does not strongly force engine RPM. The engine behaves like a mostly free rotating body. Throttle adds torque, friction removes torque, overrun may add extra loss during lift-off, and <code>inertia_kgm2</code> decides how quickly RPM can rise or fall. In this state, odd free-rev behavior usually points to <code>[engine_rot]</code> keys, not to drag or rolling resistance.</p>
 <p>When the vehicle is coupled in gear, RPM is no longer free. Wheel speed, tire circumference, and overall ratio demand a coupled RPM. If road load is high and available torque is low, the engine can be pulled down toward lower RPM even while throttle is applied. This is why a vehicle can feel fine in one gear and weak in another without any bug: the engine may simply be landing in a weaker torque region for that ratio.</p>
 <p>In automatic launch conditions, ATC, DCT, and CVT families can apply low-speed coupling behavior and minimum-coupled RPM assistance. The goal is to avoid the classic engage-drive bog where RPM collapses under idle before recovering. If launch surges too hard, inspect launch and coupling controls. If launch feels lazy or dips under idle, inspect low-RPM torque support and coupling floor behavior.</p>
-<p>Lift-off behavior also depends on state. In gear, the vehicle sees aerodynamic drag, rolling resistance, chassis coast terms, and engine-brake transfer through the current ratio. In neutral, only internal engine loss terms dominate RPM decay. This is why free-rev drop speed and in-gear coast speed should not match exactly, and why gear 1 often slows harder on lift-off than gear 3.</p>
+<p>Lift-off behavior also depends on state. In gear, the vehicle sees aerodynamic drag, rolling resistance, wheel-side drag, possible coupled driveline drag, and engine-brake transfer through the current ratio. In neutral, only internal engine loss terms dominate RPM decay. This is why free-rev drop speed and in-gear coast speed should not match exactly, and why gear 1 often slows harder on lift-off than gear 3.</p>
 <p>A practical diagnosis shortcut is to classify the symptom by speed and state first. Very-low-speed oddities often come from launch, coupling, or idle control. Mid/high-speed pull issues usually come from torque shape, gearing, and resistance balance. Slow neutral rev-fall almost always points to rotational loss and inertia settings.</p>
 <p><a id="sec-2-5-torque-curve-shape-and-shift-recovery"></a></p>
 <h2 id="25-torque-curve-shape-and-shift-recovery">2.5 Torque Curve Shape and Shift Recovery</h2>
@@ -371,15 +371,35 @@
 <p>Rolling resistance is a constant-like force that always fights motion. It is influenced by <code>rolling_resistance</code> and affects low, medium, and high speed, though it is usually most noticeable before aerodynamic drag becomes large.</p>
 <p>For beginners, the easiest way to think about rolling resistance is this: it is the \"always-on drag\" from tires and road contact. Even at moderate speed, the vehicle has to spend some engine force just to keep moving. If you raise <code>rolling_resistance</code>, the vehicle may feel heavier and more reluctant to gain speed in almost every gear, not just near top speed. If you lower it too much, the vehicle may coast for too long and feel unrealistically free-rolling.</p>
 <p>Aerodynamic drag depends on <code>drag_coefficient</code> and <code>frontal_area</code>, and it grows much more rapidly with speed. This is why a vehicle may accelerate quickly up to a point and then slowly crawl toward top speed.</p>
+<p>The current model is more detailed than just "air drag plus tire drag". Longitudinal resistance is now built from four separate passive layers, and each layer has a different job. Aerodynamic drag is the air load and is controlled mainly by <code>drag_coefficient</code>, <code>frontal_area</code>, and optionally <code>side_area</code> when crosswind matters. Rolling resistance is the tire and road-contact baseline and is controlled by <code>rolling_resistance</code> plus <code>rolling_speed_factor</code>. Wheel-side drag is a separate always-on chassis and wheel-path loss, controlled by <code>wheel_side_drag_n</code> and <code>wheel_side_drag_linear_n_per_mps</code>, and it still applies when the engine is disconnected from the wheels. Coupled driveline drag is the transmission-side loss that only exists when a real gear path is still engaged, and it is controlled by <code>driveline_drag_nm</code> and <code>driveline_viscous_drag_nm_per_krpm</code>.</p>
+<p>This separation matters because the game no longer treats every coast state as the same thing. Neutral coast is not supposed to feel identical to clutch-held manual coast in gear, and neither of those should feel identical to closed-throttle coupled coast. Neutral removes the selected gear path, so only aerodynamic drag, rolling resistance, and wheel-side drag remain. Clutch-held manual coast keeps the gear path selected, so wheel-side drag still applies and transmission-side drag can still apply, but engine-brake transfer is removed because the clutch is open. Closed-throttle coupled coast keeps everything connected, so the vehicle sees aerodynamic drag, rolling resistance, wheel-side drag, coupled driveline drag, and engine-brake transfer through the current ratio.</p>
+<p>This is also why gear-dependent coast feel is now easier to reason about. If a vehicle slows too much in every state, you usually look first at rolling resistance and wheel-side drag. If it only slows too much while coupled in gear, you usually look at engine-brake transfer and driveline drag. If it feels fine in neutral but still too free with clutch held in gear, that points to driveline drag authoring or gear-path state, not to aerodynamic drag.</p>
 <p>This difference matters when tuning. If a vehicle feels weak from launch, through mid speed, and also near top speed, the problem is usually not aerodynamic drag alone. It is more often a combination of <code>power_factor</code>, torque curve shape, <code>mass_kg</code>, gearing, and possibly rolling resistance. If a vehicle feels fine in lower gears but loses pull mainly at high speed, then drag-related parameters (<code>drag_coefficient</code>, <code>frontal_area</code>) and high-RPM torque (<code>redline_torque</code>) become the first places to inspect.</p>
 <p>In other words, rolling resistance mostly shapes the \"general heaviness\" of motion, while aerodynamic drag mostly shapes the \"top-speed wall\" feeling. You usually get better tuning results by deciding which of those two feelings is wrong before changing values.</p>
 <p>This behavior is often exactly what you want for game balance. If a vehicle is too strong near top speed, increasing drag or lowering <code>redline_torque</code> is usually a clean fix. If it feels weak at all speeds, look first at <code>power_factor</code>, <code>mass_kg</code>, and gearing before blaming drag.</p>
+<p>Practical reading examples:</p>
+<ol>
+<li>If a car feels too free while coasting in neutral and also while coasting with clutch held, raise <code>wheel_side_drag_n</code>, <code>wheel_side_drag_linear_n_per_mps</code>, or <code>rolling_resistance</code> before touching engine-brake values.</li>
+<li>If a car feels acceptable in neutral but still slows too little with clutch held in gear, inspect <code>driveline_drag_nm</code> and <code>driveline_viscous_drag_nm_per_krpm</code>.</li>
+<li>If a car feels acceptable with clutch held but becomes too harsh as soon as the clutch is released, inspect <code>engine_braking</code>, <code>engine_braking_torque</code>, and <code>brake_transfer_efficiency</code>.</li>
+<li>If a car pulls well in lower gears but hits a wall near top speed, inspect <code>drag_coefficient</code>, <code>frontal_area</code>, <code>side_area</code>, and upper-RPM torque shape before changing the whole gearbox.</li>
+</ol>
 <p><a id="sec-2-8-braking-and-coasting"></a></p>
 <h2 id="28-braking-and-coasting">2.8 Braking and Coasting</h2>
 <p>Top Speed separates active braking from lift-off slowing.</p>
 <p>Active braking happens when the player presses the brake. The result depends mainly on <code>brake_strength</code>, grip, and the current surface.</p>
 <p>Lift-off slowing happens when the player releases throttle. That is engine braking, controlled by <code>engine_braking</code> and <code>engine_braking_torque</code>, along with RPM, gearing, and drivetrain efficiency.</p>
 <p>If a vehicle feels like it slows too hard when the player stops accelerating, reduce engine braking values rather than brake strength. If the actual brake button feels weak, tune <code>brake_strength</code> instead.</p>
+<p>That high-level split is important, but the current runtime goes one step further. Brake-button stopping is now an explicit brake-force path. Natural slowing without brake input is a passive-resistance path. They are not driven by one generic "deceleration" number anymore. Passive slowing is the sum of aerodynamic drag, rolling resistance, wheel-side drag, any coupled driveline drag that still exists in the current state, and engine-brake transfer if the engine is still connected to the wheels. Active braking adds brake force on top of those passive losses.</p>
+<p>This means you should diagnose coast and braking symptoms by state, not by one generic feeling word like "slow" or "heavy". A vehicle that slows too hard only when the brake button is pressed points to <code>brake_strength</code>, surface brake effect, or tire grip. A vehicle that slows too hard on lift-off in gear points to engine-brake transfer or coupled driveline drag. A vehicle that keeps rolling too freely in neutral or with clutch held points to wheel-side drag, rolling resistance, or both.</p>
+<p>Manual clutch behavior also deserves special attention here because it is easy to misread. In the current model, pressing clutch does not mean the vehicle becomes neutral in every sense. Neutral removes the selected gear path completely. Clutch held in a manual car keeps the selected gear path in the transmission but disconnects the engine from it. That means clutch-held coast can still keep transmission-side drag while dropping engine-brake transfer. This is why clutch-held coast should normally be stronger than pure neutral coast, but weaker than fully coupled closed-throttle coast.</p>
+<p>Examples:</p>
+<ol>
+<li>A manual car in gear 3 at 70 km/h with clutch held should coast more freely than fully coupled lift-off, but it should not feel as loose as pure neutral.</li>
+<li>A manual car in gear 1 with clutch released and throttle lifted should usually slow harder than the same car in gear 5, because engine-brake transfer is multiplied through a shorter ratio.</li>
+<li>An automatic ATC car may still show some low-speed drag and creep behavior even with light throttle changes because converter and creep logic are part of its family model, not a fake brake effect.</li>
+<li>A stopping-state vehicle should now be held by explicit braking behavior, not by a hidden legacy speed bleed.</li>
+</ol>
 <p><a id="sec-2-9-steering-grip-and-stability"></a></p>
 <h2 id="29-steering-grip-and-stability">2.9 Steering, Grip, and Stability</h2>
 <p>Steering response in Top Speed is built from several parameters working together. <code>steering_response</code> acts like steering strength. <code>max_steer_deg</code> limits absolute steering angle. <code>wheelbase</code> changes how steering angle maps to path curvature. High-speed window values (<code>high_speed_steer_gain</code>, <code>high_speed_steer_start_kph</code>, <code>high_speed_steer_full_kph</code>) shape how much attenuation is applied as speed rises. Grip and dynamics parameters then decide how much of the request can actually become lateral motion.</p>
@@ -387,7 +407,7 @@
 <p><a id="sec-2-10-surface-behavior"></a></p>
 <h2 id="210-surface-behavior">2.10 Surface Behavior</h2>
 <p>The game applies surface-specific modifiers for asphalt, gravel, water, sand, and snow. Those modifiers interact with the vehicle baseline values.</p>
-<p>The <code>surface_traction_factor</code> and <code>deceleration</code> parameters still exist in the format because they affect baseline behavior and some surface-related calculations, but they are not your main modern tuning tools for a vehicle's overall handling quality. In most cases, the most meaningful tuning for traction and cornering feel comes from <code>tire_grip</code>, <code>lateral_grip</code>, <code>brake_strength</code>, <code>engine_braking</code>, and the engine/drivetrain setup.</p>
+<p>The <code>surface_traction_factor</code> parameter still exists in the format, but it is not your main modern tuning tool for a vehicle's overall handling quality. In most cases, the most meaningful tuning for traction and cornering feel comes from <code>tire_grip</code>, <code>lateral_grip</code>, <code>brake_strength</code>, <code>engine_braking</code>, and the engine/drivetrain setup.</p>
 <p>For beginners, this is an important trap to avoid: if a vehicle slips too much on asphalt, do not immediately start changing <code>surface_traction_factor</code>. That parameter sounds like the obvious fix, but in the current model it is more of a baseline reference than a simple \"more grip\" slider. Start with <code>tire_grip</code> for forward traction and braking grip, and use <code>lateral_grip</code> for cornering feel.</p>
 <p>Also remember that surfaces amplify or expose weaknesses in your tune. A vehicle with too much torque and weak traction may feel acceptable on asphalt but become almost impossible to manage on gravel or wet surfaces. A vehicle with very strong engine braking may feel responsive on asphalt but feel too abrupt on low-grip surfaces. This is why surface testing is useful after the basic asphalt tune is finished.</p>
 <p><a id="sec-2-11-manual-vs-automatic-transmission"></a></p>
@@ -403,13 +423,34 @@
 <p>Manual mode allows the player to shift whenever they choose, but the clutch and stall logic now matter. With clutch released (high driveline coupling), the engine is mechanically tied to wheel speed. With clutch pressed, coupling drops and engine RPM can move more freely. At low speed with high load and insufficient throttle in manual, the engine can stall.</p>
 <p>Automatic mode uses the selected family's coupling model and the policy system. The family model controls how coupling behaves (launch slip, lock behavior, creep, CVT ratio logic). The policy controls shift timing, delays, top-speed gear intent, and anti-hunting behavior.</p>
 <p>ATC behavior emphasizes smoother launch and creep. It uses launch coupling bounds at very low speed, can release coupling during shifts, and can hard-lock only when lock criteria are met (speed, throttle, and low enough RPM slip). DCT behaves more directly with fast coupling and no creep, plus shift overlap coupling during shifts. CVT keeps ratio inside a configured ratio window and targets an RPM band (<code>target_rpm_low</code> to <code>target_rpm_high</code>) based on throttle.</p>
+<p>The most important difference between the families is not just how they shift. It is how they carry loss and coupling through different states. Manual is the most explicit model: the player clutch decides whether engine-brake transfer is active, and the selected gear determines whether the transmission path still exists. If the player is in a real gear with the clutch released, the engine, gearbox, and wheels are strongly linked. If the player holds the clutch open while staying in gear, the engine is disconnected but the selected gear path still exists in the driveline. If the player moves to neutral, the selected gear path itself is removed. These are three different physical states, and they should not be tuned as if they are the same.</p>
+<p>ATC is built to feel smoother and less abrupt than manual. Launch starts through converter-style coupling, so the engine is allowed to build usable RPM before the driveline fully hardens. Low-speed creep exists because the family can apply low-speed drive support even at very small throttle. Shift release can deliberately relax coupling during an automatic shift, and full lock depends on the family reaching its lock conditions instead of simply mirroring a manual clutch.</p>
+<p>DCT is the most direct automatic family in the current model. It does not use a torque-converter creep style. Instead, it relies on quick clutch-style coupling and overlap behavior during shifts. That means DCT vehicles tend to feel more locked to the driveline than ATC vehicles once moving, and shift transitions can keep more driveline carry than a converter automatic. In practice, DCT should usually feel closer to a fast automated manual than to a smooth converter automatic.</p>
+<p>CVT separates effective ratio control from coupling state. The ratio can move inside its allowed window while coupling still behaves according to launch and hold rules. That means a CVT can keep the engine inside a target RPM band without behaving like a fixed-gear automatic. The feel should be smoother in ratio progression than either ATC or DCT, but the coupling state still matters for launch softness, creep, and coast behavior.</p>
 <p>Policy improves shift decisions, but it does not fix weak physics. If a gear cannot physically pull because torque, drag, or gearing are wrong, policy can only avoid that gear or delay entry into it.</p>
 <p>For tuning work, manual mode is still the best diagnostic tool because it exposes raw powertrain behavior. If manual feels healthy but automatic shifts too early, hunts, or enters overdrive too soon, tune <code>[policy]</code> and the relevant <code>[transmission_*]</code> section for that automatic family.</p>
+<p>Useful comparisons:</p>
+<ol>
+<li>Manual in gear with clutch released: strongest engine-brake transfer and the clearest ratio-dependent lift-off behavior.</li>
+<li>Manual in gear with clutch held: engine-brake transfer removed, but gear-path drag can still remain.</li>
+<li>Manual in neutral: pure free-coast state with no selected gear path.</li>
+<li>ATC at low speed: soft launch and possible creep behavior are normal.</li>
+<li>DCT during a shift: some driveline carry during overlap is normal and should not be tuned like ATC converter slip.</li>
+<li>CVT under steady throttle: engine RPM may stay inside a target band while road speed continues to rise through ratio change instead of stepped gear change.</li>
+</ol>
 <p><a id="sec-2-12-powertrain-state-and-runtime-behavior"></a></p>
 <h2 id="212-powertrain-state-and-runtime-behavior">2.12 Powertrain State and Runtime Behavior</h2>
 <p>The current runtime separates engine and vehicle motion into three cooperating layers so bugs can be isolated correctly. The engine-state layer resolves coupling state, automatic low-speed RPM support, and manual stall conditions. The automatic-shift layer resolves shift timing, cooldowns, transition metadata, and family-specific behaviors such as CVT forcing logic. The longitudinal-motion layer resolves actual speed change from drive force, resistance, coast, and braking.</p>
 <p>This separation matters because similar symptoms can come from different layers. A bad shift decision can feel like weak engine torque. A coupling problem can look like a torque-curve hole. A resistance imbalance can look like a gearbox problem. Debugging is faster when you first identify which layer owns the symptom.</p>
-<p>Recent stability work also changed neutral and launch behavior in a way authors should know. Automatic launch support now ramps by speed and coupling instead of snapping, so RPM should no longer cliff-drop right after engagement. Clutch-disengaged manual state no longer runs driveline stall logic, so free clutch behavior is physically cleaner. Neutral free-rev lift-off now applies high-RPM overrun loss while still guarding near-idle behavior, so decay can be realistic without falling below idle.</p>
+<p>Recent stability work also changed neutral, clutch, and launch behavior in a way authors should know. Automatic launch support now ramps by speed and coupling instead of snapping, so RPM should no longer cliff-drop right after engagement. Clutch-disengaged manual state no longer runs driveline stall logic, so free clutch behavior is physically cleaner. Neutral free-rev lift-off now applies high-RPM overrun loss while still guarding near-idle behavior, so decay can be realistic without falling below idle.</p>
+<p>The main runtime state distinction to remember is this: the engine state, the gear-path state, and the wheel-speed state are related but they are not identical. The engine can be disconnected from the wheels while the transmission still has a selected gear path. That is exactly what happens in a manual car when the player holds clutch while staying in gear. In that state, engine-brake transfer should disappear because the engine is no longer driving the path, but wheel-side and transmission-side passive losses can still remain because the path still exists between the rotating road wheels and the selected transmission components.</p>
+<p>That is why the guide now uses three coast labels when describing behavior:</p>
+<ol>
+<li>Neutral coast: no selected gear path, no engine-brake transfer, no coupled driveline drag.</li>
+<li>Clutch-disengaged in gear: selected gear path still exists, engine-brake transfer removed, driveline drag may still remain.</li>
+<li>Coupled closed-throttle coast: selected gear path exists and the engine is coupled strongly enough to transfer engine-brake torque.</li>
+</ol>
+<p>This distinction is especially important when a vehicle seems to slow "wrong" in one gear but not another. If neutral and clutch-held coast both feel too weak, the issue is probably wheel-side or rolling resistance authoring. If neutral feels acceptable but clutch-held still feels too free, that points more directly to driveline drag authoring or gear-path state handling. If clutch-held feels acceptable but fully coupled lift-off is too harsh, the likely cause is engine-brake transfer rather than aerodynamic or wheel-side drag.</p>
 <p><a id="sec-2-13-engine-runtime-detailed-step-by-step"></a></p>
 <h2 id="213-engine-runtime-detailed-step-by-step">2.13 Engine Runtime (Detailed Step-by-Step)</h2>
 <p>This section explains how engine RPM and horsepower are actually updated each frame in the current runtime.</p>
@@ -533,7 +574,6 @@ pitch_curve_exponent=0.85
 
 [general]
 surface_traction_factor=0.10
-deceleration=0.40
 max_speed=170
 has_wipers=1
 
@@ -573,8 +613,8 @@ brake_transfer_efficiency=0.68
 drag_coefficient=0.27
 frontal_area=2.20
 rolling_resistance=0.014
-coast_base_mps2=2.6
-coast_linear_per_mps=0.032
+wheel_side_drag_n=120
+wheel_side_drag_linear_n_per_mps=3.8
 
 [torque_curve]
 preset=diesel_suv
@@ -752,11 +792,6 @@ prefer_intended_top_speed_gear_near_limit=true
 <p>Allowed range is 0.0 to 5.0.</p>
 <p>This value is entered directly. Do not multiply by 100. For example, use <code>0.10</code>, not <code>10</code>.</p>
 <p>In the current physics model this is not usually the strongest tuning lever for everyday grip feel. For meaningful traction and handling changes, <code>tire_grip</code> and <code>lateral_grip</code> are usually more important.</p>
-<h3 id="deceleration"><code>deceleration</code></h3>
-<p>Baseline deceleration factor used by some surface-related behavior and legacy-style deceleration baselines.</p>
-<p>Allowed range is 0.0 to 5.0.</p>
-<p>This value is entered directly. Do not multiply by 100. For example, use <code>0.40</code>, not <code>40</code>.</p>
-<p>If you need to change braking feel, tune <code>brake_strength</code>. If you need to change lift-off slowing, tune <code>engine_braking</code> and <code>engine_braking_torque</code>.</p>
 <h3 id="max_speed"><code>max_speed</code></h3>
 <p>Forward reference speed in km/h for gameplay and automatic top-speed policy behavior.</p>
 <p>Allowed range is 10 to 500.</p>
@@ -1286,7 +1321,9 @@ prefer_intended_top_speed_gear_near_limit=true
 <p>Higher values increase lift-off decel transfer through gearing. Lower values soften engine-brake effect at wheels.</p>
 <p><a id="sec-4-14-resistance-section"></a></p>
 <h2 id="414-resistance-section">4.14 <code>[resistance]</code> Section</h2>
-<p>The <code>[resistance]</code> section defines aerodynamic, rolling, and chassis coast drag terms. This section is required.</p>
+<p>The <code>[resistance]</code> section defines the passive road and air loads that oppose motion. This section is required.</p>
+<p>Think of this section as the owner of non-brake, non-combustion longitudinal loss. It does not define engine power and it does not define active brake button force. Instead, it defines what the vehicle has to fight against while moving. In the current model, these keys are split into aerodynamic load, tire-road rolling load, wheel-side passive loss, and selected-gear driveline loss. That split is intentional, because neutral coast, clutch-held coast, and fully coupled lift-off no longer share one fake generic deceleration value.</p>
+<p>In practical terms, the section behaves like this. <code>drag_coefficient</code>, <code>frontal_area</code>, and <code>side_area</code> shape air load. <code>rolling_resistance</code> and <code>rolling_speed_factor</code> shape tire-road load. <code>wheel_side_drag_n</code> and <code>wheel_side_drag_linear_n_per_mps</code> shape always-on passive wheel/chassis loss that survives even when the engine is disconnected. <code>driveline_drag_nm</code> and <code>driveline_viscous_drag_nm_per_krpm</code> shape transmission-side loss that only matters when a real gear path remains engaged.</p>
 <h3 id="drag_coefficient"><code>drag_coefficient</code></h3>
 <p>Aerodynamic drag coefficient.</p>
 <p>Allowed range is 0.01 to 1.5.</p>
@@ -1295,18 +1332,34 @@ prefer_intended_top_speed_gear_near_limit=true
 <p>Frontal area in square meters.</p>
 <p>Allowed range is 0.05 to 10.0.</p>
 <p>Works with <code>drag_coefficient</code>; larger area increases high-speed drag.</p>
+<h3 id="side_area"><code>side_area</code></h3>
+<p>Side area in square meters.</p>
+<p>Allowed range is 0.05 to 20.0.</p>
+<p>This is used for crosswind-sensitive aerodynamic load. It is usually not the first top-speed tuning lever, but it matters when environmental wind and exposed body shape should create extra resistance.</p>
 <h3 id="rolling_resistance"><code>rolling_resistance</code></h3>
 <p>Rolling resistance coefficient.</p>
 <p>Allowed range is 0.001 to 0.1.</p>
 <p>Mostly affects low/mid-speed "always-on" resistance feel.</p>
-<h3 id="coast_base_mps2"><code>coast_base_mps2</code></h3>
-<p>Base chassis coast drag term in m/s^2.</p>
-<p>Allowed range is 0 to 30.</p>
-<p>Adds speed-independent coast deceleration on lift-off.</p>
-<h3 id="coast_linear_per_mps"><code>coast_linear_per_mps</code></h3>
-<p>Linear chassis coast drag term per m/s.</p>
-<p>Allowed range is 0 to 3.</p>
-<p>Adds speed-dependent extra coast deceleration. Higher values increase lift-off slowdown as speed rises.</p>
+<h3 id="rolling_speed_factor"><code>rolling_speed_factor</code></h3>
+<p>Speed-dependent multiplier applied on top of the base rolling-resistance term.</p>
+<p>Allowed range is 0 to 1.0.</p>
+<p>This makes rolling resistance grow with speed instead of staying perfectly flat. Use it to add "heavier at speed" tire and contact-patch feel without using aerodynamic drag for everything.</p>
+<h3 id="wheel_side_drag_n"><code>wheel_side_drag_n</code></h3>
+<p>Base wheel-side resistance force in newtons.</p>
+<p>Allowed range is 0 to 5000.</p>
+<p>This is always-on passive rolling loss that still applies during neutral coast or with the clutch fully disengaged.</p>
+<h3 id="wheel_side_drag_linear_n_per_mps"><code>wheel_side_drag_linear_n_per_mps</code></h3>
+<p>Speed-dependent wheel-side resistance slope in newtons per meter per second.</p>
+<p>Allowed range is 0 to 200.</p>
+<p>Higher values increase passive free-coast slowdown as vehicle speed rises, without depending on engine braking or coupled driveline drag.</p>
+<h3 id="driveline_drag_nm"><code>driveline_drag_nm</code></h3>
+<p>Base coupled driveline drag torque in newton-meters.</p>
+<p>Allowed range is 0 to 2000.</p>
+<p>This is transmission-side drag that only matters while a real gear path is still engaged. It is a good place to tune the difference between neutral coast and clutch-held manual coast without using engine braking.</p>
+<h3 id="driveline_viscous_drag_nm_per_krpm"><code>driveline_viscous_drag_nm_per_krpm</code></h3>
+<p>Speed-dependent coupled driveline drag slope in newton-meters per 1000 RPM.</p>
+<p>Allowed range is 0 to 500.</p>
+<p>Higher values make coupled driveline loss grow with transmission speed. This is especially useful when clutch-held in-gear coast or automatic-family coupled coast is too free at higher road speed even though neutral coast already feels correct.</p>
 <p><a id="sec-4-15-torque-curve-preset-profiles"></a></p>
 <h2 id="415-torque-curve-preset-profiles">4.15 Torque Curve Preset Profiles</h2>
 <p>This section documents intended behavior of <code>[torque_curve] preset</code> values. Use these as starting points, then override with explicit <code>NNNNrpm</code> keys where needed.</p>
@@ -1698,6 +1751,7 @@ prefer_intended_top_speed_gear_near_limit=true
 <h2 id="6-what-was-removed-from-the-old-format">6. What Was Removed From the Old Format</h2>
 <p>The new custom format removes several legacy behaviors on purpose.</p>
 <p><code>mono_crash</code> sound support is removed and is not a valid parameter. <code>steering_factor</code> is also removed and is not supported. If either appears in a custom <code>.tsv</code> file, the parser will reject the file as unknown-key input.</p>
+<p>Legacy coast and slowdown keys are also removed from the custom format and should not appear in new files. <code>deceleration</code> is no longer a valid physics authoring key. <code>coast_base_mps2</code> and <code>coast_linear_per_mps</code> are also not part of the current format. The current model replaces those old generic slowdown controls with explicit <code>[resistance]</code> authoring using rolling resistance, wheel-side drag, and coupled driveline drag. If an old vehicle file still uses the removed keys, the correct fix is to retune the new resistance keys rather than trying to preserve the old generic-decay behavior.</p>
 <p>The old divide-by-100 convention is also removed. Do not write encoded values such as <code>17000</code> for 170 km/h or <code>180</code> for <code>steering_response=1.8</code>. Use direct values everywhere.</p>
 <p>Top-level parameters are no longer supported. Every key must be inside a valid section.</p>
 <p><a id="sec-7-tuning-advice-and-common-problems"></a></p>

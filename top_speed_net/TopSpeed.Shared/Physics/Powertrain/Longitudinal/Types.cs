@@ -1,4 +1,5 @@
 using System;
+using TopSpeed.Vehicles;
 
 namespace TopSpeed.Physics.Powertrain
 {
@@ -17,6 +18,7 @@ namespace TopSpeed.Physics.Powertrain
             int gear,
             bool inReverse,
             bool isNeutral,
+            TransmissionType transmissionType,
             float drivelineCouplingFactor,
             float creepAccelerationMps2,
             float currentEngineRpm,
@@ -25,7 +27,8 @@ namespace TopSpeed.Physics.Powertrain
             bool applyEngineBraking,
             ResistanceEnvironment resistanceEnvironment,
             float? driveRatioOverride = null,
-            float driveAccelerationScale = 1f)
+            float driveAccelerationScale = 1f,
+            bool? gearPathEngaged = null)
         {
             Config = config ?? throw new ArgumentNullException(nameof(config));
             ElapsedSeconds = elapsedSeconds;
@@ -39,6 +42,7 @@ namespace TopSpeed.Physics.Powertrain
             Gear = gear;
             InReverse = inReverse;
             IsNeutral = isNeutral;
+            TransmissionType = transmissionType;
             DrivelineCouplingFactor = drivelineCouplingFactor;
             CreepAccelerationMps2 = creepAccelerationMps2;
             CurrentEngineRpm = currentEngineRpm;
@@ -48,6 +52,7 @@ namespace TopSpeed.Physics.Powertrain
             ResistanceEnvironment = resistanceEnvironment;
             DriveRatioOverride = driveRatioOverride;
             DriveAccelerationScale = driveAccelerationScale;
+            GearPathEngaged = gearPathEngaged ?? !isNeutral;
         }
 
         public Config Config { get; }
@@ -62,6 +67,7 @@ namespace TopSpeed.Physics.Powertrain
         public int Gear { get; }
         public bool InReverse { get; }
         public bool IsNeutral { get; }
+        public TransmissionType TransmissionType { get; }
         public float DrivelineCouplingFactor { get; }
         public float CreepAccelerationMps2 { get; }
         public float CurrentEngineRpm { get; }
@@ -71,6 +77,7 @@ namespace TopSpeed.Physics.Powertrain
         public ResistanceEnvironment ResistanceEnvironment { get; }
         public float? DriveRatioOverride { get; }
         public float DriveAccelerationScale { get; }
+        public bool GearPathEngaged { get; }
     }
 
     public readonly struct LongitudinalStepResult
@@ -84,7 +91,8 @@ namespace TopSpeed.Physics.Powertrain
             float engineBrakeDecelKph,
             float aerodynamicDecelKph,
             float rollingResistanceDecelKph,
-            float drivelineDragDecelKph)
+            float wheelSideDragDecelKph,
+            float coupledDrivelineDragDecelKph)
         {
             SpeedDeltaKph = speedDeltaKph;
             CoupledDriveRpm = coupledDriveRpm;
@@ -94,7 +102,8 @@ namespace TopSpeed.Physics.Powertrain
             EngineBrakeDecelKph = engineBrakeDecelKph;
             AerodynamicDecelKph = aerodynamicDecelKph;
             RollingResistanceDecelKph = rollingResistanceDecelKph;
-            DrivelineDragDecelKph = drivelineDragDecelKph;
+            WheelSideDragDecelKph = wheelSideDragDecelKph;
+            CoupledDrivelineDragDecelKph = coupledDrivelineDragDecelKph;
         }
 
         public float SpeedDeltaKph { get; }
@@ -105,6 +114,7 @@ namespace TopSpeed.Physics.Powertrain
         public float EngineBrakeDecelKph { get; }
         public float AerodynamicDecelKph { get; }
         public float RollingResistanceDecelKph { get; }
-        public float DrivelineDragDecelKph { get; }
+        public float WheelSideDragDecelKph { get; }
+        public float CoupledDrivelineDragDecelKph { get; }
     }
 }

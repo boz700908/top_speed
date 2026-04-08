@@ -124,7 +124,6 @@ namespace TopSpeed.Vehicles
         {
             VehicleName = definition.Name;
             _surfaceTractionFactor = Math.Max(0.01f, SanitizeFinite(definition.SurfaceTractionFactor, 0.01f));
-            _deceleration = Math.Max(0.01f, SanitizeFinite(definition.Deceleration, 0.01f));
             _topSpeed = Math.Max(1f, SanitizeFinite(definition.TopSpeed, 1f));
             _massKg = Math.Max(1f, SanitizeFinite(definition.MassKg, 1f));
             _drivetrainEfficiency = Math.Max(0.1f, Math.Min(1.0f, SanitizeFinite(definition.DrivetrainEfficiency, 0.85f)));
@@ -149,6 +148,8 @@ namespace TopSpeed.Vehicles
             _sideAreaM2 = Math.Max(0.1f, SanitizeFinite(definition.SideAreaM2 > 0f ? definition.SideAreaM2 : definition.FrontalAreaM2 * 1.8f, 0.1f));
             _rollingResistanceCoefficient = Math.Max(0.001f, SanitizeFinite(definition.RollingResistanceCoefficient, 0.001f));
             _rollingResistanceSpeedFactor = Math.Max(0f, SanitizeFinite(definition.RollingResistanceSpeedFactor >= 0f ? definition.RollingResistanceSpeedFactor : 0.01f, 0f));
+            _wheelSideDragBaseN = Math.Max(0f, SanitizeFinite(definition.WheelSideDragBaseN >= 0f ? definition.WheelSideDragBaseN : 0f, 0f));
+            _wheelSideDragLinearNPerMps = Math.Max(0f, SanitizeFinite(definition.WheelSideDragLinearNPerMps >= 0f ? definition.WheelSideDragLinearNPerMps : 0f, 0f));
             _launchRpm = Math.Max(_idleRpm, Math.Min(_revLimiter, SanitizeFinite(definition.LaunchRpm, _idleRpm)));
             _coupledDrivelineDragNm = Math.Max(0f, SanitizeFinite(definition.CoupledDrivelineDragNm >= 0f ? definition.CoupledDrivelineDragNm : 18f, 0f));
             _coupledDrivelineViscousDragNmPerKrpm = Math.Max(0f, SanitizeFinite(definition.CoupledDrivelineViscousDragNmPerKrpm >= 0f ? definition.CoupledDrivelineViscousDragNmPerKrpm : 6f, 0f));
@@ -223,6 +224,8 @@ namespace TopSpeed.Vehicles
                     sideAreaM2: definition.SideAreaM2,
                     rollingResistanceCoefficient: definition.RollingResistanceCoefficient,
                     rollingResistanceSpeedFactor: definition.RollingResistanceSpeedFactor,
+                    wheelSideDragBaseN: definition.WheelSideDragBaseN,
+                    wheelSideDragLinearNPerMps: definition.WheelSideDragLinearNPerMps,
                     launchRpm: definition.LaunchRpm,
                     reversePowerFactor: definition.ReversePowerFactor,
                     reverseGearRatio: definition.ReverseGearRatio,
@@ -265,6 +268,8 @@ namespace TopSpeed.Vehicles
             _sideAreaM2 = build.Powertrain.SideAreaM2;
             _rollingResistanceCoefficient = build.Powertrain.RollingResistanceCoefficient;
             _rollingResistanceSpeedFactor = build.Powertrain.RollingResistanceSpeedFactor;
+            _wheelSideDragBaseN = build.Powertrain.WheelSideDragBaseN;
+            _wheelSideDragLinearNPerMps = build.Powertrain.WheelSideDragLinearNPerMps;
             _launchRpm = build.Powertrain.LaunchRpm;
             _coupledDrivelineDragNm = build.Powertrain.CoupledDrivelineDragNm;
             _coupledDrivelineViscousDragNmPerKrpm = build.Powertrain.CoupledDrivelineViscousDragNmPerKrpm;

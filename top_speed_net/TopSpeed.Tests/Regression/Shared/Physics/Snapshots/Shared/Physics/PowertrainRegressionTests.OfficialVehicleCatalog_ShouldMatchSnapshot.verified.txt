@@ -8,8 +8,10 @@
     PreviousGearKph: 237.7,
     SideAreaM2: 4.02,
     RollingResistanceSpeedFactor: 0.011,
-    CoupledDrivelineDragNm: 16.8,
-    CoupledDrivelineViscousDragNmPerKrpm: 5.9
+    WheelSideDragBaseN: 98.0,
+    WheelSideDragLinearNPerMps: 3.25,
+    CoupledDrivelineDragNm: 17.0,
+    CoupledDrivelineViscousDragNmPerKrpm: 6.0
   },
   {
     Vehicle: Porsche 911 GT3 RS,
@@ -19,9 +21,11 @@
     TopGearKph: 285.1,
     PreviousGearKph: 262.3,
     SideAreaM2: 3.62,
-    RollingResistanceSpeedFactor: 0.011,
-    CoupledDrivelineDragNm: 15.5,
-    CoupledDrivelineViscousDragNmPerKrpm: 5.4
+    RollingResistanceSpeedFactor: 0.01,
+    WheelSideDragBaseN: 91.0,
+    WheelSideDragLinearNPerMps: 3.05,
+    CoupledDrivelineDragNm: 15.2,
+    CoupledDrivelineViscousDragNmPerKrpm: 5.35
   },
   {
     Vehicle: Fiat 500,
@@ -31,19 +35,23 @@
     TopGearKph: 138.7,
     PreviousGearKph: 120.6,
     SideAreaM2: 3.78,
-    RollingResistanceSpeedFactor: 0.011,
-    CoupledDrivelineDragNm: 14.2,
-    CoupledDrivelineViscousDragNmPerKrpm: 5.1
+    RollingResistanceSpeedFactor: 0.01,
+    WheelSideDragBaseN: 81.0,
+    WheelSideDragLinearNPerMps: 2.55,
+    CoupledDrivelineDragNm: 14.05,
+    CoupledDrivelineViscousDragNmPerKrpm: 5.05
   },
   {
     Vehicle: Mini Cooper S,
     Transmission: Manual,
     Gears: 6,
     ConfiguredTopSpeedKph: 198.0,
-    TopGearKph: 203.9,
+    TopGearKph: 194.6,
     PreviousGearKph: 178.4,
     SideAreaM2: 3.88,
     RollingResistanceSpeedFactor: 0.012,
+    WheelSideDragBaseN: 90.0,
+    WheelSideDragLinearNPerMps: 3.0,
     CoupledDrivelineDragNm: 15.1,
     CoupledDrivelineViscousDragNmPerKrpm: 5.4
   },
@@ -56,6 +64,8 @@
     PreviousGearKph: 137.9,
     SideAreaM2: 4.55,
     RollingResistanceSpeedFactor: 0.013,
+    WheelSideDragBaseN: 110.0,
+    WheelSideDragLinearNPerMps: 3.8,
     CoupledDrivelineDragNm: 16.5,
     CoupledDrivelineViscousDragNmPerKrpm: 5.8
   },
@@ -64,12 +74,14 @@
     Transmission: Atc,
     Gears: 8,
     ConfiguredTopSpeedKph: 190.0,
-    TopGearKph: 201.4,
+    TopGearKph: 190.2,
     PreviousGearKph: 167.0,
     SideAreaM2: 4.12,
     RollingResistanceSpeedFactor: 0.012,
-    CoupledDrivelineDragNm: 15.5,
-    CoupledDrivelineViscousDragNmPerKrpm: 5.6
+    WheelSideDragBaseN: 100.0,
+    WheelSideDragLinearNPerMps: 3.35,
+    CoupledDrivelineDragNm: 15.7,
+    CoupledDrivelineViscousDragNmPerKrpm: 5.7
   },
   {
     Vehicle: Lamborghini Aventador,
@@ -80,32 +92,38 @@
     PreviousGearKph: 273.8,
     SideAreaM2: 3.92,
     RollingResistanceSpeedFactor: 0.012,
-    CoupledDrivelineDragNm: 17.0,
-    CoupledDrivelineViscousDragNmPerKrpm: 6.0
+    WheelSideDragBaseN: 100.0,
+    WheelSideDragLinearNPerMps: 3.65,
+    CoupledDrivelineDragNm: 17.3,
+    CoupledDrivelineViscousDragNmPerKrpm: 6.1
   },
   {
     Vehicle: BMW 3 Series,
     Transmission: Atc,
     Gears: 8,
     ConfiguredTopSpeedKph: 230.0,
-    TopGearKph: 244.8,
+    TopGearKph: 232.3,
     PreviousGearKph: 210.7,
     SideAreaM2: 3.98,
     RollingResistanceSpeedFactor: 0.012,
-    CoupledDrivelineDragNm: 15.0,
-    CoupledDrivelineViscousDragNmPerKrpm: 5.4
+    WheelSideDragBaseN: 94.0,
+    WheelSideDragLinearNPerMps: 3.1,
+    CoupledDrivelineDragNm: 15.2,
+    CoupledDrivelineViscousDragNmPerKrpm: 5.5
   },
   {
     Vehicle: Mercedes Sprinter,
     Transmission: Atc,
     Gears: 7,
     ConfiguredTopSpeedKph: 145.0,
-    TopGearKph: 151.6,
+    TopGearKph: 145.3,
     PreviousGearKph: 129.4,
     SideAreaM2: 6.1,
-    RollingResistanceSpeedFactor: 0.019,
-    CoupledDrivelineDragNm: 21.5,
-    CoupledDrivelineViscousDragNmPerKrpm: 7.8
+    RollingResistanceSpeedFactor: 0.02,
+    WheelSideDragBaseN: 168.0,
+    WheelSideDragLinearNPerMps: 5.6,
+    CoupledDrivelineDragNm: 22.0,
+    CoupledDrivelineViscousDragNmPerKrpm: 8.0
   },
   {
     Vehicle: Kawasaki Ninja ZX-10R,
@@ -115,9 +133,11 @@
     TopGearKph: 212.1,
     PreviousGearKph: 199.2,
     SideAreaM2: 0.92,
-    RollingResistanceSpeedFactor: 0.013,
-    CoupledDrivelineDragNm: 3.0,
-    CoupledDrivelineViscousDragNmPerKrpm: 2.3
+    RollingResistanceSpeedFactor: 0.012,
+    WheelSideDragBaseN: 22.0,
+    WheelSideDragLinearNPerMps: 0.84,
+    CoupledDrivelineDragNm: 3.2,
+    CoupledDrivelineViscousDragNmPerKrpm: 2.4
   },
   {
     Vehicle: Ducati Panigale V4,
@@ -128,8 +148,10 @@
     PreviousGearKph: 224.2,
     SideAreaM2: 0.88,
     RollingResistanceSpeedFactor: 0.012,
-    CoupledDrivelineDragNm: 2.8,
-    CoupledDrivelineViscousDragNmPerKrpm: 2.2
+    WheelSideDragBaseN: 20.5,
+    WheelSideDragLinearNPerMps: 0.81,
+    CoupledDrivelineDragNm: 3.1,
+    CoupledDrivelineViscousDragNmPerKrpm: 2.4
   },
   {
     Vehicle: Yamaha YZF-R1,
@@ -140,7 +162,9 @@
     PreviousGearKph: 205.0,
     SideAreaM2: 0.9,
     RollingResistanceSpeedFactor: 0.012,
-    CoupledDrivelineDragNm: 2.9,
-    CoupledDrivelineViscousDragNmPerKrpm: 2.2
+    WheelSideDragBaseN: 21.5,
+    WheelSideDragLinearNPerMps: 0.82,
+    CoupledDrivelineDragNm: 3.1,
+    CoupledDrivelineViscousDragNmPerKrpm: 2.35
   }
 ]

@@ -43,6 +43,8 @@ namespace TopSpeed.Tests
             issues.Select(x => x.Severity).Should().NotContain(VehicleTsvIssueSeverity.Error);
             data.SideAreaM2.Should().BeApproximately(3.9f, 0.001f);
             data.RollingResistanceSpeedFactor.Should().BeApproximately(0.014f, 0.001f);
+            data.WheelSideDragBaseN.Should().BeApproximately(94f, 0.001f);
+            data.WheelSideDragLinearNPerMps.Should().BeApproximately(3.6f, 0.001f);
             data.CoupledDrivelineDragNm.Should().BeApproximately(22f, 0.001f);
             data.CoupledDrivelineViscousDragNmPerKrpm.Should().BeApproximately(7.5f, 0.001f);
             data.EngineOverrunIdleLossFraction.Should().BeApproximately(0.25f, 0.001f);
@@ -148,7 +150,6 @@ pitch_curve_exponent=0.85
 
 [general]
 surface_traction_factor=1
-deceleration=0.1
 max_speed=180
 has_wipers=0
 
@@ -189,6 +190,8 @@ drag_coefficient=0.3
 frontal_area=2.2
 side_area=3.9
 rolling_resistance=0.015
+wheel_side_drag_n=94
+wheel_side_drag_linear_n_per_mps=3.6
 rolling_speed_factor=0.014
 driveline_drag_nm=22
 driveline_viscous_drag_nm_per_krpm=7.5
