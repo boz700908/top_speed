@@ -192,7 +192,6 @@ namespace TopSpeed.Drive.TimeTrial
                 300,
                 UpdateExitWhenQueueIdle,
                 () => _session!.ApplyCommand(new Command(Commands.RequestExit)));
-            _session = CreateSession();
             _progress = new ProgressSubsystem(
                 "progress",
                 120,
@@ -209,7 +208,7 @@ namespace TopSpeed.Drive.TimeTrial
                 ApplyPlayerFinishState,
                 () => _session!.QueueEvent(new Event(Events.ProgressFinish), FinishAnnouncementDelaySeconds),
                 Speak);
-            _session.RegisterSubsystem(_progress);
+            _session = CreateSession();
         }
 
         public bool WantsExit => _session.Context.WantsExit;
@@ -224,13 +223,13 @@ namespace TopSpeed.Drive.TimeTrial
                 .Add(Phase.Countdown, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_panels, _playerVehicle, _progress, _listener, _coreRequests, _generalRequests, _playerInfo, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Running, Phase.Paused, Phase.Aborted })
                 .Add(Phase.Running, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_panels, _playerVehicle, _progress, _listener, _coreRequests, _generalRequests, _playerInfo, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Paused, Phase.Finishing, Phase.Finished, Phase.Aborted })
                 .Add(Phase.Paused, false, false, InputPolicy.Create(false, true, false), Defaults.NoSubsystems, allowedCommands, allowedExternalEvents, new[] { Phase.Countdown, Phase.Running, Phase.Finishing, Phase.Aborted })
-                .Add(Phase.Finishing, true, true, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_panels, _playerVehicle, _progress, _listener, _generalRequests, _playerInfo, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Finished, Phase.Aborted })
-                .Add(Phase.Finished, false, false, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_exit), allowedCommands, allowedExternalEvents, new[] { Phase.Aborted })
+                .Add(Phase.Finishing, true, true, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_playerVehicle, _listener, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Finished, Phase.Aborted })
+                .Add(Phase.Finished, true, true, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_playerVehicle, _listener, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Aborted })
                 .Add(Phase.Aborted, false, false, InputPolicy.Create(false, true, false), Defaults.NoSubsystems, allowedCommands, allowedExternalEvents, Array.Empty<Phase>())
                 .Build();
 
             var builder = new SessionBuilder(policy);
-            builder.AddSubsystems(_panels, _playerVehicle, _listener, _coreRequests, _generalRequests, _playerInfo, _exit);
+            builder.AddSubsystems(_panels, _playerVehicle, _progress, _listener, _coreRequests, _generalRequests, _playerInfo, _exit);
             builder.AddEventHandler(new HandlerId("timeTrial.events"), 100, HandleSessionEvent);
             builder.AddEventHandler(new HandlerId("timeTrial.phase"), 200, HandlePhaseEvent);
             return builder.Build();

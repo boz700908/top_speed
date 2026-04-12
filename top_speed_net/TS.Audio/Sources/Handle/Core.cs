@@ -223,11 +223,14 @@ namespace TS.Audio
 
         public float GetLengthSeconds()
         {
+            if (_asset.LengthSeconds > 0f)
+                return _asset.LengthSeconds;
+
             var frames = MiniAudioExNative.ma_ex_audio_source_get_pcm_length(_sourceHandle);
             if (frames > 0 && _asset.InputSampleRate > 0)
                 return (float)(frames / (double)_asset.InputSampleRate);
 
-            return _asset.LengthSeconds;
+            return 0f;
         }
 
         public void SetOnEnd(Action onEnd)

@@ -284,7 +284,7 @@ namespace TopSpeed.Drive.Single
                 .Add(Phase.Countdown, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_bots, _panels, _playerVehicle, _progress, _listener, _collisions, _coreRequests, _commentary, _playerInfo, _generalRequests, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Running, Phase.Paused, Phase.Aborted })
                 .Add(Phase.Running, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_bots, _panels, _playerVehicle, _progress, _listener, _collisions, _coreRequests, _commentary, _playerInfo, _generalRequests, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Paused, Phase.Finished, Phase.Aborted })
                 .Add(Phase.Paused, false, false, InputPolicy.Create(false, true, false), Defaults.NoSubsystems, allowedCommands, allowedExternalEvents, new[] { Phase.Countdown, Phase.Running, Phase.Finished, Phase.Aborted })
-                .Add(Phase.Finished, false, true, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_bots, _listener, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Aborted })
+                .Add(Phase.Finished, true, true, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_bots, _playerVehicle, _listener, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Aborted })
                 .Add(Phase.Aborted, false, false, InputPolicy.Create(false, true, false), Defaults.NoSubsystems, allowedCommands, allowedExternalEvents, Array.Empty<Phase>())
                 .Build();
 

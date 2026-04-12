@@ -20,14 +20,14 @@ namespace TopSpeed.Menu
                     },
                     () => (int)_settings.Copilot,
                     value => _settingsActions.UpdateSetting(() => _settings.Copilot = (CopilotMode)value),
-                    hint: LocalizationService.Mark("Choose what information the copilot reports during a drive session. Use LEFT or RIGHT to change.")),
+                    hint: LocalizationService.Mark("Choose what information the copilot reports during a race. Use LEFT or RIGHT to change.")),
                 new Switch(LocalizationService.Mark("Curve announcements"),
                     LocalizationService.Mark("speed dependent"),
                     LocalizationService.Mark("fixed distance"),
                     () => _settings.CurveAnnouncement == CurveAnnouncementMode.SpeedDependent,
                     value => _settingsActions.UpdateSetting(() => _settings.CurveAnnouncement = value ? CurveAnnouncementMode.SpeedDependent : CurveAnnouncementMode.FixedDistance),
                     hint: LocalizationService.Mark("Switch between fixed distance and speed dependent curve announcements. Press ENTER to change.")),
-                new RadioButton(LocalizationService.Mark("Automatic session information"),
+                new RadioButton(LocalizationService.Mark("Automatic race information"),
                     new[]
                     {
                         LocalizationService.Mark("off"),
@@ -36,12 +36,12 @@ namespace TopSpeed.Menu
                     },
                     () => (int)_settings.AutomaticInfo,
                     value => _settingsActions.UpdateSetting(() => _settings.AutomaticInfo = (AutomaticInfoMode)value),
-                    hint: LocalizationService.Mark("Choose how much automatic session information is spoken, such as lap numbers and player positions. Use LEFT or RIGHT to change.")),
+                    hint: LocalizationService.Mark("Choose how much automatic race information is spoken, such as lap numbers and player positions. Use LEFT or RIGHT to change.")),
                 new Slider(LocalizationService.Mark("Number of laps"),
                     "1-16",
                     () => _settings.NrOfLaps,
                     value => _settingsActions.UpdateSetting(() => _settings.NrOfLaps = value),
-                    hint: LocalizationService.Mark("Sets how many laps the session will be for single race, time trial, and multiplayer. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum.")),
+                    hint: LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum.")),
                 new Slider(LocalizationService.Mark("Number of computer players"),
                     "1-7",
                     () => _settings.NrOfComputers,
@@ -70,7 +70,7 @@ namespace TopSpeed.Menu
                 items.Add(new MenuItem(laps.ToString(), MenuAction.Back, onActivate: () => _settingsActions.UpdateSetting(() => _settings.NrOfLaps = value)));
             }
 
-            return BackMenu("options_drive_laps", items, LocalizationService.Mark("How many laps should the session be? This applies to single race, time trial, and multiplayer modes."));
+            return BackMenu("options_drive_laps", items, LocalizationService.Mark("How many laps should the race be? This applies to single race, time trial, and multiplayer modes."));
         }
 
         private MenuScreen BuildOptionsComputersMenu()

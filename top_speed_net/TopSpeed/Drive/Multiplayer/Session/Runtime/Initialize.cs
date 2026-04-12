@@ -29,6 +29,9 @@ namespace TopSpeed.Drive.Multiplayer
             _requirePostFinishStopBeforeExit = false;
             _pendingResultSummary = null;
             _localCrashCount = 0;
+            _soundQueue.Clear();
+            _unkeyQueue = 0;
+            _speakTime = 0f;
             _lap = 0;
             _raceTime = 0;
             _started = false;

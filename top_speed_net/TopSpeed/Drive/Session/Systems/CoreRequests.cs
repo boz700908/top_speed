@@ -109,26 +109,41 @@ namespace TopSpeed.Drive.Session.Systems
 
         private void HandleCurrentLapNumberRequest()
         {
-            if (_input.GetCurrentLapNr() && IsActiveLapRange())
+            if (_input.GetCurrentLapNr() && _isStarted() && _getLap() <= _getLapLimit())
                 _speakText(LocalizationService.Format(LocalizationService.Mark("Lap {0}"), _getLap()));
         }
 
         private void HandleCurrentRacePercentageRequest()
         {
-            if (_input.GetCurrentRacePerc() && IsActiveLapRange())
+            if (_input.GetCurrentRacePerc() && _isStarted() && _getLap() <= _getLapLimit())
             {
-                var perc = (_car.PositionY / (float)(_track.Length * _getLapLimit())) * 100.0f;
-                _speakText(SessionText.FormatRacePercentage((int)perc));
+                var trackLength = _track.Length;
+                var lapLimit = _getLapLimit();
+                var percent = trackLength > 0f && lapLimit > 0
+                    ? (int)((_car.PositionY / (trackLength * lapLimit)) * 100.0f)
+                    : 0;
+                if (percent < 0)
+                    percent = 0;
+                if (percent > 100)
+                    percent = 100;
+                _speakText(SessionText.FormatRacePercentage(percent));
             }
         }
 
         private void HandleCurrentLapPercentageRequest()
         {
-            if (_input.GetCurrentLapPerc() && IsActiveLapRange())
+            if (_input.GetCurrentLapPerc() && _isStarted() && _getLap() <= _getLapLimit())
             {
                 var lap = _getLap();
-                var perc = ((_car.PositionY - (_track.Length * (lap - 1))) / _track.Length) * 100.0f;
-                _speakText(SessionText.FormatLapPercentage((int)perc));
+                var trackLength = _track.Length;
+                var percent = trackLength > 0f
+                    ? (int)(((_car.PositionY - (trackLength * (lap - 1))) / trackLength) * 100.0f)
+                    : 0;
+                if (percent < 0)
+                    percent = 0;
+                if (percent > 100)
+                    percent = 100;
+                _speakText(SessionText.FormatLapPercentage(percent));
             }
         }
 
