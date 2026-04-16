@@ -5,6 +5,7 @@ using TopSpeed.Input.Devices.Controller;
 using TopSpeed.Input.Devices.Keyboard;
 using TopSpeed.Input.Devices.Vibration;
 using TopSpeed.Runtime;
+using TS.Sdl.Input;
 
 namespace TopSpeed.Input
 {
@@ -17,6 +18,9 @@ namespace TopSpeed.Input
         private readonly InputState _current;
         private readonly InputState _previous;
         private readonly bool[] _keyLatch;
+        private readonly object _gestureSync;
+        private readonly Dictionary<GestureIntent, int> _gesturePressCounts;
+        private readonly IGestureEventSource? _gestureEventSource;
         private readonly string? _controllerBackendUnavailableMessage;
         private bool _suspended;
         private bool _menuBackLatched;
@@ -30,7 +34,11 @@ namespace TopSpeed.Input
         public event Action? NoControllerDetected;
         public event Action<string>? ControllerBackendUnavailable;
 
-        internal InputService(IntPtr windowHandle, IBackendRegistry backendRegistry, IKeyboardEventSource? keyboardEventSource = null)
+        internal InputService(
+            IntPtr windowHandle,
+            IBackendRegistry backendRegistry,
+            IKeyboardEventSource? keyboardEventSource = null,
+            IGestureEventSource? gestureEventSource = null)
         {
             if (backendRegistry == null)
                 throw new ArgumentNullException(nameof(backendRegistry));
@@ -63,6 +71,11 @@ namespace TopSpeed.Input
             _current = new InputState();
             _previous = new InputState();
             _keyLatch = new bool[256];
+            _gestureSync = new object();
+            _gesturePressCounts = new Dictionary<GestureIntent, int>();
+            _gestureEventSource = gestureEventSource;
+            if (_gestureEventSource != null)
+                _gestureEventSource.GestureRaised += OnGestureRaised;
             _controllerBackend.NoControllerDetected += OnNoControllerDetected;
         }
 
@@ -73,6 +86,8 @@ namespace TopSpeed.Input
             _current = new InputState();
             _previous = new InputState();
             _keyLatch = new bool[256];
+            _gestureSync = new object();
+            _gesturePressCounts = new Dictionary<GestureIntent, int>();
             _controllerBackend.NoControllerDetected += OnNoControllerDetected;
         }
 
@@ -105,6 +120,11 @@ namespace TopSpeed.Input
         private void OnNoControllerDetected()
         {
             NoControllerDetected?.Invoke();
+        }
+
+        private void OnGestureRaised(GestureEvent value)
+        {
+            SubmitGesture(value);
         }
     }
 }

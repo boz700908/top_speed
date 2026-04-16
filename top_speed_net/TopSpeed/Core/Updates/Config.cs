@@ -36,7 +36,7 @@ namespace TopSpeed.Core.Updates
             $"https://raw.githubusercontent.com/{RepoOwner}/{RepoName}/main/info.json",
             $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest",
             "TopSpeed-{runtime}-Release-v-{version}.zip",
-            RuntimeAssetResolver.DetectClientRuntimeAssetTag(),
+            ResolveRuntimeAssetTag(),
             "Updater",
             "TopSpeed");
 
@@ -52,6 +52,18 @@ namespace TopSpeed.Core.Updates
             return AssetTemplate
                 .Replace("{runtime}", RuntimeAssetTag)
                 .Replace("{version}", version ?? string.Empty);
+        }
+
+        private static string ResolveRuntimeAssetTag()
+        {
+            try
+            {
+                return RuntimeAssetResolver.DetectClientRuntimeAssetTag();
+            }
+            catch (PlatformNotSupportedException)
+            {
+                return string.Empty;
+            }
         }
     }
 }

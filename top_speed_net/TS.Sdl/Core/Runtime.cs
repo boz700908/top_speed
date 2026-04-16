@@ -19,6 +19,14 @@ namespace TS.Sdl
             return SDL_Init(flags);
         }
 
+        public static void SetMainReady()
+        {
+            if (!IsAvailable)
+                return;
+
+            SDL_SetMainReady();
+        }
+
         public static bool InitSubSystem(InitFlags flags)
         {
             if (!IsAvailable)
@@ -95,6 +103,9 @@ namespace TS.Sdl
         [DllImport(LibraryName, EntryPoint = "SDL_Init", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SDL_Init(InitFlags flags);
+
+        [DllImport(LibraryName, EntryPoint = "SDL_SetMainReady", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_SetMainReady();
 
         [DllImport(LibraryName, EntryPoint = "SDL_InitSubSystem", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]

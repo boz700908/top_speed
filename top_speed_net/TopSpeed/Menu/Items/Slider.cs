@@ -12,6 +12,7 @@ namespace TopSpeed.Menu
         private readonly Action<int> _setValue;
         private readonly Func<int, string>? _formatValue;
         private readonly Action<int>? _onChanged;
+        private readonly Func<string>? _hintProvider;
 
         public Slider(
             string text,
@@ -23,8 +24,9 @@ namespace TopSpeed.Menu
             string? nextMenuId = null,
             bool suppressPostActivateAnnouncement = false,
             string? hint = null,
-            Func<int, string>? formatValue = null)
-            : this(text, ParseSteps(rangeOrSteps), getValue, setValue, onChanged, action, nextMenuId, suppressPostActivateAnnouncement, hint, formatValue)
+            Func<int, string>? formatValue = null,
+            Func<string>? hintProvider = null)
+            : this(text, ParseSteps(rangeOrSteps), getValue, setValue, onChanged, action, nextMenuId, suppressPostActivateAnnouncement, hint, formatValue, hintProvider)
         {
         }
 
@@ -39,8 +41,9 @@ namespace TopSpeed.Menu
             string? nextMenuId = null,
             bool suppressPostActivateAnnouncement = false,
             string? hint = null,
-            Func<int, string>? formatValue = null)
-            : this(text, BuildRange(minValue, maxValue), getValue, setValue, onChanged, action, nextMenuId, suppressPostActivateAnnouncement, hint, formatValue)
+            Func<int, string>? formatValue = null,
+            Func<string>? hintProvider = null)
+            : this(text, BuildRange(minValue, maxValue), getValue, setValue, onChanged, action, nextMenuId, suppressPostActivateAnnouncement, hint, formatValue, hintProvider)
         {
         }
 
@@ -54,7 +57,8 @@ namespace TopSpeed.Menu
             string? nextMenuId = null,
             bool suppressPostActivateAnnouncement = false,
             string? hint = null,
-            Func<int, string>? formatValue = null)
+            Func<int, string>? formatValue = null,
+            Func<string>? hintProvider = null)
             : base(text, action, nextMenuId, onActivate: null, suppressPostActivateAnnouncement, hint)
         {
             if (steps == null)
@@ -66,6 +70,7 @@ namespace TopSpeed.Menu
             _setValue = setValue ?? throw new ArgumentNullException(nameof(setValue));
             _formatValue = formatValue;
             _onChanged = onChanged;
+            _hintProvider = hintProvider;
         }
 
         public override string GetDisplayText()
@@ -76,6 +81,18 @@ namespace TopSpeed.Menu
         public override string? ActivateAndGetAnnouncement()
         {
             return null;
+        }
+
+        public override string? GetHintText()
+        {
+            if (_hintProvider == null)
+                return base.GetHintText();
+
+            var hint = _hintProvider();
+            if (string.IsNullOrWhiteSpace(hint))
+                return null;
+
+            return hint;
         }
 
         public override bool Adjust(MenuAdjustAction action, out string? announcement)

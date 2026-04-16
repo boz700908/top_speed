@@ -3,6 +3,8 @@ namespace TS.Sdl.Input
     public struct GestureEvent
     {
         public GestureKind Kind;
+        public byte FingerCount;
+        public byte TapCount;
         public ulong Timestamp;
         public ulong TouchId;
         public ulong FingerId;

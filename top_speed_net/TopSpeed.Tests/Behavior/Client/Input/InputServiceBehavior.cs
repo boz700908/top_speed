@@ -2,6 +2,7 @@ using System;
 using TopSpeed.Input;
 using TopSpeed.Input.Devices.Controller;
 using TopSpeed.Input.Devices.Vibration;
+using TS.Sdl.Input;
 using Xunit;
 
 namespace TopSpeed.Tests;
@@ -38,6 +39,45 @@ public sealed class InputServiceBehaviorTests
 
         keyboard.SetDown(InputKey.Return);
         service.WasPressed(InputKey.Return).Should().BeTrue();
+    }
+
+    [Fact]
+    public void WasGesturePressed_ConsumesMappedGestureOnce()
+    {
+        var (service, _, _) = InputHarness.CreateService();
+
+        service.SubmitGesture(new GestureEvent { Kind = GestureKind.Swipe, Direction = SwipeDirection.Right });
+
+        service.WasGesturePressed(GestureIntent.SwipeRight).Should().BeTrue();
+        service.WasGesturePressed(GestureIntent.SwipeRight).Should().BeFalse();
+    }
+
+    [Fact]
+    public void WasGesturePressed_MapsTwoFingerSwipeSeparatelyFromSingleFinger()
+    {
+        var (service, _, _) = InputHarness.CreateService();
+
+        service.SubmitGesture(new GestureEvent
+        {
+            Kind = GestureKind.Swipe,
+            FingerCount = 2,
+            Direction = SwipeDirection.Left
+        });
+
+        service.WasGesturePressed(GestureIntent.SwipeLeft).Should().BeFalse();
+        service.WasGesturePressed(GestureIntent.TwoFingerSwipeLeft).Should().BeTrue();
+        service.WasGesturePressed(GestureIntent.TwoFingerSwipeLeft).Should().BeFalse();
+    }
+
+    [Fact]
+    public void SubmitGesture_IgnoresUnsupportedGestureKinds()
+    {
+        var (service, _, _) = InputHarness.CreateService();
+
+        service.SubmitGesture(new GestureEvent { Kind = GestureKind.PinchUpdate });
+
+        service.WasGesturePressed(GestureIntent.Tap).Should().BeFalse();
+        service.WasGesturePressed(GestureIntent.SwipeLeft).Should().BeFalse();
     }
 
     [Fact]

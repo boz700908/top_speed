@@ -88,6 +88,79 @@ public sealed class GestureRecognizerBehaviorTests
     }
 
     [Fact]
+    public void TwoFingerParallelMove_RaisesTwoFingerSwipe()
+    {
+        var recognizer = new GestureRecognizer(new GestureOptions
+        {
+            SwipeMinDistance = 0.05f,
+            SwipeMinVelocity = 0.1f,
+            TwoTapMove = 0.02f
+        });
+        var raised = new List<GestureEvent>();
+        recognizer.Raised += value => raised.Add(value);
+
+        recognizer.Process(Touch(EventType.FingerDown, Ms(0), 7, 71, 0.40f, 0.70f));
+        recognizer.Process(Touch(EventType.FingerDown, Ms(10), 7, 72, 0.60f, 0.70f));
+        recognizer.Process(Touch(EventType.FingerMotion, Ms(80), 7, 71, 0.40f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerMotion, Ms(90), 7, 72, 0.60f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(130), 7, 71, 0.40f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(140), 7, 72, 0.60f, 0.30f));
+
+        var swipe = raised.Should().ContainSingle(x => x.Kind == GestureKind.Swipe && x.FingerCount == 2).Subject;
+        swipe.Direction.Should().Be(SwipeDirection.Up);
+        swipe.DeltaY.Should().BeLessThan(0f);
+    }
+
+    [Fact]
+    public void ThirdTapInSequence_RaisesTripleTap()
+    {
+        var recognizer = new GestureRecognizer(new GestureOptions
+        {
+            DoubleTapGap = System.TimeSpan.FromMilliseconds(350)
+        });
+        var raised = new List<GestureEvent>();
+        recognizer.Raised += value => raised.Add(value);
+
+        recognizer.Process(Touch(EventType.FingerDown, Ms(0), 5, 50, 0.30f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(80), 5, 50, 0.30f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerDown, Ms(180), 5, 51, 0.30f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(260), 5, 51, 0.30f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerDown, Ms(340), 5, 52, 0.30f, 0.30f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(420), 5, 52, 0.30f, 0.30f));
+
+        raised.Should().Contain(x => x.Kind == GestureKind.Tap && x.TapCount == 1);
+        raised.Should().Contain(x => x.Kind == GestureKind.DoubleTap && x.TapCount == 2);
+        raised.Should().Contain(x => x.Kind == GestureKind.TripleTap && x.TapCount == 3);
+    }
+
+    [Fact]
+    public void RepeatedTwoFingerTap_RaisesTwoFingerDoubleTap()
+    {
+        var recognizer = new GestureRecognizer(new GestureOptions
+        {
+            TwoTapMaxTime = System.TimeSpan.FromMilliseconds(240),
+            TwoTapMove = 0.03f,
+            DoubleTapGap = System.TimeSpan.FromMilliseconds(320),
+            DoubleTapMove = 0.05f
+        });
+        var raised = new List<GestureEvent>();
+        recognizer.Raised += value => raised.Add(value);
+
+        recognizer.Process(Touch(EventType.FingerDown, Ms(0), 6, 61, 0.40f, 0.50f));
+        recognizer.Process(Touch(EventType.FingerDown, Ms(15), 6, 62, 0.60f, 0.50f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(90), 6, 61, 0.40f, 0.50f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(100), 6, 62, 0.60f, 0.50f));
+
+        recognizer.Process(Touch(EventType.FingerDown, Ms(220), 6, 63, 0.41f, 0.50f));
+        recognizer.Process(Touch(EventType.FingerDown, Ms(235), 6, 64, 0.61f, 0.50f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(300), 6, 63, 0.41f, 0.50f));
+        recognizer.Process(Touch(EventType.FingerUp, Ms(310), 6, 64, 0.61f, 0.50f));
+
+        raised.Should().Contain(x => x.Kind == GestureKind.TwoFingerTap && x.TapCount == 1);
+        raised.Should().Contain(x => x.Kind == GestureKind.TwoFingerDoubleTap && x.TapCount == 2);
+    }
+
+    [Fact]
     public void TwoFingerScaleAndAngleChange_RaisesPinchAndRotateLifecycle()
     {
         var recognizer = new GestureRecognizer(new GestureOptions

@@ -98,7 +98,9 @@ namespace TopSpeed.Drive.Session.Systems
             if (!_car.ToggleShiftOnDemand())
                 return;
 
-            _speakText(_car.ShiftOnDemandEnabled ? "shift on demand" : "automatic");
+            _speakText(_car.ShiftOnDemandEnabled
+                ? LocalizationService.Mark("shift on demand")
+                : LocalizationService.Mark("automatic"));
         }
 
         private void HandleCurrentGearRequest()

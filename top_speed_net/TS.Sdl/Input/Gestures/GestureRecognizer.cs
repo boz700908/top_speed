@@ -11,6 +11,7 @@ namespace TS.Sdl.Input
         private readonly GestureOptions _options;
         private readonly Dictionary<ulong, TouchTrack> _touches;
         private readonly Dictionary<ulong, TapTrack> _lastTaps;
+        private readonly Dictionary<ulong, TapTrack> _lastTwoFingerTaps;
 
         public GestureRecognizer()
             : this(null)
@@ -22,6 +23,7 @@ namespace TS.Sdl.Input
             _options = options ?? new GestureOptions();
             _touches = new Dictionary<ulong, TouchTrack>();
             _lastTaps = new Dictionary<ulong, TapTrack>();
+            _lastTwoFingerTaps = new Dictionary<ulong, TapTrack>();
         }
 
         public event Action<GestureEvent>? Raised;
@@ -30,6 +32,7 @@ namespace TS.Sdl.Input
         {
             _touches.Clear();
             _lastTaps.Clear();
+            _lastTwoFingerTaps.Clear();
         }
 
         public void Update()
@@ -148,6 +151,7 @@ namespace TS.Sdl.Input
                     Emit(new GestureEvent
                     {
                         Kind = GestureKind.LongPress,
+                        FingerCount = 1,
                         Timestamp = timestamp,
                         TouchId = touchId,
                         FingerId = finger.Id,
@@ -183,6 +187,7 @@ namespace TS.Sdl.Input
             Emit(new GestureEvent
             {
                 Kind = GestureKind.Swipe,
+                FingerCount = 1,
                 Timestamp = timestamp,
                 TouchId = touchId,
                 FingerId = finger.Id,
@@ -214,6 +219,7 @@ namespace TS.Sdl.Input
             if (DistanceSquared(finger.StartX, finger.StartY, finger.LastX, finger.LastY) > (_options.TapMove * _options.TapMove))
                 return;
 
+            var tapCount = 1;
             if (_lastTaps.TryGetValue(touchId, out var previous))
             {
                 var dt = timestamp > previous.Timestamp ? timestamp - previous.Timestamp : ulong.MaxValue;
@@ -223,31 +229,57 @@ namespace TS.Sdl.Input
                 if (dt <= maxDelay &&
                     DistanceSquared(previous.X, previous.Y, finger.LastX, finger.LastY) <= maxMoveSq)
                 {
-                    _lastTaps.Remove(touchId);
-                    Emit(new GestureEvent
-                    {
-                        Kind = GestureKind.DoubleTap,
-                        Timestamp = timestamp,
-                        TouchId = touchId,
-                        FingerId = finger.Id,
-                        WindowId = windowId,
-                        X = finger.LastX,
-                        Y = finger.LastY
-                    });
-                    return;
+                    tapCount = previous.Count + 1;
                 }
             }
 
-            _lastTaps[touchId] = new TapTrack(timestamp, finger.LastX, finger.LastY);
+            tapCount = ClampTapCount(tapCount);
+            _lastTaps[touchId] = new TapTrack(timestamp, finger.LastX, finger.LastY, tapCount);
             Emit(new GestureEvent
             {
-                Kind = GestureKind.Tap,
+                Kind = ResolveSingleTapKind(tapCount),
+                FingerCount = 1,
+                TapCount = (byte)tapCount,
                 Timestamp = timestamp,
                 TouchId = touchId,
                 FingerId = finger.Id,
                 WindowId = windowId,
                 X = finger.LastX,
                 Y = finger.LastY
+            });
+        }
+
+        private void TryEmitTwoFingerTap(TouchTrack track, MultiTrack multi, ulong timestamp)
+        {
+            var centerX = (multi.FirstStartX + multi.SecondStartX) * 0.5f;
+            var centerY = (multi.FirstStartY + multi.SecondStartY) * 0.5f;
+            var tapCount = 1;
+
+            if (_lastTwoFingerTaps.TryGetValue(track.TouchId, out var previous))
+            {
+                var dt = timestamp > previous.Timestamp ? timestamp - previous.Timestamp : ulong.MaxValue;
+                var maxDelay = ToNanoseconds(_options.DoubleTapGap);
+                var maxMoveSq = _options.DoubleTapMove * _options.DoubleTapMove;
+
+                if (dt <= maxDelay &&
+                    DistanceSquared(previous.X, previous.Y, centerX, centerY) <= maxMoveSq)
+                {
+                    tapCount = previous.Count + 1;
+                }
+            }
+
+            tapCount = ClampTapCount(tapCount);
+            _lastTwoFingerTaps[track.TouchId] = new TapTrack(timestamp, centerX, centerY, tapCount);
+            Emit(new GestureEvent
+            {
+                Kind = ResolveTwoFingerTapKind(tapCount),
+                FingerCount = 2,
+                TapCount = (byte)tapCount,
+                Timestamp = timestamp,
+                TouchId = track.TouchId,
+                WindowId = track.WindowId,
+                X = centerX,
+                Y = centerY
             });
         }
 
@@ -338,6 +370,7 @@ namespace TS.Sdl.Input
                 Emit(new GestureEvent
                 {
                     Kind = GestureKind.PinchBegin,
+                    FingerCount = 2,
                     Timestamp = timestamp,
                     TouchId = track.TouchId,
                     WindowId = track.WindowId,
@@ -355,6 +388,7 @@ namespace TS.Sdl.Input
                 Emit(new GestureEvent
                 {
                     Kind = GestureKind.PinchUpdate,
+                    FingerCount = 2,
                     Timestamp = timestamp,
                     TouchId = track.TouchId,
                     WindowId = track.WindowId,
@@ -374,6 +408,7 @@ namespace TS.Sdl.Input
                 Emit(new GestureEvent
                 {
                     Kind = GestureKind.RotateBegin,
+                    FingerCount = 2,
                     Timestamp = timestamp,
                     TouchId = track.TouchId,
                     WindowId = track.WindowId,
@@ -390,6 +425,7 @@ namespace TS.Sdl.Input
                 Emit(new GestureEvent
                 {
                     Kind = GestureKind.RotateUpdate,
+                    FingerCount = 2,
                     Timestamp = timestamp,
                     TouchId = track.TouchId,
                     WindowId = track.WindowId,
@@ -414,6 +450,10 @@ namespace TS.Sdl.Input
             multi.LastDistance = distance;
             multi.LastAngle = angle;
             multi.LastTimestamp = timestamp;
+            multi.LastFirstX = first.LastX;
+            multi.LastFirstY = first.LastY;
+            multi.LastSecondX = second.LastX;
+            multi.LastSecondY = second.LastY;
         }
 
         private void HandleMultiUp(TouchTrack track, FingerTrack finger, ulong timestamp, bool canceled)
@@ -426,12 +466,23 @@ namespace TS.Sdl.Input
                 UpdateMulti(track, timestamp);
 
             if (finger.Id == multi.FirstId)
+            {
                 multi.FirstUp = true;
+                multi.LastFirstX = finger.LastX;
+                multi.LastFirstY = finger.LastY;
+            }
             else if (finger.Id == multi.SecondId)
+            {
                 multi.SecondUp = true;
+                multi.LastSecondX = finger.LastX;
+                multi.LastSecondY = finger.LastY;
+            }
 
             if (canceled)
+            {
                 multi.TwoTapEligible = false;
+                multi.Canceled = true;
+            }
 
             if (multi.PinchActive)
             {
@@ -439,6 +490,7 @@ namespace TS.Sdl.Input
                 Emit(new GestureEvent
                 {
                     Kind = GestureKind.PinchEnd,
+                    FingerCount = 2,
                     Timestamp = timestamp,
                     TouchId = track.TouchId,
                     WindowId = track.WindowId,
@@ -454,6 +506,7 @@ namespace TS.Sdl.Input
                 Emit(new GestureEvent
                 {
                     Kind = GestureKind.RotateEnd,
+                    FingerCount = 2,
                     Timestamp = timestamp,
                     TouchId = track.TouchId,
                     WindowId = track.WindowId,
@@ -465,21 +518,62 @@ namespace TS.Sdl.Input
 
             if (multi.FirstUp && multi.SecondUp)
             {
-                if (multi.TwoTapEligible && timestamp - multi.StartTimestamp <= ToNanoseconds(_options.TwoTapMaxTime))
+                var emittedTwoFingerSwipe = TryEmitTwoFingerSwipe(track, multi, timestamp);
+                if (!emittedTwoFingerSwipe &&
+                    multi.TwoTapEligible &&
+                    !multi.Canceled &&
+                    timestamp - multi.StartTimestamp <= ToNanoseconds(_options.TwoTapMaxTime))
                 {
-                    Emit(new GestureEvent
-                    {
-                        Kind = GestureKind.TwoFingerTap,
-                        Timestamp = timestamp,
-                        TouchId = track.TouchId,
-                        WindowId = track.WindowId,
-                        X = (multi.FirstStartX + multi.SecondStartX) * 0.5f,
-                        Y = (multi.FirstStartY + multi.SecondStartY) * 0.5f
-                    });
+                    TryEmitTwoFingerTap(track, multi, timestamp);
                 }
 
                 track.Multi = null;
             }
+        }
+
+        private bool TryEmitTwoFingerSwipe(TouchTrack track, MultiTrack multi, ulong timestamp)
+        {
+            if (multi.Canceled || multi.TwoTapEligible || multi.PinchActive || multi.RotateActive)
+                return false;
+            if (timestamp <= multi.StartTimestamp)
+                return false;
+
+            var startCenterX = (multi.FirstStartX + multi.SecondStartX) * 0.5f;
+            var startCenterY = (multi.FirstStartY + multi.SecondStartY) * 0.5f;
+            var endCenterX = (multi.LastFirstX + multi.LastSecondX) * 0.5f;
+            var endCenterY = (multi.LastFirstY + multi.LastSecondY) * 0.5f;
+
+            var dx = endCenterX - startCenterX;
+            var dy = endCenterY - startCenterY;
+            var distance = Distance(dx, dy);
+            if (distance < _options.SwipeMinDistance)
+                return false;
+
+            var seconds = (timestamp - multi.StartTimestamp) * NanosToSeconds;
+            if (seconds <= 0f)
+                return false;
+
+            var velocity = distance / seconds;
+            if (velocity < _options.SwipeMinVelocity)
+                return false;
+
+            Emit(new GestureEvent
+            {
+                Kind = GestureKind.Swipe,
+                FingerCount = 2,
+                Timestamp = timestamp,
+                TouchId = track.TouchId,
+                WindowId = track.WindowId,
+                X = endCenterX,
+                Y = endCenterY,
+                DeltaX = dx,
+                DeltaY = dy,
+                Distance = distance,
+                Velocity = velocity,
+                Direction = ResolveSwipe(dx, dy)
+            });
+
+            return true;
         }
 
         private TouchTrack GetTrack(ulong touchId)
@@ -495,6 +589,41 @@ namespace TS.Sdl.Input
         private void Emit(GestureEvent value)
         {
             Raised?.Invoke(value);
+        }
+
+        private static int ClampTapCount(int value)
+        {
+            if (value <= 1)
+                return 1;
+            if (value == 2)
+                return 2;
+            return 3;
+        }
+
+        private static GestureKind ResolveSingleTapKind(int tapCount)
+        {
+            switch (tapCount)
+            {
+                case 1:
+                    return GestureKind.Tap;
+                case 2:
+                    return GestureKind.DoubleTap;
+                default:
+                    return GestureKind.TripleTap;
+            }
+        }
+
+        private static GestureKind ResolveTwoFingerTapKind(int tapCount)
+        {
+            switch (tapCount)
+            {
+                case 1:
+                    return GestureKind.TwoFingerTap;
+                case 2:
+                    return GestureKind.TwoFingerDoubleTap;
+                default:
+                    return GestureKind.TwoFingerTripleTap;
+            }
         }
 
         private static SwipeDirection ResolveSwipe(float dx, float dy)
@@ -541,16 +670,18 @@ namespace TS.Sdl.Input
 
         private sealed class TapTrack
         {
-            public TapTrack(ulong timestamp, float x, float y)
+            public TapTrack(ulong timestamp, float x, float y, int count)
             {
                 Timestamp = timestamp;
                 X = x;
                 Y = y;
+                Count = count;
             }
 
             public ulong Timestamp { get; }
             public float X { get; }
             public float Y { get; }
+            public int Count { get; }
         }
 
         private sealed class TouchTrack
@@ -625,6 +756,10 @@ namespace TS.Sdl.Input
                 FirstStartY = firstStartY;
                 SecondStartX = secondStartX;
                 SecondStartY = secondStartY;
+                LastFirstX = firstStartX;
+                LastFirstY = firstStartY;
+                LastSecondX = secondStartX;
+                LastSecondY = secondStartY;
                 TwoTapEligible = true;
             }
 
@@ -640,11 +775,16 @@ namespace TS.Sdl.Input
             public float FirstStartY { get; }
             public float SecondStartX { get; }
             public float SecondStartY { get; }
+            public float LastFirstX { get; set; }
+            public float LastFirstY { get; set; }
+            public float LastSecondX { get; set; }
+            public float LastSecondY { get; set; }
             public bool TwoTapEligible { get; set; }
             public bool PinchActive { get; set; }
             public bool RotateActive { get; set; }
             public bool FirstUp { get; set; }
             public bool SecondUp { get; set; }
+            public bool Canceled { get; set; }
 
             public bool Contains(ulong fingerId)
             {

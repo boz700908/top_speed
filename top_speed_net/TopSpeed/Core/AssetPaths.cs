@@ -17,8 +17,20 @@ namespace TopSpeed.Core
 
                 var baseDir = AppContext.BaseDirectory;
                 _root = baseDir;
-                return _root;
+                return _root!;
             }
+        }
+
+        internal static void SetRoot(string? rootPath)
+        {
+            if (rootPath is null)
+                return;
+
+            var trimmedPath = rootPath.Trim();
+            if (trimmedPath.Length == 0)
+                return;
+
+            _root = trimmedPath;
         }
 
         public static string SoundsRoot => Path.Combine(Root, "Sounds");

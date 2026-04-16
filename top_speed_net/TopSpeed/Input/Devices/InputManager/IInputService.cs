@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TS.Sdl.Input;
 using Key = TopSpeed.Input.InputKey;
 using TopSpeed.Input.Devices.Controller;
 using TopSpeed.Input.Devices.Vibration;
@@ -20,6 +21,8 @@ namespace TopSpeed.Input
         void Update();
         bool IsDown(Key key);
         bool WasPressed(Key key);
+        void SubmitGesture(in GestureEvent value);
+        bool WasGesturePressed(GestureIntent intent);
         bool TryGetControllerState(out State state);
         void SetDeviceMode(InputDeviceMode mode);
         bool TryGetPendingControllerChoices(out IReadOnlyList<Choice> choices);

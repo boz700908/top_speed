@@ -11,6 +11,13 @@
     <AssemblyName>TopSpeed</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(AndroidHostBuild)' == 'true'">
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
     <UseWindowsForms>true</UseWindowsForms>
     <PlatformTarget>x64</PlatformTarget>
@@ -240,7 +247,7 @@
     <Copy SourceFiles="$(_UpdaterBuildDir)Updater.pdb" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="Exists('$(_UpdaterBuildDir)Updater.pdb')" />
   </Target>
 
-  <Target Name="CopyUpdaterNet10" AfterTargets="Build" Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != ''">
+  <Target Name="CopyUpdaterNet10" AfterTargets="Build" Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != '' and '$(AndroidHostBuild)' != 'true'">
     <PropertyGroup>
       <_UpdaterProjectPath>$(MSBuildThisFileDirectory)../Updater/Updater.csproj</_UpdaterProjectPath>
       <_UpdaterOutputPath>$([System.IO.Path]::GetFullPath('$(OutDir)'))</_UpdaterOutputPath>
@@ -254,7 +261,7 @@
     <Copy SourceFiles="@(_UpdaterPublishedFiles)" DestinationFiles="@(_UpdaterPublishedFiles->'$(_UpdaterOutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
-  <Target Name="PublishUpdaterNet10" AfterTargets="Publish" Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != ''">
+  <Target Name="PublishUpdaterNet10" AfterTargets="Publish" Condition="('$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net10.0-windows') and '$(RuntimeIdentifier)' != '' and '$(AndroidHostBuild)' != 'true'">
     <PropertyGroup>
       <_UpdaterProjectPath>$(MSBuildThisFileDirectory)../Updater/Updater.csproj</_UpdaterProjectPath>
       <_PublishDestinationPath>$([System.IO.Path]::GetFullPath('$(PublishDir)'))</_PublishDestinationPath>
