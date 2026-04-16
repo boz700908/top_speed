@@ -154,7 +154,7 @@ namespace TopSpeed.Menu
                 value => _settingsActions.SetSpeechRate(value / 100f),
                 hint: HintForPlatform(
                     LocalizationService.Mark("Adjust the speech rate for the current backend. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum."),
-                    LocalizationService.Mark("Adjust the speech rate for the current backend. Swipe up or down to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with two fingers for maximum or minimum.")));
+                    LocalizationService.Mark("Adjust the speech rate for the current backend. Swipe up or down with two fingers to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with three fingers for maximum or minimum.")));
         }
 
         private bool SupportsVoiceSelection()

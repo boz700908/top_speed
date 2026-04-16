@@ -17,6 +17,10 @@ namespace TopSpeed.Input
         TwoFingerSwipeLeft = 12,
         TwoFingerSwipeRight = 13,
         TwoFingerSwipeUp = 14,
-        TwoFingerSwipeDown = 15
+        TwoFingerSwipeDown = 15,
+        ThreeFingerSwipeLeft = 16,
+        ThreeFingerSwipeRight = 17,
+        ThreeFingerSwipeUp = 18,
+        ThreeFingerSwipeDown = 19
     }
 }

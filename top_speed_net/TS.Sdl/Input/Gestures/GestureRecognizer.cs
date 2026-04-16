@@ -78,6 +78,7 @@ namespace TS.Sdl.Input
             track.Fingers[value.FingerId] = finger;
             track.WindowId = value.WindowId;
 
+            StartThreeFingerIfNeeded(track, value.Timestamp);
             StartMultiIfNeeded(track, value.Timestamp);
         }
 
@@ -91,6 +92,15 @@ namespace TS.Sdl.Input
 
             finger.Update(value);
             track.WindowId = value.WindowId;
+
+            if (!finger.PartOfMulti && !finger.Canceled)
+                TryEmitSwipe(finger, value.TouchId, value.WindowId, value.Timestamp);
+
+            if (track.ThreeFinger != null && track.ThreeFinger.Contains(value.FingerId))
+            {
+                UpdateThreeFinger(track, value.Timestamp);
+                return;
+            }
 
             if (track.Multi != null && track.Multi.Contains(value.FingerId))
                 UpdateMulti(track, value.Timestamp);
@@ -107,7 +117,11 @@ namespace TS.Sdl.Input
             finger.Update(value);
             finger.Canceled = canceled;
 
-            if (track.Multi != null && track.Multi.Contains(value.FingerId))
+            if (track.ThreeFinger != null && track.ThreeFinger.Contains(value.FingerId))
+            {
+                HandleThreeFingerUp(track, finger, value.Timestamp, canceled);
+            }
+            else if (track.Multi != null && track.Multi.Contains(value.FingerId))
             {
                 HandleMultiUp(track, finger, value.Timestamp, canceled);
             }
@@ -165,6 +179,9 @@ namespace TS.Sdl.Input
 
         private bool TryEmitSwipe(FingerTrack finger, ulong touchId, uint windowId, ulong timestamp)
         {
+            if (finger.SwipeRaised)
+                return true;
+
             var dx = finger.LastX - finger.StartX;
             var dy = finger.LastY - finger.StartY;
             var distance = Distance(dx, dy);
@@ -283,9 +300,74 @@ namespace TS.Sdl.Input
             });
         }
 
+        private void StartThreeFingerIfNeeded(TouchTrack track, ulong timestamp)
+        {
+            if (track.ThreeFinger != null || track.Fingers.Count < 3)
+                return;
+
+            if (!TryGetThreeFingerStart(track, out var first, out var second, out var third))
+                return;
+
+            if (track.Multi != null)
+            {
+                track.Multi.Canceled = true;
+                track.Multi = null;
+            }
+
+            first.PartOfMulti = true;
+            second.PartOfMulti = true;
+            third.PartOfMulti = true;
+
+            track.ThreeFinger = new ThreeFingerTrack(
+                first.Id,
+                second.Id,
+                third.Id,
+                timestamp,
+                first.LastX,
+                first.LastY,
+                second.LastX,
+                second.LastY,
+                third.LastX,
+                third.LastY);
+        }
+
+        private static bool TryGetThreeFingerStart(
+            TouchTrack track,
+            out FingerTrack first,
+            out FingerTrack second,
+            out FingerTrack third)
+        {
+            first = null!;
+            second = null!;
+            third = null!;
+            var found = 0;
+            foreach (var pair in track.Fingers)
+            {
+                if (found == 0)
+                {
+                    first = pair.Value;
+                    found = 1;
+                    continue;
+                }
+
+                if (found == 1)
+                {
+                    second = pair.Value;
+                    found = 2;
+                    continue;
+                }
+
+                third = pair.Value;
+                found = 3;
+                break;
+            }
+
+            return found == 3;
+        }
+
         private void StartMultiIfNeeded(TouchTrack track, ulong timestamp)
         {
-            if (track.Multi != null)
+            if (track.Multi != null || track.ThreeFinger != null)
                 return;
 
             ulong firstId = 0;
@@ -329,6 +411,34 @@ namespace TS.Sdl.Input
                 first.LastY,
                 second.LastX,
                 second.LastY);
+        }
+
+        private void UpdateThreeFinger(TouchTrack track, ulong timestamp)
+        {
+            var three = track.ThreeFinger;
+            if (three == null || three.AllUp)
+                return;
+
+            if (track.Fingers.TryGetValue(three.FirstId, out var first))
+            {
+                three.LastFirstX = first.LastX;
+                three.LastFirstY = first.LastY;
+            }
+
+            if (track.Fingers.TryGetValue(three.SecondId, out var second))
+            {
+                three.LastSecondX = second.LastX;
+                three.LastSecondY = second.LastY;
+            }
+
+            if (track.Fingers.TryGetValue(three.ThirdId, out var third))
+            {
+                three.LastThirdX = third.LastX;
+                three.LastThirdY = third.LastY;
+            }
+
+            three.LastTimestamp = timestamp;
+            TryEmitThreeFingerSwipe(track, three, timestamp);
         }
 
         private void UpdateMulti(TouchTrack track, ulong timestamp)
@@ -531,9 +641,85 @@ namespace TS.Sdl.Input
             }
         }
 
+        private void HandleThreeFingerUp(TouchTrack track, FingerTrack finger, ulong timestamp, bool canceled)
+        {
+            var three = track.ThreeFinger;
+            if (three == null)
+                return;
+
+            UpdateThreeFinger(track, timestamp);
+            if (finger.Id == three.FirstId)
+            {
+                three.FirstUp = true;
+                three.LastFirstX = finger.LastX;
+                three.LastFirstY = finger.LastY;
+            }
+            else if (finger.Id == three.SecondId)
+            {
+                three.SecondUp = true;
+                three.LastSecondX = finger.LastX;
+                three.LastSecondY = finger.LastY;
+            }
+            else if (finger.Id == three.ThirdId)
+            {
+                three.ThirdUp = true;
+                three.LastThirdX = finger.LastX;
+                three.LastThirdY = finger.LastY;
+            }
+
+            if (canceled)
+                three.Canceled = true;
+
+            if (!three.AllUp)
+                return;
+
+            TryEmitThreeFingerSwipe(track, three, timestamp);
+            track.ThreeFinger = null;
+        }
+
+        private bool TryEmitThreeFingerSwipe(TouchTrack track, ThreeFingerTrack three, ulong timestamp)
+        {
+            if (three.Canceled || three.SwipeRaised || timestamp <= three.StartTimestamp)
+                return false;
+
+            var endCenterX = (three.LastFirstX + three.LastSecondX + three.LastThirdX) / 3f;
+            var endCenterY = (three.LastFirstY + three.LastSecondY + three.LastThirdY) / 3f;
+            var dx = endCenterX - three.StartCenterX;
+            var dy = endCenterY - three.StartCenterY;
+            var distance = Distance(dx, dy);
+            if (distance < _options.SwipeMinDistance)
+                return false;
+
+            var seconds = (timestamp - three.StartTimestamp) * NanosToSeconds;
+            if (seconds <= 0f)
+                return false;
+
+            var velocity = distance / seconds;
+            if (velocity < _options.SwipeMinVelocity)
+                return false;
+
+            three.SwipeRaised = true;
+            Emit(new GestureEvent
+            {
+                Kind = GestureKind.Swipe,
+                FingerCount = 3,
+                Timestamp = timestamp,
+                TouchId = track.TouchId,
+                WindowId = track.WindowId,
+                X = endCenterX,
+                Y = endCenterY,
+                DeltaX = dx,
+                DeltaY = dy,
+                Distance = distance,
+                Velocity = velocity,
+                Direction = ResolveSwipe(dx, dy)
+            });
+            return true;
+        }
+
         private bool TryEmitTwoFingerSwipe(TouchTrack track, MultiTrack multi, ulong timestamp)
         {
-            if (multi.Canceled || multi.TwoTapEligible || multi.PinchActive || multi.RotateActive)
+            if (multi.Canceled || multi.SwipeRaised || multi.PinchActive || multi.RotateActive)
                 return false;
             if (timestamp <= multi.StartTimestamp)
                 return false;
@@ -557,6 +743,8 @@ namespace TS.Sdl.Input
             if (velocity < _options.SwipeMinVelocity)
                 return false;
 
+            multi.SwipeRaised = true;
+            multi.TwoTapEligible = false;
             Emit(new GestureEvent
             {
                 Kind = GestureKind.Swipe,
@@ -696,6 +884,7 @@ namespace TS.Sdl.Input
             public uint WindowId { get; set; }
             public Dictionary<ulong, FingerTrack> Fingers { get; }
             public MultiTrack? Multi { get; set; }
+            public ThreeFingerTrack? ThreeFinger { get; set; }
         }
 
         private sealed class FingerTrack
@@ -782,6 +971,7 @@ namespace TS.Sdl.Input
             public bool TwoTapEligible { get; set; }
             public bool PinchActive { get; set; }
             public bool RotateActive { get; set; }
+            public bool SwipeRaised { get; set; }
             public bool FirstUp { get; set; }
             public bool SecondUp { get; set; }
             public bool Canceled { get; set; }
@@ -789,6 +979,62 @@ namespace TS.Sdl.Input
             public bool Contains(ulong fingerId)
             {
                 return fingerId == FirstId || fingerId == SecondId;
+            }
+        }
+
+        private sealed class ThreeFingerTrack
+        {
+            public ThreeFingerTrack(
+                ulong firstId,
+                ulong secondId,
+                ulong thirdId,
+                ulong timestamp,
+                float firstStartX,
+                float firstStartY,
+                float secondStartX,
+                float secondStartY,
+                float thirdStartX,
+                float thirdStartY)
+            {
+                FirstId = firstId;
+                SecondId = secondId;
+                ThirdId = thirdId;
+                StartTimestamp = timestamp;
+                LastTimestamp = timestamp;
+                LastFirstX = firstStartX;
+                LastFirstY = firstStartY;
+                LastSecondX = secondStartX;
+                LastSecondY = secondStartY;
+                LastThirdX = thirdStartX;
+                LastThirdY = thirdStartY;
+                StartCenterX = (firstStartX + secondStartX + thirdStartX) / 3f;
+                StartCenterY = (firstStartY + secondStartY + thirdStartY) / 3f;
+            }
+
+            public ulong FirstId { get; }
+            public ulong SecondId { get; }
+            public ulong ThirdId { get; }
+            public ulong StartTimestamp { get; }
+            public ulong LastTimestamp { get; set; }
+            public float StartCenterX { get; }
+            public float StartCenterY { get; }
+            public float LastFirstX { get; set; }
+            public float LastFirstY { get; set; }
+            public float LastSecondX { get; set; }
+            public float LastSecondY { get; set; }
+            public float LastThirdX { get; set; }
+            public float LastThirdY { get; set; }
+            public bool FirstUp { get; set; }
+            public bool SecondUp { get; set; }
+            public bool ThirdUp { get; set; }
+            public bool SwipeRaised { get; set; }
+            public bool Canceled { get; set; }
+
+            public bool AllUp => FirstUp && SecondUp && ThirdUp;
+
+            public bool Contains(ulong fingerId)
+            {
+                return fingerId == FirstId || fingerId == SecondId || fingerId == ThirdId;
             }
         }
     }

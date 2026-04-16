@@ -9,13 +9,14 @@ namespace TopSpeed.Input
             switch (value.Kind)
             {
                 case GestureKind.Swipe:
+                    var threeFinger = value.FingerCount >= 3;
                     var twoFinger = value.FingerCount >= 2;
                     intent = value.Direction switch
                     {
-                        SwipeDirection.Left => twoFinger ? GestureIntent.TwoFingerSwipeLeft : GestureIntent.SwipeLeft,
-                        SwipeDirection.Right => twoFinger ? GestureIntent.TwoFingerSwipeRight : GestureIntent.SwipeRight,
-                        SwipeDirection.Up => twoFinger ? GestureIntent.TwoFingerSwipeUp : GestureIntent.SwipeUp,
-                        SwipeDirection.Down => twoFinger ? GestureIntent.TwoFingerSwipeDown : GestureIntent.SwipeDown,
+                        SwipeDirection.Left => threeFinger ? GestureIntent.ThreeFingerSwipeLeft : (twoFinger ? GestureIntent.TwoFingerSwipeLeft : GestureIntent.SwipeLeft),
+                        SwipeDirection.Right => threeFinger ? GestureIntent.ThreeFingerSwipeRight : (twoFinger ? GestureIntent.TwoFingerSwipeRight : GestureIntent.SwipeRight),
+                        SwipeDirection.Up => threeFinger ? GestureIntent.ThreeFingerSwipeUp : (twoFinger ? GestureIntent.TwoFingerSwipeUp : GestureIntent.SwipeUp),
+                        SwipeDirection.Down => threeFinger ? GestureIntent.ThreeFingerSwipeDown : (twoFinger ? GestureIntent.TwoFingerSwipeDown : GestureIntent.SwipeDown),
                         _ => GestureIntent.Unknown
                     };
                     return intent != GestureIntent.Unknown;

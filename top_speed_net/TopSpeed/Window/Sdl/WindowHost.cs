@@ -37,7 +37,7 @@ namespace TopSpeed.Windowing.Sdl
 
         public WindowHost()
         {
-            _gestureRecognizer = new GestureRecognizer();
+            _gestureRecognizer = new GestureRecognizer(BuildGestureOptions());
             _gestureRecognizer.Raised += OnGestureRaised;
             _textResults = new Queue<TextInputResult>();
             _textInputBuffer = new StringBuilder(128);
@@ -270,6 +270,21 @@ namespace TopSpeed.Windowing.Sdl
         {
             var title = LocalizationService.Translate(LocalizationService.Mark("Top Speed"));
             return string.IsNullOrWhiteSpace(title) ? "Top Speed" : title;
+        }
+
+        private static GestureOptions BuildGestureOptions()
+        {
+            var options = new GestureOptions();
+#if !NETFRAMEWORK
+            if (OperatingSystem.IsAndroid())
+            {
+                options.SwipeMinDistance = 0.06f;
+                options.SwipeMinVelocity = 0.3f;
+                options.TapMove = 0.025f;
+                options.DoubleTapMove = 0.05f;
+            }
+#endif
+            return options;
         }
     }
 }

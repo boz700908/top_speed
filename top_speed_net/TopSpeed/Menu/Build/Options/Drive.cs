@@ -40,7 +40,7 @@ namespace TopSpeed.Menu
                     value => _settingsActions.UpdateSetting(() => _settings.CurveAnnouncementLeadTimeSeconds = value / 10.0f),
                     hint: HintForPlatform(
                         LocalizationService.Mark("Sets how early speed dependent curve announcements are spoken. Use LEFT or RIGHT to change by 0.1 seconds, PAGE UP or PAGE DOWN to change by 1.0 second, HOME for maximum, END for minimum."),
-                        LocalizationService.Mark("Sets how early speed dependent curve announcements are spoken. Swipe up or down to change by 1.0 second, swipe left or right with two fingers to change by 0.1 seconds, and swipe up or down with two fingers for maximum or minimum.")),
+                        LocalizationService.Mark("Sets how early speed dependent curve announcements are spoken. Swipe up or down with two fingers to change by 1.0 second, swipe left or right with two fingers to change by 0.1 seconds, and swipe up or down with three fingers for maximum or minimum.")),
                     formatValue: FormatCurveLeadTimeSeconds),
                 new RadioButton(LocalizationService.Mark("Automatic race information"),
                     new[]
@@ -60,14 +60,14 @@ namespace TopSpeed.Menu
                     value => _settingsActions.UpdateSetting(() => _settings.NrOfLaps = value),
                     hint: HintForPlatform(
                         LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum."),
-                        LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer. Swipe up or down to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with two fingers for maximum or minimum."))),
+                        LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer. Swipe up or down with two fingers to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with three fingers for maximum or minimum."))),
                 new Slider(LocalizationService.Mark("Number of computer players"),
                     "1-7",
                     () => _settings.NrOfComputers,
                     value => _settingsActions.UpdateSetting(() => _settings.NrOfComputers = value),
                     hint: HintForPlatform(
                         LocalizationService.Mark("Sets how many computer-controlled cars will race against you. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum."),
-                        LocalizationService.Mark("Sets how many computer-controlled cars will race against you. Swipe up or down to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with two fingers for maximum or minimum."))),
+                        LocalizationService.Mark("Sets how many computer-controlled cars will race against you. Swipe up or down with two fingers to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with three fingers for maximum or minimum."))),
                 new RadioButton(LocalizationService.Mark("Single race difficulty"),
                     new[]
                     {

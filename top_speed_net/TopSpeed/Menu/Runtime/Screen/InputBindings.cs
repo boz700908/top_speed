@@ -66,6 +66,10 @@ namespace TopSpeed.Menu
             GestureIntent.TwoFingerSwipeRight,
             GestureIntent.TwoFingerSwipeUp,
             GestureIntent.TwoFingerSwipeDown,
+            GestureIntent.ThreeFingerSwipeLeft,
+            GestureIntent.ThreeFingerSwipeRight,
+            GestureIntent.ThreeFingerSwipeUp,
+            GestureIntent.ThreeFingerSwipeDown,
             GestureIntent.LongPress
         };
 

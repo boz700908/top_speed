@@ -74,6 +74,8 @@ namespace TopSpeed.Menu
             var twoFingerSwipeRight = input.WasGesturePressed(GestureIntent.TwoFingerSwipeRight);
             var twoFingerSwipeUp = input.WasGesturePressed(GestureIntent.TwoFingerSwipeUp);
             var twoFingerSwipeDown = input.WasGesturePressed(GestureIntent.TwoFingerSwipeDown);
+            var threeFingerSwipeUp = input.WasGesturePressed(GestureIntent.ThreeFingerSwipeUp);
+            var threeFingerSwipeDown = input.WasGesturePressed(GestureIntent.ThreeFingerSwipeDown);
 
             state.MoveUp |= swipeLeft;
             state.MoveDown |= swipeRight;
@@ -86,13 +88,18 @@ namespace TopSpeed.Menu
 
             if (isSlider)
             {
-                state.PageUp |= swipeUp;
-                state.PageDown |= swipeDown;
+                state.PageUp |= twoFingerSwipeUp;
+                state.PageDown |= twoFingerSwipeDown;
+                state.MoveHome |= threeFingerSwipeUp;
+                state.MoveEnd |= threeFingerSwipeDown;
+                state.Back |= swipeDown;
             }
             else
             {
                 state.Activate |= swipeUp;
                 state.Back |= swipeDown;
+                state.MoveHome |= twoFingerSwipeUp;
+                state.MoveEnd |= twoFingerSwipeDown;
             }
 
             if (supportsFineAdjust || (currentItem?.HasActions ?? false))
@@ -101,8 +108,6 @@ namespace TopSpeed.Menu
                 state.MoveRight |= twoFingerSwipeRight;
             }
 
-            state.MoveHome |= twoFingerSwipeUp;
-            state.MoveEnd |= twoFingerSwipeDown;
         }
 
         private bool TryHandleHeldInputGate(IInputService input, UpdateInputState state, out MenuUpdateResult result)

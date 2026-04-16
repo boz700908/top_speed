@@ -2,6 +2,7 @@ using TopSpeed.Core;
 using TopSpeed.Game;
 using TopSpeed.Runtime;
 using TopSpeed.Windowing.Sdl;
+using System;
 
 namespace TopSpeed
 {
@@ -29,6 +30,8 @@ namespace TopSpeed
 
             try
             {
+                Environment.SetEnvironmentVariable("TOPSPEED_TOUCH_HINTS", "1");
+
                 var configuredRoot = _assetRoot;
                 if (!string.IsNullOrWhiteSpace(configuredRoot))
                     AssetPaths.SetRoot(configuredRoot);

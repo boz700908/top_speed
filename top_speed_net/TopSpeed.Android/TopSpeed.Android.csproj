@@ -42,6 +42,13 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <UpToDateCheckInput Include="..\TopSpeed\TopSpeed.csproj" />
+    <UpToDateCheckInput Include="..\TopSpeed\**\*.cs" Exclude="..\TopSpeed\bin\**;..\TopSpeed\obj\**" />
+    <UpToDateCheckInput Include="..\TS.Sdl\TS.Sdl.csproj" />
+    <UpToDateCheckInput Include="..\TS.Sdl\**\*.cs" Exclude="..\TS.Sdl\bin\**;..\TS.Sdl\obj\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <AndroidAsset Include="..\Sounds\**\*">
       <Link>Sounds\%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -63,7 +70,7 @@
     </AndroidAsset>
   </ItemGroup>
 
-  <Target Name="BuildTopSpeedHost">
+  <Target Name="BuildTopSpeedHost" BeforeTargets="Build">
     <MSBuild
       Projects="..\TopSpeed\TopSpeed.csproj"
       Targets="Restore;Build"
