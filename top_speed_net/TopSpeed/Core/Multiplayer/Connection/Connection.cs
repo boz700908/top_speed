@@ -1,3 +1,4 @@
+using System;
 using TopSpeed.Network;
 using TopSpeed.Localization;
 using TopSpeed.Speech;
@@ -13,7 +14,12 @@ namespace TopSpeed.Core.Multiplayer
 
         internal void BeginManualServerEntryCore()
         {
-            PromptServerAddressInput(_settings.LastServerAddress);
+            string? initialAddress = _settings.LastServerAddress;
+#if !NETFRAMEWORK
+            if (OperatingSystem.IsAndroid())
+                initialAddress = null;
+#endif
+            PromptServerAddressInput(initialAddress);
         }
 
         public void BeginServerPortEntry()
