@@ -22,15 +22,21 @@ namespace TopSpeed.Input
                     return intent != GestureIntent.Unknown;
 
                 case GestureKind.Tap:
-                    intent = GestureIntent.Tap;
+                    intent = value.FingerCount >= 3
+                        ? GestureIntent.ThreeFingerTap
+                        : GestureIntent.Tap;
                     return true;
 
                 case GestureKind.DoubleTap:
-                    intent = GestureIntent.DoubleTap;
+                    intent = value.FingerCount >= 3
+                        ? GestureIntent.ThreeFingerDoubleTap
+                        : GestureIntent.DoubleTap;
                     return true;
 
                 case GestureKind.TripleTap:
-                    intent = GestureIntent.TripleTap;
+                    intent = value.FingerCount >= 3
+                        ? GestureIntent.ThreeFingerTripleTap
+                        : GestureIntent.TripleTap;
                     return true;
 
                 case GestureKind.LongPress:

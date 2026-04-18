@@ -12,7 +12,15 @@ namespace TopSpeed.Input
             bool horn,
             bool gearUp,
             bool gearDown,
-            bool startEngine)
+            bool startEngine,
+            bool reportDistance = false,
+            bool reportSpeed = false,
+            bool currentGear = false,
+            bool currentLapNr = false,
+            bool currentRacePerc = false,
+            bool currentLapPerc = false,
+            bool currentRaceTime = false,
+            bool pause = false)
         {
             _touchSteering = ClampRange(steering, -100, 100);
             _touchThrottle = ClampRange(throttle, 0, 100);
@@ -22,6 +30,14 @@ namespace TopSpeed.Input
             _touchGearUp = gearUp;
             _touchGearDown = gearDown;
             _touchStartEngine = startEngine;
+            _touchReportDistance = reportDistance;
+            _touchReportSpeed = reportSpeed;
+            _touchCurrentGear = currentGear;
+            _touchCurrentLapNr = currentLapNr;
+            _touchCurrentRacePerc = currentRacePerc;
+            _touchCurrentLapPerc = currentLapPerc;
+            _touchCurrentRaceTime = currentRaceTime;
+            _touchPause = pause;
         }
 
         public void ClearTouchInputState()
@@ -34,6 +50,14 @@ namespace TopSpeed.Input
             _touchGearUp = false;
             _touchGearDown = false;
             _touchStartEngine = false;
+            _touchReportDistance = false;
+            _touchReportSpeed = false;
+            _touchCurrentGear = false;
+            _touchCurrentLapNr = false;
+            _touchCurrentRacePerc = false;
+            _touchCurrentLapPerc = false;
+            _touchCurrentRaceTime = false;
+            _touchPause = false;
         }
 
         private static int ClampRange(int value, int min, int max)

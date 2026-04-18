@@ -201,6 +201,22 @@ namespace TopSpeed.Input
                     return _touchGearDown;
                 case DriveIntent.StartEngine:
                     return _touchStartEngine;
+                case DriveIntent.ReportDistance:
+                    return _touchReportDistance;
+                case DriveIntent.ReportSpeed:
+                    return _touchReportSpeed;
+                case DriveIntent.CurrentGear:
+                    return _touchCurrentGear;
+                case DriveIntent.CurrentLapNr:
+                    return _touchCurrentLapNr;
+                case DriveIntent.CurrentRacePerc:
+                    return _touchCurrentRacePerc;
+                case DriveIntent.CurrentLapPerc:
+                    return _touchCurrentLapPerc;
+                case DriveIntent.CurrentRaceTime:
+                    return _touchCurrentRaceTime;
+                case DriveIntent.Pause:
+                    return _touchPause;
                 default:
                     return false;
             }

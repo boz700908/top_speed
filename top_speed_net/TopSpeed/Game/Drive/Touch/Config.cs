@@ -2,9 +2,11 @@ namespace TopSpeed.Game
 {
     internal sealed partial class Game
     {
-        private const string DriveTouchInfoZoneId = "drive_info";
+        private const string DriveTouchInfoLeftZoneId = "drive_info_left";
+        private const string DriveTouchInfoRightZoneId = "drive_info_right";
         private const string DriveTouchVehicleZoneId = "drive_vehicle";
         private const float DriveTouchSplitY = 0.5f;
+        private const float DriveTouchInfoSplitX = 0.5f;
         private const float DriveTouchAxisTravel = 0.22f;
 
         private const float DriveMotionSteerDeadZoneRadians = 0.03f;

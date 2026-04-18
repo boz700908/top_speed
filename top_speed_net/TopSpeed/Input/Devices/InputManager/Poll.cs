@@ -188,6 +188,8 @@ namespace TopSpeed.Input
             _touchZoneGestureEventSource?.ClearTouchZones();
             lock (_gestureSync)
             {
+                _gesturePressCounts.Clear();
+                _zoneGesturePressCounts.Clear();
                 _zoneTouchPoints.Clear();
             }
         }

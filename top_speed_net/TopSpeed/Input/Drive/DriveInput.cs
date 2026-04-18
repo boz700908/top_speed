@@ -150,6 +150,14 @@ namespace TopSpeed.Input
         private bool _touchGearUp;
         private bool _touchGearDown;
         private bool _touchStartEngine;
+        private bool _touchReportDistance;
+        private bool _touchReportSpeed;
+        private bool _touchCurrentGear;
+        private bool _touchCurrentLapNr;
+        private bool _touchCurrentRacePerc;
+        private bool _touchCurrentLapPerc;
+        private bool _touchCurrentRaceTime;
+        private bool _touchPause;
         private DriveIntentState _intentState;
         private bool UseController => _deviceMode != InputDeviceMode.Keyboard && _controllerAvailable;
         private bool UseKeyboard => _deviceMode != InputDeviceMode.Controller || !_controllerAvailable;

@@ -7,7 +7,7 @@ namespace TopSpeed.Game
     {
         private bool _isAndroidPlatform;
         private bool _driveTouchZonesApplied;
-        private bool _driveTouchClutchArmed;
+        private bool _driveTouchExitRequested;
 
         private bool _driveMotionEnabled;
         private bool _driveMotionNeedsRecenter = true;

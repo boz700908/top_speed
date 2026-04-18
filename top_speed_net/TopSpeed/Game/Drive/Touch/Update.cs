@@ -34,6 +34,18 @@ namespace TopSpeed.Game
             var gearUp = _input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeUp, DriveTouchVehicleZoneId);
             var gearDown = _input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeDown, DriveTouchVehicleZoneId);
             var startEngine = _input.WasZoneGesturePressed(GestureIntent.DoubleTap, DriveTouchVehicleZoneId);
+            var reportSpeed = _input.WasZoneGesturePressed(GestureIntent.DoubleTap, DriveTouchInfoLeftZoneId);
+            var reportDistance = _input.WasZoneGesturePressed(GestureIntent.TwoFingerDoubleTap, DriveTouchInfoRightZoneId);
+            var currentGear = _input.WasZoneGesturePressed(GestureIntent.ThreeFingerTap, DriveTouchInfoRightZoneId);
+
+            var currentLapNr = _input.WasZoneGesturePressed(GestureIntent.DoubleTap, DriveTouchInfoRightZoneId);
+            var currentRacePerc = _input.WasZoneGesturePressed(GestureIntent.TwoFingerDoubleTap, DriveTouchInfoLeftZoneId);
+            var currentLapPerc = _input.WasZoneGesturePressed(GestureIntent.ThreeFingerDoubleTap, DriveTouchInfoLeftZoneId);
+            var currentRaceTime = _input.WasZoneGesturePressed(GestureIntent.TwoFingerTripleTap, DriveTouchInfoLeftZoneId);
+            var pause = _input.WasZoneGesturePressed(GestureIntent.ThreeFingerTripleTap, DriveTouchInfoLeftZoneId);
+            if (_input.WasZoneGesturePressed(GestureIntent.SwipeDown, DriveTouchInfoLeftZoneId))
+                _driveTouchExitRequested = true;
+
             ApplyTopZoneInputs(ref clutch, ref horn);
 
             _driveInput.SetTouchInputState(
@@ -44,7 +56,15 @@ namespace TopSpeed.Game
                 horn,
                 gearUp,
                 gearDown,
-                startEngine);
+                startEngine,
+                reportDistance,
+                reportSpeed,
+                currentGear,
+                currentLapNr,
+                currentRacePerc,
+                currentLapPerc,
+                currentRaceTime,
+                pause);
         }
 
         private void EnsureDriveTouchZones()
@@ -52,14 +72,24 @@ namespace TopSpeed.Game
             if (_driveTouchZonesApplied)
                 return;
 
-            _input.SetTouchZones(TouchZoneLayout.Horizontal(
-                DriveTouchInfoZoneId,
-                DriveTouchVehicleZoneId,
-                splitY: DriveTouchSplitY,
-                topPriority: 20,
-                bottomPriority: 20,
-                topBehavior: TouchZoneBehavior.Lock,
-                bottomBehavior: TouchZoneBehavior.Lock));
+            _input.SetTouchZones(new[]
+            {
+                new TouchZone(
+                    DriveTouchInfoLeftZoneId,
+                    new TouchZoneRect(0f, 0f, DriveTouchInfoSplitX, DriveTouchSplitY),
+                    priority: 20,
+                    behavior: TouchZoneBehavior.Lock),
+                new TouchZone(
+                    DriveTouchInfoRightZoneId,
+                    new TouchZoneRect(DriveTouchInfoSplitX, 0f, 1f - DriveTouchInfoSplitX, DriveTouchSplitY),
+                    priority: 20,
+                    behavior: TouchZoneBehavior.Lock),
+                new TouchZone(
+                    DriveTouchVehicleZoneId,
+                    new TouchZoneRect(0f, DriveTouchSplitY, 1f, 1f - DriveTouchSplitY),
+                    priority: 20,
+                    behavior: TouchZoneBehavior.Lock)
+            });
             _driveTouchZonesApplied = true;
         }
 
@@ -83,7 +113,7 @@ namespace TopSpeed.Game
             _driveMotionSteering = 0f;
             _driveMotionNeedsRecenter = true;
             _driveMotionEnabled = false;
-            _driveTouchClutchArmed = false;
+            _driveTouchExitRequested = false;
             _driveInput.ClearTouchInputState();
         }
 
@@ -140,20 +170,26 @@ namespace TopSpeed.Game
 
         private void ApplyTopZoneInputs(ref int clutch, ref bool horn)
         {
-            var topTouchActive = _input.TryGetTouchZoneState(DriveTouchInfoZoneId, out var infoTouch) &&
-                infoTouch.IsActive &&
-                infoTouch.FingerCount == 1;
-            var clutchGesture = _input.WasZoneGesturePressed(GestureIntent.DoubleTap, DriveTouchInfoZoneId);
-
-            if (topTouchActive && clutchGesture)
-                _driveTouchClutchArmed = true;
-            if (!topTouchActive)
-                _driveTouchClutchArmed = false;
-
-            if (topTouchActive && _driveTouchClutchArmed)
+            if (IsSinglePointerActive(DriveTouchInfoLeftZoneId))
                 clutch = 100;
-            else if (topTouchActive)
+            if (IsSinglePointerActive(DriveTouchInfoRightZoneId))
                 horn = true;
+        }
+
+        private bool IsSinglePointerActive(string zoneId)
+        {
+            return _input.TryGetTouchZoneState(zoneId, out var state) &&
+                state.IsActive &&
+                state.FingerCount == 1;
+        }
+
+        private bool ConsumeDriveTouchExitRequest()
+        {
+            if (!_driveTouchExitRequested)
+                return false;
+
+            _driveTouchExitRequested = false;
+            return true;
         }
     }
 }
