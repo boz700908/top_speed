@@ -58,31 +58,51 @@ namespace TopSpeed.Game
 
         private void HandleMultiplayerTopZoneGestures()
         {
-            if (_textInputPromptActive
+            if (HasBlockingMultiplayerOverlay())
+                return;
+
+            HandleTopZoneCategoryGestures();
+            HandleTopZoneHistoryItemGestures();
+            HandleTopZonePingGesture();
+            HandleTopZoneChatInputGestures();
+        }
+
+        private bool HasBlockingMultiplayerOverlay()
+        {
+            return _textInputPromptActive
                 || _dialogs.HasActiveOverlayDialog
                 || _choices.HasActiveChoiceDialog
-                || _multiplayerCoordinator.Questions.HasActiveOverlayQuestion)
-            {
-                return;
-            }
+                || _multiplayerMenuTouch.HasActiveOverlayQuestion;
+        }
 
+        private void HandleTopZoneCategoryGestures()
+        {
             if (_input.WasZoneGesturePressed(GestureIntent.SwipeUp, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.NextChatCategory();
+                _multiplayerMenuTouch.NextChatCategory();
             else if (_input.WasZoneGesturePressed(GestureIntent.SwipeDown, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.PreviousChatCategory();
+                _multiplayerMenuTouch.PreviousChatCategory();
+        }
 
+        private void HandleTopZoneHistoryItemGestures()
+        {
             if (_input.WasZoneGesturePressed(GestureIntent.SwipeRight, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.NextChatItem();
+                _multiplayerMenuTouch.NextChatItem();
             else if (_input.WasZoneGesturePressed(GestureIntent.SwipeLeft, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.PreviousChatItem();
+                _multiplayerMenuTouch.PreviousChatItem();
+        }
 
+        private void HandleTopZonePingGesture()
+        {
             if (_input.WasZoneGesturePressed(GestureIntent.DoubleTap, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.CheckPing();
+                _multiplayerMenuTouch.CheckPing();
+        }
 
+        private void HandleTopZoneChatInputGestures()
+        {
             if (_input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeRight, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.OpenGlobalChatHotkey();
+                _multiplayerMenuTouch.OpenGlobalChatHotkey();
             else if (_input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeLeft, MenuTouchProfile.MultiplayerTopZoneId))
-                _multiplayerCoordinator.OpenRoomChatHotkey();
+                _multiplayerMenuTouch.OpenRoomChatHotkey();
         }
     }
 }

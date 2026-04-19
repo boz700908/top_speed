@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TopSpeed.Menu;
 
 using TopSpeed.Localization;
 namespace TopSpeed.Core.Multiplayer.Chat
@@ -31,7 +30,7 @@ namespace TopSpeed.Core.Multiplayer.Chat
 
     internal sealed class HistoryBuffers
     {
-        private readonly Dictionary<HistoryBuffer, List<MenuItem>> _items = new Dictionary<HistoryBuffer, List<MenuItem>>();
+        private readonly Dictionary<HistoryBuffer, List<string>> _items = new Dictionary<HistoryBuffer, List<string>>();
         private readonly Dictionary<HistoryBuffer, int> _focusIndex = new Dictionary<HistoryBuffer, int>();
         private static readonly HistoryBuffer[] Order =
         {
@@ -42,14 +41,14 @@ namespace TopSpeed.Core.Multiplayer.Chat
             HistoryBuffer.RoomEvents
         };
         private readonly int _maxEntries;
-        private readonly List<MenuItem> _emptyItems = new List<MenuItem> { new MenuItem(LocalizationService.Mark("No messages yet."), MenuAction.None) };
+        private static readonly IReadOnlyList<string> EmptyItems = System.Array.Empty<string>();
 
         public HistoryBuffers(int maxEntries)
         {
             _maxEntries = maxEntries > 0 ? maxEntries : 100;
             for (var i = 0; i < Order.Length; i++)
             {
-                _items[Order[i]] = new List<MenuItem>();
+                _items[Order[i]] = new List<string>();
                 _focusIndex[Order[i]] = -1;
             }
         }
@@ -80,10 +79,10 @@ namespace TopSpeed.Core.Multiplayer.Chat
             AddTo(HistoryBuffer.RoomEvents, text);
         }
 
-        public IReadOnlyList<MenuItem> GetCurrentItems()
+        public IReadOnlyList<string> GetCurrentEntries()
         {
             var items = _items[Current];
-            return items.Count > 0 ? items : _emptyItems;
+            return items.Count > 0 ? items : EmptyItems;
         }
 
         public void MoveToNext()
@@ -102,11 +101,11 @@ namespace TopSpeed.Core.Multiplayer.Chat
         {
             var items = _items[Current];
             if (items.Count == 0)
-                return LocalizationService.Mark("No messages yet.");
+                return NoMessagesYetText();
 
             var idx = GetNormalizedCurrentFocusIndex(items.Count);
             _focusIndex[Current] = idx;
-            return items[idx].GetDisplayText();
+            return items[idx];
         }
 
         public HistoryMoveResult MoveCurrentItem(int delta, bool wrapNavigation)
@@ -115,7 +114,7 @@ namespace TopSpeed.Core.Multiplayer.Chat
             if (items.Count == 0)
             {
                 return new HistoryMoveResult(
-                    LocalizationService.Mark("No messages yet."),
+                    NoMessagesYetText(),
                     moved: false,
                     wrapped: false,
                     edgeReached: false);
@@ -153,7 +152,7 @@ namespace TopSpeed.Core.Multiplayer.Chat
 
             _focusIndex[Current] = nextIndex;
             return new HistoryMoveResult(
-                items[nextIndex].GetDisplayText(),
+                items[nextIndex],
                 moved,
                 wrapped,
                 edgeReached);
@@ -187,7 +186,7 @@ namespace TopSpeed.Core.Multiplayer.Chat
                 return;
 
             var items = _items[buffer];
-            items.Add(new MenuItem(line, MenuAction.None));
+            items.Add(line);
             while (items.Count > _maxEntries)
                 items.RemoveAt(0);
         }
@@ -222,6 +221,11 @@ namespace TopSpeed.Core.Multiplayer.Chat
         private void SetCurrentFocusToLatest()
         {
             _focusIndex[Current] = _items[Current].Count - 1;
+        }
+
+        private static string NoMessagesYetText()
+        {
+            return LocalizationService.Translate(LocalizationService.Mark("No messages yet."));
         }
     }
 }

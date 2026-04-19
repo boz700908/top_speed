@@ -61,6 +61,7 @@ namespace TopSpeed.Game
         private readonly DriveSelection _selection;
         private readonly MenuRegistry _menuRegistry;
         private readonly IMultiplayerRuntime _multiplayerCoordinator;
+        private readonly IMultiplayerMenuTouch _multiplayerMenuTouch;
         private readonly UpdateConfig _updateConfig;
         private readonly UpdateService _updateService;
         private readonly MultiplayerDispatch _multiplayerDispatch;

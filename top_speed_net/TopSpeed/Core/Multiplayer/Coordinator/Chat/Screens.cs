@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TopSpeed.Localization;
 using TopSpeed.Menu;
 
 namespace TopSpeed.Core.Multiplayer
@@ -8,7 +9,7 @@ namespace TopSpeed.Core.Multiplayer
     {
         private void UpdateHistoryScreens()
         {
-            var items = _state.Chat.History.GetCurrentItems();
+            var items = BuildHistoryItems(_state.Chat.History.GetCurrentEntries());
             TryUpdateChatScreen(MultiplayerMenuKeys.Lobby, items);
             TryUpdateChatScreen(MultiplayerMenuKeys.RoomControls, items);
         }
@@ -29,6 +30,21 @@ namespace TopSpeed.Core.Multiplayer
         {
             var text = (message ?? string.Empty).Trim();
             return string.IsNullOrWhiteSpace(text) ? null : text;
+        }
+
+        private static List<MenuItem> BuildHistoryItems(IReadOnlyList<string> entries)
+        {
+            var items = new List<MenuItem>();
+            if (entries == null || entries.Count == 0)
+            {
+                items.Add(new MenuItem(LocalizationService.Mark("No messages yet."), MenuAction.None));
+                return items;
+            }
+
+            for (var i = 0; i < entries.Count; i++)
+                items.Add(new MenuItem(entries[i], MenuAction.None));
+
+            return items;
         }
     }
 }

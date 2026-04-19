@@ -37,6 +37,43 @@ namespace TopSpeed.Core.Multiplayer
             OpenRoomChatHotkey();
         }
 
+        bool IMultiplayerMenuTouch.HasActiveOverlayQuestion => _questions.HasActiveOverlayQuestion;
+
+        void IMultiplayerMenuTouch.NextChatCategory()
+        {
+            NextChatCategory();
+        }
+
+        void IMultiplayerMenuTouch.PreviousChatCategory()
+        {
+            PreviousChatCategory();
+        }
+
+        void IMultiplayerMenuTouch.NextChatItem()
+        {
+            NextChatItem();
+        }
+
+        void IMultiplayerMenuTouch.PreviousChatItem()
+        {
+            PreviousChatItem();
+        }
+
+        void IMultiplayerMenuTouch.CheckPing()
+        {
+            CheckCurrentPing();
+        }
+
+        void IMultiplayerMenuTouch.OpenGlobalChatHotkey()
+        {
+            OpenGlobalChatHotkey();
+        }
+
+        void IMultiplayerMenuTouch.OpenRoomChatHotkey()
+        {
+            OpenRoomChatHotkey();
+        }
+
         string IMultiplayerRuntime.ResolvePlayerName(byte playerNumber)
         {
             return ResolvePlayerName(playerNumber);

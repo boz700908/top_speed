@@ -101,12 +101,12 @@ namespace TopSpeed.Core.Multiplayer
         {
             var menuId = _menu.CurrentId ?? string.Empty;
             if (result.Moved)
-                _menu.TryPlayNavigateCue(menuId);
+                _menu.TryPlayMenuCue(menuId, MenuFeedbackCue.Navigate);
 
             if (result.Wrapped)
-                _menu.TryPlayWrapCue(menuId);
+                _menu.TryPlayMenuCue(menuId, MenuFeedbackCue.Wrap);
             else if (result.EdgeReached)
-                _menu.TryPlayEdgeCue(menuId);
+                _menu.TryPlayMenuCue(menuId, MenuFeedbackCue.Edge);
         }
     }
 }

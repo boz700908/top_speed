@@ -15,7 +15,7 @@ using TS.Audio;
 
 namespace TopSpeed.Core.Multiplayer
 {
-    internal sealed partial class MultiplayerCoordinator : IMultiplayerRuntime
+    internal sealed partial class MultiplayerCoordinator : IMultiplayerRuntime, IMultiplayerMenuTouch
     {
         private const int MaxChatMessages = 100;
         private static readonly string[] RoomTypeOptions =

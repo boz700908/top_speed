@@ -146,19 +146,20 @@ namespace TopSpeed.Menu
                 useHrtf: false);
         }
 
-        internal void PlayNavigateCue()
+        internal void PlayMenuCue(MenuFeedbackCue cue)
         {
-            PlayNavigateSound();
-        }
-
-        internal void PlayWrapCue()
-        {
-            PlaySfx(_wrapSound);
-        }
-
-        internal void PlayEdgeCue()
-        {
-            PlaySfx(_edgeSound);
+            switch (cue)
+            {
+                case MenuFeedbackCue.Navigate:
+                    PlayNavigateSound();
+                    break;
+                case MenuFeedbackCue.Wrap:
+                    PlaySfx(_wrapSound);
+                    break;
+                case MenuFeedbackCue.Edge:
+                    PlaySfx(_edgeSound);
+                    break;
+            }
         }
 
         private float CalculateNavigatePan()

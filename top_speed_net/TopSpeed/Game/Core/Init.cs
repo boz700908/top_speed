@@ -88,7 +88,7 @@ namespace TopSpeed.Game
             _shortcutMapping = new ShortcutMappingHandler(input, _menu, _settings, speech, SaveSettings);
             _updateConfig = UpdateConfig.Default;
             _updateService = new UpdateService(_updateConfig);
-            _multiplayerCoordinator = new MultiplayerCoordinator(
+            var multiplayerCoordinator = new MultiplayerCoordinator(
                 _menu,
                 _dialogs,
                 audio,
@@ -103,6 +103,8 @@ namespace TopSpeed.Game
                 ClearSession,
                 ResetPendingMultiplayerState,
                 SetMultiplayerLoadout);
+            _multiplayerCoordinator = multiplayerCoordinator;
+            _multiplayerMenuTouch = multiplayerCoordinator;
             _multiplayerRaceRuntime = new MultiplayerRaceRuntime(this);
             _multiplayerDispatch = new MultiplayerDispatch(this);
             _menuRegistry.RegisterAll();
