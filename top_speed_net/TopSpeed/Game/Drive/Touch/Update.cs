@@ -37,6 +37,10 @@ namespace TopSpeed.Game
             var reportSpeed = _input.WasZoneGesturePressed(GestureIntent.DoubleTap, DriveTouchInfoLeftZoneId);
             var reportDistance = _input.WasZoneGesturePressed(GestureIntent.TwoFingerDoubleTap, DriveTouchInfoRightZoneId);
             var currentGear = _input.WasZoneGesturePressed(GestureIntent.ThreeFingerTap, DriveTouchInfoRightZoneId);
+            var requestInfo = _input.WasZoneGesturePressed(GestureIntent.ThreeFingerDoubleTap, DriveTouchInfoRightZoneId);
+            var previousPlayer = _input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeDown, DriveTouchInfoRightZoneId);
+            var nextPlayer = _input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeUp, DriveTouchInfoRightZoneId);
+            var repeatFocusedPlayer = _input.WasZoneGesturePressed(GestureIntent.TwoFingerTripleTap, DriveTouchInfoRightZoneId);
 
             var currentLapNr = _input.WasZoneGesturePressed(GestureIntent.DoubleTap, DriveTouchInfoRightZoneId);
             var currentRacePerc = _input.WasZoneGesturePressed(GestureIntent.TwoFingerDoubleTap, DriveTouchInfoLeftZoneId);
@@ -64,7 +68,11 @@ namespace TopSpeed.Game
                 currentRacePerc,
                 currentLapPerc,
                 currentRaceTime,
-                pause);
+                pause,
+                requestInfo,
+                previousPlayer,
+                nextPlayer,
+                repeatFocusedPlayer);
         }
 
         private void EnsureDriveTouchZones()
@@ -82,7 +90,7 @@ namespace TopSpeed.Game
                 new TouchZone(
                     DriveTouchInfoRightZoneId,
                     new TouchZoneRect(DriveTouchInfoSplitX, 0f, 1f - DriveTouchInfoSplitX, DriveTouchSplitY),
-                    priority: 20,
+                    priority: 30,
                     behavior: TouchZoneBehavior.Lock),
                 new TouchZone(
                     DriveTouchVehicleZoneId,

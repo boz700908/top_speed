@@ -50,6 +50,12 @@ namespace TopSpeed.Input
 
         public bool GetPlayerNumber() => _allowAuxiliaryInput && WasPressed(_kbPlayerNumber);
 
+        public bool GetPreviousPlayerInfoRequest() => _allowAuxiliaryInput && !_overlayInputBlocked && _touchPreviousPlayerInfo;
+
+        public bool GetNextPlayerInfoRequest() => _allowAuxiliaryInput && !_overlayInputBlocked && _touchNextPlayerInfo;
+
+        public bool GetRepeatPlayerInfoRequest() => _allowAuxiliaryInput && !_overlayInputBlocked && _touchRepeatPlayerInfo;
+
         public bool GetFlush() => !_overlayInputBlocked && _lastState.IsDown(_kbFlush);
 
         public bool GetNextPanelRequest() => WasPressed(Key.Tab) && IsCtrlDown() && !IsShiftDown();
@@ -201,6 +207,8 @@ namespace TopSpeed.Input
                     return _touchGearDown;
                 case DriveIntent.StartEngine:
                     return _touchStartEngine;
+                case DriveIntent.RequestInfo:
+                    return _touchRequestInfo;
                 case DriveIntent.ReportDistance:
                     return _touchReportDistance;
                 case DriveIntent.ReportSpeed:

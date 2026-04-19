@@ -12,6 +12,7 @@ namespace TS.Sdl.Input
         private readonly Dictionary<ulong, TouchTrack> _touches;
         private readonly Dictionary<ulong, TapTrack> _lastTaps;
         private readonly Dictionary<ulong, TapTrack> _lastTwoFingerTaps;
+        private readonly Dictionary<ulong, TapTrack> _lastThreeFingerTaps;
 
         public GestureRecognizer()
             : this(null)
@@ -24,6 +25,7 @@ namespace TS.Sdl.Input
             _touches = new Dictionary<ulong, TouchTrack>();
             _lastTaps = new Dictionary<ulong, TapTrack>();
             _lastTwoFingerTaps = new Dictionary<ulong, TapTrack>();
+            _lastThreeFingerTaps = new Dictionary<ulong, TapTrack>();
         }
 
         public event Action<GestureEvent>? Raised;
@@ -33,6 +35,7 @@ namespace TS.Sdl.Input
             _touches.Clear();
             _lastTaps.Clear();
             _lastTwoFingerTaps.Clear();
+            _lastThreeFingerTaps.Clear();
         }
 
         public void Update()
@@ -291,6 +294,55 @@ namespace TS.Sdl.Input
             {
                 Kind = ResolveTwoFingerTapKind(tapCount),
                 FingerCount = 2,
+                TapCount = (byte)tapCount,
+                Timestamp = timestamp,
+                TouchId = track.TouchId,
+                WindowId = track.WindowId,
+                X = centerX,
+                Y = centerY
+            });
+        }
+
+        private void TryEmitThreeFingerTap(TouchTrack track, ThreeFingerTrack three, ulong timestamp)
+        {
+            if (three.Canceled || three.SwipeRaised)
+                return;
+
+            if (timestamp < three.StartTimestamp)
+                return;
+
+            if (timestamp - three.StartTimestamp > ToNanoseconds(_options.TwoTapMaxTime))
+                return;
+
+            var moveSq = _options.TwoTapMove * _options.TwoTapMove;
+            if (DistanceSquared(three.LastFirstX, three.LastFirstY, three.FirstStartX, three.FirstStartY) > moveSq ||
+                DistanceSquared(three.LastSecondX, three.LastSecondY, three.SecondStartX, three.SecondStartY) > moveSq ||
+                DistanceSquared(three.LastThirdX, three.LastThirdY, three.ThirdStartX, three.ThirdStartY) > moveSq)
+                return;
+
+            var centerX = (three.LastFirstX + three.LastSecondX + three.LastThirdX) / 3f;
+            var centerY = (three.LastFirstY + three.LastSecondY + three.LastThirdY) / 3f;
+            var tapCount = 1;
+
+            if (_lastThreeFingerTaps.TryGetValue(track.TouchId, out var previous))
+            {
+                var dt = timestamp > previous.Timestamp ? timestamp - previous.Timestamp : ulong.MaxValue;
+                var maxDelay = ToNanoseconds(_options.DoubleTapGap);
+                var maxMoveSq = _options.DoubleTapMove * _options.DoubleTapMove;
+
+                if (dt <= maxDelay &&
+                    DistanceSquared(previous.X, previous.Y, centerX, centerY) <= maxMoveSq)
+                {
+                    tapCount = previous.Count + 1;
+                }
+            }
+
+            tapCount = ClampTapCount(tapCount);
+            _lastThreeFingerTaps[track.TouchId] = new TapTrack(timestamp, centerX, centerY, tapCount);
+            Emit(new GestureEvent
+            {
+                Kind = ResolveThreeFingerTapKind(tapCount),
+                FingerCount = 3,
                 TapCount = (byte)tapCount,
                 Timestamp = timestamp,
                 TouchId = track.TouchId,
@@ -673,7 +725,9 @@ namespace TS.Sdl.Input
             if (!three.AllUp)
                 return;
 
-            TryEmitThreeFingerSwipe(track, three, timestamp);
+            var emittedSwipe = TryEmitThreeFingerSwipe(track, three, timestamp);
+            if (!emittedSwipe && !three.Canceled)
+                TryEmitThreeFingerTap(track, three, timestamp);
             track.ThreeFinger = null;
         }
 
@@ -811,6 +865,19 @@ namespace TS.Sdl.Input
                     return GestureKind.TwoFingerDoubleTap;
                 default:
                     return GestureKind.TwoFingerTripleTap;
+            }
+        }
+
+        private static GestureKind ResolveThreeFingerTapKind(int tapCount)
+        {
+            switch (tapCount)
+            {
+                case 1:
+                    return GestureKind.Tap;
+                case 2:
+                    return GestureKind.DoubleTap;
+                default:
+                    return GestureKind.TripleTap;
             }
         }
 
@@ -1001,6 +1068,12 @@ namespace TS.Sdl.Input
                 ThirdId = thirdId;
                 StartTimestamp = timestamp;
                 LastTimestamp = timestamp;
+                FirstStartX = firstStartX;
+                FirstStartY = firstStartY;
+                SecondStartX = secondStartX;
+                SecondStartY = secondStartY;
+                ThirdStartX = thirdStartX;
+                ThirdStartY = thirdStartY;
                 LastFirstX = firstStartX;
                 LastFirstY = firstStartY;
                 LastSecondX = secondStartX;
@@ -1016,6 +1089,12 @@ namespace TS.Sdl.Input
             public ulong ThirdId { get; }
             public ulong StartTimestamp { get; }
             public ulong LastTimestamp { get; set; }
+            public float FirstStartX { get; }
+            public float FirstStartY { get; }
+            public float SecondStartX { get; }
+            public float SecondStartY { get; }
+            public float ThirdStartX { get; }
+            public float ThirdStartY { get; }
             public float StartCenterX { get; }
             public float StartCenterY { get; }
             public float LastFirstX { get; set; }
