@@ -59,16 +59,14 @@ msgid ""
 "Accessibility option for clearer left-right cues with HRTF. It attenuates "
 "the opposite ear for your own car sounds only. Press ENTER to toggle."
 msgstr ""
-"使用HRTF提供更清晰左右声道提示的辅助功能选项。仅针对您自己的车辆声音，降低另"
-"一侧耳朵的音量。按确认键切换。"
+"使用HRTF提供更清晰左右声道提示的辅助功能选项。仅降低您自己车辆声音中对侧耳朵的音量。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Audio.cs:23
 msgid ""
 "Accessibility option for clearer left-right cues with HRTF. It attenuates "
 "the opposite ear for your own car sounds only. Swipe up to toggle."
 msgstr ""
-"使用HRTF提供更清晰左右声道提示的辅助功能选项。仅针对您自己的车辆声音，降低另"
-"一侧耳朵的音量。上滑切换。"
+"使用HRTF提供更清晰左右声道提示的辅助功能选项。仅对您自己车辆的声音有效，降低对侧耳的音量。上滑切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Drive\Map\Actions.cs:19
 msgid "Action"
@@ -98,7 +96,7 @@ msgstr "添加新服务器"
 msgid ""
 "Adjust category-based volume balance for engine sounds, effects, ambience, "
 "radio, music, and online events."
-msgstr "调整引擎声、效果音、环境音、收音机、音乐和在线事件的分类音量平衡。"
+msgstr "调整引擎声、效果音、环境音、收音机、音乐和在线事件音效的分类音量平衡。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Speech.cs:157
 msgid ""
@@ -106,7 +104,7 @@ msgid ""
 "by 10, swipe left or right with two fingers to change by 1, and swipe up or "
 "down with two fingers for maximum or minimum."
 msgstr ""
-"调整当前语音后端的语速。单指上下滑动以10为单位调整，双指左右滑动以1为单位调整，双指上下滑动可调至最大或最小。"
+"调整当前语音后端的语速。双指上下滑动每次调整10，双指左右滑动每次调整1，三指上下滑动可调至最大或最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Speech.cs:156
 msgid ""
@@ -114,7 +112,7 @@ msgid ""
 "by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for "
 "minimum."
 msgstr ""
-"调整当前语音后端的语速。按左/右光标调1，上翻页/下翻页调10，行首为最大，末尾为最小。"
+"调整当前语音后端的语速。按左/右光标调1，上翻页/下翻页调10，行首设为最大，行尾设为最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Protocol\RoomTexts.cs:7
 msgid "All players are ready. Starting game."
@@ -145,7 +143,7 @@ msgstr "撇号"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:76
 msgid "Applications"
-msgstr "应用程序"
+msgstr "上下文菜单"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Session.cs:24
 msgid "Are you sure you want to disconnect?"
@@ -487,7 +485,7 @@ msgstr "选择自动播报哪些比赛信息，例如圈数和玩家位置。"
 msgid ""
 "Choose how much automatic race information is spoken, such as lap numbers "
 "and player positions. Use LEFT or RIGHT to change."
-msgstr "选择自动播报那些比赛信息，如圈数和玩家位置。按左或右光标键更改。"
+msgstr "选择自动播报哪些比赛信息，例如圈数和玩家位置。按左或右光标键更改。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Multiplayer\Race\Runtime.cs:229
 msgid "Choose how to proceed with the current game."
@@ -508,7 +506,7 @@ msgstr "选择单人比赛的难度级别。按左或右光标键更改。"
 msgid ""
 "Choose the language used for menu and spoken interface text. Press ENTER to "
 "select."
-msgstr "选择菜单和语音界面文字所使用的语言。按确认键选择。"
+msgstr "选择菜单和语音界面文字所使用的语言。按回车键选择。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:21
 msgid ""
@@ -600,7 +598,7 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Multiplayer.cs:113
 msgid "Choose your transmission mode"
-msgstr "选择您的传动模式"
+msgstr "选择您的变速箱模式"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Multiplayer.cs:108
 msgid "Choose your vehicle"
@@ -821,7 +819,7 @@ msgstr "控制您自己的引擎和油门声音，包括引擎启动和停止声
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Menu\About.cs:49
 msgid "Copied to clipboard."
-msgstr "已复制到剪贴板"
+msgstr "已复制到剪贴板。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:16
 msgid "Copilot"
@@ -841,7 +839,7 @@ msgstr "创建新游戏"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:17
 msgid "Create a new game room"
-msgstr "新建游戏室"
+msgstr "新建游戏房间"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:52
 msgid "Create this game room"
@@ -1098,7 +1096,7 @@ msgstr "启用使用提示"
 msgid ""
 "Enables force feedback or vibration if your controller supports it. Press "
 "ENTER to toggle."
-msgstr "如果您的控制器支持，启用力反馈或振动。按确认键切换。"
+msgstr "如果您的控制器支持，启用力反馈或振动。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Controls.cs:30
 msgid ""
@@ -1108,7 +1106,7 @@ msgstr "如果您的控制器支持，启用力反馈或振动。上滑切换。
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:69
 msgid "End"
-msgstr "末尾"
+msgstr "终点"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\TrackList.cs:30
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Text\SessionText.cs:106
@@ -1127,7 +1125,7 @@ msgstr "英伦小镇"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:25
 msgid "Enter"
-msgstr "确认"
+msgstr "回车"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:75
 msgid ""
@@ -1410,8 +1408,7 @@ msgid ""
 "thing you have ever read but that will help me get an idea of how fast your "
 "screen reader is speaking."
 msgstr ""
-"我真的没什么有趣的内容可以写在这里，甚至没有人生秘诀，只有这句很长的流水账，"
-"可能是您读过最无聊的东西，但它能帮我了解您的屏幕阅读器朗读的速度。"
+"我真的没什么有趣的内容可以写在这里，甚至没有人生秘诀，只有这句很长的流水账，可能是您读过最无聊的东西，但它能帮我了解您的屏幕阅读器朗读的速度。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Actions.cs:195
 msgid ""
@@ -1798,8 +1795,7 @@ msgid ""
 "back out of any menu. Pressing HOME or END will move you to the top or "
 "bottom of a menu."
 msgstr ""
-"主菜单。使用方向键或视图查找器浏览选项。按确认键、右键或按钮1选择。按Esc键或"
-"左键退出任何菜单。按行首或末尾键移动到菜单顶部或底部。"
+"主菜单。使用方向键或视图查找器浏览选项。按回车键、右键或按钮1选择。按Esc键或左键退出任何菜单。按行首或行尾键移动到菜单顶部或底部。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Helpers.cs:41
 msgid ""
@@ -1807,7 +1803,7 @@ msgid ""
 "select. Press ESCAPE to back out of any menu. Pressing HOME or END will move "
 "you to the top or bottom of a menu."
 msgstr ""
-"主菜单。使用方向键导航选项。按确认键选择。按Esc键退出任何菜单。按行首或末尾"
+"主菜单。使用方向键导航选项。按回车键选择。按Esc键退出任何菜单。按行首或行尾"
 "键移动到菜单顶部或底部。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Core.cs:149
@@ -1867,14 +1863,14 @@ msgstr "主音量"
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:20
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:86
 msgid "Maximum players allowed in this room"
-msgstr "此房间允许的最大玩家数"
+msgstr "此房间允许的最大玩家数量"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Speech.cs:80
 msgid ""
 "Measure your screen-reader speaking speed again so usage hints and delayed "
 "speech timings stay accurate. Press ENTER to start."
 msgstr ""
-"重新测试屏幕阅读器朗读速度，以保持使用提示和延迟语音时间准确。按确认键开始。"
+"重新测试屏幕阅读器朗读速度，以保持使用提示和延迟语音时间准确。按回车键开始。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Speech.cs:81
 msgid ""
@@ -1941,7 +1937,7 @@ msgstr "中等（0.75秒）"
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Mapping\KeyMapManager.cs:99
 #, csharp-format
 msgid "Move or press the controller control for {0}."
-msgstr "移动或按控制器控制 {0}。"
+msgstr "移动或按控制器上的 {0} 控件。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Core.cs:144
 msgid "MultiPlayer game"
@@ -2158,7 +2154,7 @@ msgstr "未连接到服务器。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:105
 msgid "Not ideal, but still salvageable."
-msgstr "差强人意，但还有得救。"
+msgstr "不够理想，但还有得救。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Menu\Interfaces.cs:31
 msgid "Not implemented yet."
@@ -2184,7 +2180,7 @@ msgstr "小键盘逗号"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:50
 msgid "Numpad Enter"
-msgstr "小键盘确认"
+msgstr "小键盘回车"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:43
 msgid "Numpad Equals"
@@ -2260,11 +2256,11 @@ msgstr "打开房间聊天"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Rooms.cs:62
 msgid "Opens chat input for the current room chat when you are inside a room."
-msgstr "当您在房间内时，打开当前房间聊天的输入。"
+msgstr "当您在房间内时，打开房间聊天输入框。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Rooms.cs:55
 msgid "Opens chat input for the global multiplayer lobby chat."
-msgstr "打开全局多人游戏大厅聊天的输入。"
+msgstr "打开多人游戏大厅全局聊天输入框。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Menu.cs:20
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Core.cs:145
@@ -2407,7 +2403,7 @@ msgstr "按ENTER键更改比赛期间使用的赛道。"
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Create.cs:50
 msgid ""
 "Press ENTER to enter a room name. Leave it empty to use an automatic name."
-msgstr "按确认键输入房间名称。留空则使用自动名称。"
+msgstr "按回车键输入房间名称。留空则使用自动名称。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Updates\Dialog.cs:40
 msgid "Press OK to close the game and install the update."
@@ -2785,8 +2781,7 @@ msgid ""
 "Screen-reader calibration. You'll be presented with a short piece of text on "
 "the next screen. Press ENTER when your screen-reader finishes speaking it."
 msgstr ""
-"屏幕阅读器校准。下一屏将显示一段简短文字。当屏幕阅读器朗读完毕后，请按确认"
-"键。"
+"屏幕阅读器校准。下一屏将显示一段简短文字。当屏幕阅读器朗读完毕后，请按回车键。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Core\State.cs:112
 msgid ""
@@ -3021,7 +3016,7 @@ msgid ""
 "Sets how early speed dependent curve announcements are spoken. Swipe up or "
 "down to change by 1.0 second, swipe left or right with two fingers to change "
 "by 0.1 seconds, and swipe up or down with two fingers for maximum or minimum."
-msgstr "设置速度相关弯道播报的提前量。单指上下滑动每次调整1.0秒，双指左右滑动每次调整0.1秒，双指上下滑动可调至最大或最小值。"
+msgstr "设置速度相关弯道播报的提前量。双指上下滑动每次调整1.0秒，双指左右滑动每次调整0.1秒，三指上下滑动可调至最大或最小值。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:42
 msgid ""
@@ -3030,7 +3025,7 @@ msgid ""
 "second, HOME for maximum, END for minimum."
 msgstr ""
 "设置速度相关弯道播报的提前量。按左/右键每次调整0.1秒，上翻页/下翻页每次调整"
-"1.0秒，行首为最大，末尾为最小。"
+"1.0秒，行首为最大，行尾为最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:70
 msgid ""
@@ -3038,8 +3033,8 @@ msgid ""
 "down to change by 10, swipe left or right with two fingers to change by 1, "
 "and swipe up or down with two fingers for maximum or minimum."
 msgstr ""
-"设置有多少台电脑控制的车辆与您比赛。单指上下滑动每次调整10，双指左右滑动每次"
-"调整1，双指上下滑动可调至最大或最小值。"
+"设置有多少台电脑控制的车辆与您比赛。双指上下滑动每次调整10，双指左右滑动每次"
+"调整1，三指上下滑动可调至最大或最小值。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:69
 msgid ""
@@ -3048,7 +3043,7 @@ msgid ""
 "maximum, END for minimum."
 msgstr ""
 "设置有多少台电脑控制的车辆与您比赛。使用左/右键每次调整1，上翻页/下翻页每次调整"
-"10，行首为最大，末尾为最小。"
+"10，行首为最大，行尾为最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:63
 msgid ""
@@ -3057,8 +3052,8 @@ msgid ""
 "fingers to change by 1, and swipe up or down with two fingers for maximum or "
 "minimum."
 msgstr ""
-"设置单人比赛、计时赛和多人游戏的圈数。单指上下滑动每次调整10，双指左右滑动"
-"每次调整1，双指上下滑动可调至最大或最小值。"
+"设置单人比赛、计时赛和多人游戏的圈数。双指上下滑动每次调整10，双指左右滑动"
+"每次调整1，三指上下滑动可调至最大或最小值。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:62
 msgid ""
@@ -3067,13 +3062,13 @@ msgid ""
 "change by 10, HOME for maximum, END for minimum."
 msgstr ""
 "设置单人比赛、计时赛和多人游戏的圈数。使用左/右键每次调整1，上翻页/下翻页每次"
-"调整10，行首为最大，末尾为最小。"
+"调整10，行首为最大，行尾为最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Controls.cs:136
 msgid ""
 "Sets how much small steering movement is ignored around center. Default is 1 "
 "degree. Swipe left or right with two fingers to change."
-msgstr "设置方向盘在中心位置附近能忽略多少微小转向动作。默认为1度。左右滑动更改。"
+msgstr "设置方向盘在中心位置附近能忽略多少微小转向动作。默认为1度。双指左右滑动更改。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Controls.cs:135
 msgid ""
@@ -3116,11 +3111,11 @@ msgstr "大厅聊天"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Drive\Bind.cs:43
 msgid "Shift gear down"
-msgstr "降档"
+msgstr "降挡"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Drive\Bind.cs:42
 msgid "Shift gear up"
-msgstr "升档"
+msgstr "升挡"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Input.cs:115
 msgid "Shortcut binding id is missing and was ignored."
@@ -3306,11 +3301,11 @@ msgstr "减号"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:55
 msgid "Summary of this run and your previous best:"
-msgstr "本次运行和您之前最佳的摘要："
+msgstr "本次成绩与您历史最佳的对比："
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:50
 msgid "Summary of your latest time trial run:"
-msgstr "您最新计时赛运行的摘要："
+msgstr "您本次计时赛成绩摘要："
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Volume.cs:40
 msgid "Surface loop sounds"
@@ -3333,7 +3328,7 @@ msgstr "上滑输入房间名称。留空则使用自动名称。"
 msgid ""
 "Switch between fixed distance and speed dependent curve announcements. Press "
 "ENTER to change."
-msgstr "在固定距离和速度相关弯道通知之间切换。按确认键更改。"
+msgstr "在固定距离和速度相关弯道通知之间切换。按回车键更改。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:35
 msgid ""
@@ -3343,7 +3338,7 @@ msgstr "在固定距离和速度相关弯道通知之间切换。上滑更改。
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:40
 msgid "Switch between metric and imperial units. Press ENTER to change."
-msgstr "在公制和英制单位之间切换。按确认键更改。"
+msgstr "在公制和英制单位之间切换。按回车键更改。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:41
 msgid "Switch between metric and imperial units. Swipe up to change."
@@ -3847,7 +3842,7 @@ msgstr "未知更新错误。"
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Rules.cs:168
 #, csharp-format
 msgid "Unknown weather key '{0}'."
-msgstr "未知天气键'{0}'。"
+msgstr "未知天气键 '{0}'。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Load.cs:100
 #, csharp-format
@@ -3985,12 +3980,12 @@ msgstr "警告："
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Rules.cs:157
 #, csharp-format
 msgid "Weather key '{0}' must be greater than zero."
-msgstr "天气键'{0}'必须大于零。"
+msgstr "天气键 '{0}' 必须大于零。"
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Rules.cs:163
 #, csharp-format
 msgid "Weather key '{0}' must be non-negative."
-msgstr "天气键'{0}'必须为非负数。"
+msgstr "天气键 '{0}' 必须为非负数。"
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Rules.cs:79
 msgid "Weather transition seconds must be finite and non-negative."
@@ -4016,7 +4011,7 @@ msgstr "此版本的新功能："
 msgid ""
 "When checked, Three-D audio uses HRTF spatialization for more realistic "
 "positioning. Press ENTER to toggle."
-msgstr "启用后，3D音频使用HRTF空间化以获得更真实的定位效果。按确认键切换。"
+msgstr "启用后，3D音频使用HRTF空间化以获得更真实的定位效果。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Audio.cs:17
 msgid ""
@@ -4028,7 +4023,7 @@ msgstr "启用后，3D音频使用HRTF空间化以获得更真实的定位效果
 msgid ""
 "When checked, each menu automatically focuses and announces the first item "
 "after the title. Press ENTER to toggle."
-msgstr "启用后，每个菜单在标题之后自动聚焦并播报第一个项目。按确认键切换。"
+msgstr "启用后，每个菜单在标题之后自动聚焦并播报第一个项目。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:54
 msgid ""
@@ -4040,7 +4035,7 @@ msgstr "启用后，每个菜单在标题之后自动聚焦并播报第一个项
 msgid ""
 "When checked, menu items can speak usage hints after a short delay. Press "
 "ENTER to toggle."
-msgstr "启用后，菜单项可在短暂延迟后朗读使用提示。按确认键切换。"
+msgstr "启用后，菜单项可在短暂延迟后朗读使用提示。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:47
 msgid ""
@@ -4052,7 +4047,7 @@ msgstr "启用后，菜单项可在短暂延迟后朗读使用提示。上滑切
 msgid ""
 "When checked, menu navigation sounds pan left or right based on the item "
 "position. Press ENTER to toggle."
-msgstr "启用后，菜单导航音效会根据项目位置向左或向右平移。按确认键切换。"
+msgstr "启用后，菜单导航音效会根据项目位置向左或向右平移。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:69
 msgid ""
@@ -4064,7 +4059,7 @@ msgstr "启用后，菜单导航音效会根据项目位置向左或向右平移
 msgid ""
 "When checked, menu navigation wraps from the last item to the first. Press "
 "ENTER to toggle."
-msgstr "启用后，菜单导航从最后一项回到第一项。按确认键切换。"
+msgstr "启用后，菜单导航从最后一项回到第一项。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:61
 msgid ""
@@ -4078,7 +4073,7 @@ msgid ""
 "speech. Menu titles and usage hints are not affected. Press ENTER to toggle."
 msgstr ""
 "启用后，新的语音消息会打断当前屏幕阅读器的朗读。菜单标题和使用提示不受影响。"
-"按确认键切换。"
+"按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Speech.cs:65
 msgid ""
@@ -4092,7 +4087,7 @@ msgstr ""
 msgid ""
 "When checked, random track selection can include custom tracks. Press ENTER "
 "to toggle."
-msgstr "启用后，随机赛道选择可以包含自定义赛道。按确认键切换。"
+msgstr "启用后，随机赛道选择可以包含自定义赛道。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:27
 msgid ""
@@ -4104,7 +4099,7 @@ msgstr "启用后，随机赛道选择可以包含自定义赛道。上滑切换
 msgid ""
 "When checked, random vehicle selection can include custom vehicles. Press "
 "ENTER to toggle."
-msgstr "启用后，随机车辆选择可以包含自定义车辆。按确认键切换。"
+msgstr "启用后，随机车辆选择可以包含自定义车辆。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:33
 msgid ""
@@ -4116,7 +4111,7 @@ msgstr "启用后，随机车辆选择可以包含自定义车辆。上滑切换
 msgid ""
 "When checked, the game checks for updates automatically after the logo. "
 "Press ENTER to toggle."
-msgstr "启用后，游戏将在徽标画面后自动检查更新。按确认键切换。"
+msgstr "启用后，游戏将在徽标画面后自动检查更新。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:81
 msgid ""
@@ -4128,7 +4123,7 @@ msgstr "启用后，游戏将在徽标画面后自动检查更新。上滑切换
 msgid ""
 "When checked, the game uses the device channel count and sample rate. "
 "Restart required. Press ENTER to toggle."
-msgstr "启用后，游戏使用设备的声道数和采样率。需要重启。按确认键切换。"
+msgstr "启用后，游戏使用设备的声道数和采样率。需要重启。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Audio.cs:29
 msgid ""
@@ -4140,7 +4135,7 @@ msgstr "启用后，游戏使用设备的声道数和采样率。需要重启。
 msgid ""
 "When checked, the startup logo audio plays when the game launches. Press "
 "ENTER to toggle."
-msgstr "启用后，游戏启动时播放徽标音效。按确认键切换。"
+msgstr "启用后，游戏启动时播放徽标音效。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:75
 msgid ""
@@ -4258,12 +4253,12 @@ msgstr "你撞了一次。"
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:85
 #, csharp-format
 msgid "You crashed {0} times."
-msgstr "发生碰撞 {0} 次。"
+msgstr "你撞了 {0} 次。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:154
 #, csharp-format
 msgid "You finished in {0}."
-msgstr "您以{0}完成。"
+msgstr "您以第{0}名完赛。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:146
 msgid "You fought the course all the way through and still lost."
@@ -4630,7 +4625,7 @@ msgstr "房间事件"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Systems\CoreRequests.cs:102
 msgid "shift on demand"
-msgstr "按需换挡."
+msgstr "按需换挡。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Parsing\Build\Validation\Core.cs:78
 msgid "shift_freq must be between idle_freq and top_freq."
@@ -4764,19 +4759,19 @@ msgid ""
 "{0} Swipe up or down to change by 10, swipe left or right with two fingers "
 "to change by 1, and swipe up or down with two fingers for maximum or minimum."
 msgstr ""
-"{0} 单指上下滑动以10为单位调整，双指左右滑动以1为单位调整，双指上下滑动可调至最大或最小。"
+"{0} 双指上下滑动以10为单位调整，双指左右滑动以1为单位调整，三指上下滑动可调至最大或最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Volume.cs:89
 #, csharp-format
 msgid ""
 "{0} Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, "
 "HOME for maximum, END for minimum."
-msgstr "{0} 使用左/右键调整1，上/下翻页调整10，行首设为最大，末尾设为最小。"
+msgstr "{0} 使用左/右键调整1，上/下翻页调整10，行首设为最大，行尾设为最小。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultFmt.cs:49
 #, csharp-format
 msgid "{0} and {1}"
-msgstr "{0}和{1}"
+msgstr "{0} 和 {1}"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:86
 #, csharp-format
