@@ -1194,7 +1194,7 @@ msgstr "错误："
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:18
 msgid "Escape"
-msgstr "退出"
+msgstr "Escape"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:147
 msgid "Even the walls were probably tired of this by the end."
@@ -4135,13 +4135,13 @@ msgstr "启用后，游戏使用设备的声道数和采样率。需要重启。
 msgid ""
 "When checked, the startup logo audio plays when the game launches. Press "
 "ENTER to toggle."
-msgstr "启用后，游戏启动时播放徽标音效。按回车键切换。"
+msgstr "启用后，游戏启动时播放启动音效。按回车键切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Game.cs:75
 msgid ""
 "When checked, the startup logo audio plays when the game launches. Swipe up "
 "to toggle."
-msgstr "启用后，游戏启动时播放徽标音效。上滑切换。"
+msgstr "启用后，游戏启动时播放启动音效。上滑切换。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Controls.cs:43
 msgid ""
