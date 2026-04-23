@@ -47,7 +47,7 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Network.cs:38
 msgid "A saved server entry was ignored because the host is empty."
-msgstr "保存的服务器条目被忽略，因为主机为空。"
+msgstr "保存的服务器条目被忽略，因为域名为空。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Menu\About.cs:24
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Core.cs:147
@@ -139,7 +139,7 @@ msgstr "更新下载已在进行中。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:28
 msgid "Apostrophe"
-msgstr "撇号"
+msgstr "单引号"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:76
 msgid "Applications"
@@ -791,7 +791,7 @@ msgstr "仅控制其他玩家的电台播放音量。您自己的电台播放不
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Volume.cs:43
 msgid "Controls road and surface loops like asphalt, gravel, etc."
-msgstr "控制道路和表面循环，如沥青、碎石等。"
+msgstr "控制道路及路面（如沥青、碎石等）的循环音效。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Volume.cs:67
 msgid ""
@@ -1158,7 +1158,7 @@ msgstr "输入服务器IP地址或域名。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Draft.cs:29
 msgid "Enter the server IP address or host name."
-msgstr "输入服务器IP地址或主机名。"
+msgstr "输入服务器IP地址或域名。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Draft.cs:12
 msgid "Enter the server name."
@@ -1373,7 +1373,7 @@ msgstr "返回"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Input\Display\Text.cs:29
 msgid "Grave"
-msgstr "重音符"
+msgstr "反撇号"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:24
 msgid "Here are the final standings for everyone."
@@ -2385,7 +2385,7 @@ msgstr "请稍候。正在扫描局域网中的服务器。"
 #: D:\top_speed\top_speed_net\TopSpeed\Core\TrackList.cs:52
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Text\SessionText.cs:142
 msgid "Polar escape"
-msgstr "极地逃生"
+msgstr "极地逃亡"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\TrackList.cs:37
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Text\SessionText.cs:120
@@ -2551,12 +2551,12 @@ msgstr "收音机音量"
 #: D:\top_speed\top_speed_net\TopSpeed\Core\TrackList.cs:50
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Text\SessionText.cs:138
 msgid "Rally desert"
-msgstr "拉力沙漠"
+msgstr "沙漠拉力赛"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\TrackList.cs:46
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Text\SessionText.cs:130
 msgid "Rally hills"
-msgstr "拉力山坡"
+msgstr "丘陵拉力赛"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:239
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\Rooms\Options.cs:255
@@ -2770,7 +2770,7 @@ msgstr "保存服务器更改"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Menu.cs:71
 msgid "Saved server host is empty."
-msgstr "保存的服务器主机为空。"
+msgstr "保存的服务器域名为空。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Settings\Manager\Apply\Speech.cs:46
 msgid "Screen reader rate is not a valid number and was reset to default."
@@ -2953,16 +2953,16 @@ msgstr "认真的？你完全可以跑得更好。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Form.cs:100
 msgid "Server IP or host cannot be empty."
-msgstr "服务器IP或主机不能为空。"
+msgstr "服务器IP或域名不能为空。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Form.cs:24
 msgid "Server IP or host, currently empty."
-msgstr "服务器IP或主机，当前为空。"
+msgstr "服务器IP或域名，当前为空。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Form.cs:26
 #, csharp-format
 msgid "Server IP or host, currently set to {0}"
-msgstr "服务器IP或主机，当前设置为 {0}"
+msgstr "服务器IP或域名，当前设置为 {0}"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Core\Multiplayer\SavedServers\Delete.cs:53
 msgid "Server deleted."
@@ -3328,7 +3328,7 @@ msgstr "上滑输入房间名称。留空则使用自动名称。"
 msgid ""
 "Switch between fixed distance and speed dependent curve announcements. Press "
 "ENTER to change."
-msgstr "在固定距离和速度相关弯道通知之间切换。按回车键更改。"
+msgstr "在固定距离播报与基于速度的弯道播报之间切换。按回车键更改。"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Menu\Build\Options\Drive.cs:35
 msgid ""
@@ -4771,7 +4771,7 @@ msgstr "{0} 使用左/右键调整1，上/下翻页调整10，行首设为最大
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultFmt.cs:49
 #, csharp-format
 msgid "{0} and {1}"
-msgstr "{0} 和 {1}"
+msgstr "{0}钟{1}"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultCatalog.cs:86
 #, csharp-format
@@ -4817,13 +4817,13 @@ msgstr "{0} 毫秒"
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultFmt.cs:37
 #, csharp-format
 msgid "{0} minute"
-msgstr "{0} 分钟"
+msgstr "{0} 分"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Drive\Session\Text\SessionText.cs:25
 #: D:\top_speed\top_speed_net\TopSpeed\Game\Drive\Results\ResultFmt.cs:38
 #, csharp-format
 msgid "{0} minutes"
-msgstr "{0} 分钟"
+msgstr "{0} 分"
 
 #: D:\top_speed\top_speed_net\TopSpeed\Vehicles\Parsing\Build\Policy\PolicyValidation.cs:76
 #, csharp-format
