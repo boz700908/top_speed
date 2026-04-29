@@ -18,7 +18,7 @@ namespace TopSpeed.Drive.Single
         {
             var loadedTrack = Track.Load(track, _audio);
             var car = CarFactory.CreateDefault(
-                _audio,
+                _raceAudio,
                 loadedTrack,
                 _input,
                 _settings,
@@ -58,13 +58,9 @@ namespace TopSpeed.Drive.Single
             return laps;
         }
 
-        private Source[] CreateNumberSounds()
+        private Source?[] CreateNumberSounds()
         {
-            var sounds = new Source[101];
-            for (var i = 0; i <= 100; i++)
-                sounds[i] = LoadLanguageSound($"numbers\\{i}");
-
-            return sounds;
+            return new Source?[101];
         }
 
         private Source[] CreateUnkeySounds()
@@ -105,6 +101,7 @@ namespace TopSpeed.Drive.Single
 
                 _computerPlayers[i] = new ComputerPlayer(
                     _audio,
+                    _raceAudio,
                     _track,
                     _settings,
                     TopSpeed.Common.Algorithm.RandomInt(VehicleCatalog.VehicleCount),

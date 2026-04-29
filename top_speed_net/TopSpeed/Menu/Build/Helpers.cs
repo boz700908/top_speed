@@ -55,6 +55,69 @@ namespace TopSpeed.Menu
             return InteractionHints.ForPlatform(desktopHint, touchHint);
         }
 
+        private static string HintForPlatform(string hint, string desktopControl, string touchControl)
+        {
+            var text = LocalizationService.Translate(hint).Trim();
+            var control = LocalizationService.Translate(InteractionHints.ForPlatform(desktopControl, touchControl)).Trim();
+            if (string.IsNullOrWhiteSpace(text))
+                return control;
+            if (string.IsNullOrWhiteSpace(control))
+                return text;
+
+            return LocalizationService.Format(
+                LocalizationService.Mark("{0} {1}"),
+                text,
+                control);
+        }
+
+        private static string HintToggle(string hint)
+        {
+            return HintForPlatform(
+                hint,
+                LocalizationService.Mark("Press ENTER to toggle."),
+                LocalizationService.Mark("Swipe up to toggle."));
+        }
+
+        private static string HintChange(string hint)
+        {
+            return HintForPlatform(
+                hint,
+                LocalizationService.Mark("Press ENTER to change."),
+                LocalizationService.Mark("Swipe up to change."));
+        }
+
+        private static string HintSelect(string hint)
+        {
+            return HintForPlatform(
+                hint,
+                LocalizationService.Mark("Press ENTER to select."),
+                LocalizationService.Mark("Swipe up to select."));
+        }
+
+        private static string HintStart(string hint)
+        {
+            return HintForPlatform(
+                hint,
+                LocalizationService.Mark("Press ENTER to start."),
+                LocalizationService.Mark("Swipe up to start."));
+        }
+
+        private static string HintAdjust(string hint)
+        {
+            return HintForPlatform(
+                hint,
+                LocalizationService.Mark("Use LEFT or RIGHT to change."),
+                LocalizationService.Mark("Swipe left or right with two fingers to change."));
+        }
+
+        private static string HintSlider(string hint)
+        {
+            return HintForPlatform(
+                hint,
+                LocalizationService.Mark("Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum."),
+                LocalizationService.Mark("Swipe up or down with two fingers to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with three fingers for maximum or minimum."));
+        }
+
         private static string FormatServerPort(int port)
         {
             return port > 0

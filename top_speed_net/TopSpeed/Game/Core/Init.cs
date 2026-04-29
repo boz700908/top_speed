@@ -38,15 +38,18 @@ namespace TopSpeed.Game
             _isAndroidPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Create("ANDROID"));
             var keyboardFactories = new List<IKeyboardBackendFactory>
             {
-#if NETFRAMEWORK
+#if WINDOWS
                 new TopSpeed.Input.Devices.Keyboard.Backends.DirectInput.Factory(),
+                new TopSpeed.Input.Devices.Keyboard.Backends.Sdl.Factory()
 #else
                 new TopSpeed.Input.Devices.Keyboard.Backends.Eto.Factory(),
-#endif
                 new TopSpeed.Input.Devices.Keyboard.Backends.Sdl.Factory()
+#endif
             };
             var controllerFactories = new List<IControllerBackendFactory>();
-            if (!_isAndroidPlatform)
+            if (_isAndroidPlatform)
+                controllerFactories.Add(new TopSpeed.Input.Backends.Sdl.Factory(_window as TS.Sdl.Input.IControllerEventSource));
+            else
                 controllerFactories.Add(new TopSpeed.Input.Backends.Sdl.Factory());
 
             var backendRegistry = new BackendRegistry(
@@ -113,6 +116,7 @@ namespace TopSpeed.Game
             _settings.AudioVolumes ??= new AudioVolumeSettings();
             _settings.SyncAudioCategoriesFromMusicVolume();
             ApplyAudioSettings();
+            _audio.StartUpdateThread(8);
             _needsCalibration = _settings.UsageHints && _settings.ScreenReaderRateMs <= 0f;
             input.NoControllerDetected += HandleNoControllerDetected;
             input.ControllerBackendUnavailable += HandleControllerBackendUnavailable;

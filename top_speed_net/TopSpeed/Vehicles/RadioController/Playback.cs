@@ -61,8 +61,7 @@ namespace TopSpeed.Vehicles
             if (_source == null)
                 return;
 
-            _source.SetPosition(AudioWorld.Position(worldX, worldZ));
-            _source.SetVelocity(AudioWorld.ToMeters(worldVelocity));
+            _source.SetTransform(AudioWorld.Position(worldX, worldZ), AudioWorld.ToMeters(worldVelocity));
         }
     }
 }

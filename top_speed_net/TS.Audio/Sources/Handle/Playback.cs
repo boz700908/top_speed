@@ -1,202 +1,273 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Threading;
-using MiniAudioEx.Native;
+using SoundFlow.Enums;
 
 namespace TS.Audio
 {
     public sealed partial class AudioSourceHandle
     {
-        private const float PreciseFadeMaxSeconds = 0.02f;
-
-        internal void Update(double deltaTime)
+        public void Play(bool loop = false)
         {
-            if (_disposeRequested || _disposed)
-                return;
+            Play(loop, 0f);
+        }
 
-            if (_startRequestedUtc.HasValue && IsPlaying)
+        public void Play(bool loop, float fadeInSeconds)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
             {
-                _startRequestedUtc = null;
-                _silentStartReported = false;
-            }
-
-            if (_startRequestedUtc.HasValue && !_silentStartReported)
-            {
-                var elapsed = DateTime.UtcNow - _startRequestedUtc.Value;
-                if (elapsed.TotalSeconds >= 0.25)
+                _looping = loop;
+                _player.IsLooping = loop;
+                _pendingStartDiagnostic = true;
+                if (ShouldCullOneShotForDistanceUnsafe(loop))
                 {
-                    _silentStartReported = true;
-                    Emit(
-                        AudioDiagnosticLevel.Warn,
-                        AudioDiagnosticKind.AnomalySilentStart,
-                        "Audio source did not report playback shortly after start.",
-                        new Dictionary<string, object?>
-                        {
-                            ["startDelayMs"] = elapsed.TotalMilliseconds,
-                            ["looping"] = _looping,
-                            ["lengthSeconds"] = GetLengthSeconds()
-                        },
-                        new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+                    StopImmediatelyUnsafe();
+                    _pendingStartDiagnostic = false;
+                    return;
+                }
+
+                if (ShouldRestartForPlayUnsafe(loop) && _player.Seek(0))
+                {
+                    PrimeForImmediatePlayback();
+                    _reachedEnd = false;
+                }
+
+                if (fadeInSeconds > 0f)
+                {
+                    CancelFadeUnsafe();
+                    _currentVolume = 0f;
+                    ApplyPan();
+                    _player.Play();
+                    BeginFadeUnsafe(_userVolume, fadeInSeconds, stopAfter: false);
+                }
+                else
+                {
+                    CancelFadeUnsafe();
+                    _currentVolume = _userVolume;
+                    ApplyPan();
+                    _player.Play();
                 }
             }
 
-            if (_graph.ConsumeStopRequested())
-            {
-                MiniAudioExNative.ma_ex_audio_source_stop(_sourceHandle);
-                _paused = false;
-                _graph.ResetEnvelope(1f);
-                _notifiedEnd = false;
-                _startRequestedUtc = null;
-                _silentStartReported = false;
-                Emit(AudioDiagnosticLevel.Trace, AudioDiagnosticKind.SourceStopped, "Audio source stopped after precise fade.");
-                return;
-            }
-
-            UpdateFade(deltaTime);
-
-            if (_paused)
-                return;
-
-            if (_looping)
-                return;
-
-            if (MiniAudioExNative.ma_ex_audio_source_get_is_at_end(_sourceHandle) == 0)
-            {
-                _notifiedEnd = false;
-                return;
-            }
-
-            if (_notifiedEnd)
-                return;
-
-            _notifiedEnd = true;
-            Emit(AudioDiagnosticLevel.Trace, AudioDiagnosticKind.SourceEnded, "Audio source reached end.");
-            var onEnd = _onEnd;
-            if (onEnd != null)
-                ThreadPool.QueueUserWorkItem(_ => onEnd());
-        }
-
-        private void StartPlayback()
-        {
-            _startRequestedUtc = DateTime.UtcNow;
-            _silentStartReported = false;
-            Emit(
+            _output.Diagnostics.EmitDeferred(
                 AudioDiagnosticLevel.Debug,
                 AudioDiagnosticKind.SourcePlayRequested,
+                AudioDiagnosticEntityType.Source,
+                _output.Name,
+                _bus.Name,
+                null,
                 "Audio source playback requested.",
                 new Dictionary<string, object?>
                 {
-                    ["looping"] = _looping,
-                    ["fadeSeconds"] = _fadeRemaining > 0f ? _fadeRemaining : _fadeDuration
-                });
+                    ["sourceId"] = SourceId,
+                    ["loop"] = loop,
+                    ["fadeInSeconds"] = fadeInSeconds
+                },
+                () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+        }
 
-            var result = _playback.Prepare(_sourceHandle);
-            if (result != ma_result.success)
+        public void Stop()
+        {
+            Stop(0f);
+        }
+
+        public void Stop(float fadeOutSeconds)
+        {
+            if (_disposed)
+                return;
+
+            lock (_stateSync)
             {
-                Emit(
-                    AudioDiagnosticLevel.Error,
-                    AudioDiagnosticKind.SourceStarted,
-                    "Audio source prepare failed.",
-                    new Dictionary<string, object?>
-                    {
-                        ["result"] = result.ToString()
-                    },
-                    new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
-                throw new InvalidOperationException("Failed to prepare audio playback: " + result);
+                _pendingStartDiagnostic = false;
+                if (fadeOutSeconds > 0f && _player.State == PlaybackState.Playing)
+                {
+                    BeginFadeUnsafe(0f, fadeOutSeconds, stopAfter: true);
+                }
+                else
+                {
+                    StopImmediatelyUnsafe();
+                }
             }
 
-            MiniAudioExNative.ma_ex_audio_source_apply_settings(_sourceHandle);
-            ApplyPersistedState();
-
-            result = MiniAudioExNative.ma_ex_audio_source_start(_sourceHandle);
-            if (result != ma_result.success)
-            {
-                Emit(
-                    AudioDiagnosticLevel.Error,
-                    AudioDiagnosticKind.SourceStarted,
-                    "Audio source start failed.",
-                    new Dictionary<string, object?>
-                    {
-                        ["result"] = result.ToString()
-                    },
-                    new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
-                throw new InvalidOperationException("Failed to start audio playback: " + result);
-            }
-
-            _paused = false;
-            Emit(
+            _output.Diagnostics.EmitDeferred(
                 AudioDiagnosticLevel.Debug,
-                AudioDiagnosticKind.SourceStarted,
-                "Audio source started.",
+                AudioDiagnosticKind.SourceStopped,
+                AudioDiagnosticEntityType.Source,
+                _output.Name,
+                _bus.Name,
+                null,
+                "Audio source stopped.",
                 new Dictionary<string, object?>
                 {
-                    ["looping"] = _looping,
-                    ["isPlaying"] = IsPlaying
+                    ["sourceId"] = SourceId,
+                    ["fadeOutSeconds"] = fadeOutSeconds
                 },
-                new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+                () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
         }
 
-        private void ApplyPersistedState()
+        public void Pause()
         {
-            SetRuntimeVolume(_currentVolume);
-            MiniAudioNative.ma_sound_group_set_pitch(_group, _basePitch);
-            MiniAudioNative.ma_sound_group_set_doppler_factor(_group, _dopplerFactor);
-            MiniAudioExNative.ma_ex_audio_source_set_loop(_sourceHandle, _looping ? 1u : 0u);
+            ThrowIfDisposed();
+            _player.Pause();
+        }
 
-            if (!_spatialize)
+        public void Resume()
+        {
+            ThrowIfDisposed();
+            _player.Play();
+        }
+
+        public void FadeIn(float seconds)
+        {
+            Play(_looping, seconds);
+        }
+
+        public void FadeOut(float seconds)
+        {
+            Stop(seconds);
+        }
+
+        public void SeekToStart()
+        {
+            ThrowIfDisposed();
+            _pendingStartDiagnostic = false;
+            lock (_stateSync)
             {
-                MiniAudioNative.ma_sound_group_set_pan(_group, _pan);
+                if (_provider.CanSeek && _player.Seek(0))
+                {
+                    CancelFadeUnsafe();
+                    _currentVolume = _userVolume;
+                    ApplyPan();
+                    PrimeForImmediatePlayback();
+                    _steamAudioSpatial?.ClearSimulationState();
+                    _steamAudioSpatial?.Reset();
+                    _reachedEnd = false;
+                    _output.Diagnostics.EmitDeferred(
+                        AudioDiagnosticLevel.Debug,
+                        AudioDiagnosticKind.SourceSeeked,
+                        AudioDiagnosticEntityType.Source,
+                        _output.Name,
+                        _bus.Name,
+                        null,
+                        "Audio source seeked.",
+                        new Dictionary<string, object?>
+                        {
+                            ["sourceId"] = SourceId,
+                            ["timeSeconds"] = 0f
+                        },
+                        () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+                }
+            }
+        }
+
+        public void SetLooping(bool looping)
+        {
+            ThrowIfDisposed();
+            _looping = looping;
+            _player.IsLooping = looping;
+            _output.Diagnostics.EmitDeferred(
+                AudioDiagnosticLevel.Debug,
+                AudioDiagnosticKind.SourceLoopingChanged,
+                AudioDiagnosticEntityType.Source,
+                _output.Name,
+                _bus.Name,
+                null,
+                "Audio source looping changed.",
+                new Dictionary<string, object?>
+                {
+                    ["sourceId"] = SourceId,
+                    ["looping"] = looping
+                },
+                () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+        }
+
+        public void SetOnEnd(Action onEnd)
+        {
+            ThrowIfDisposed();
+            _onEnd = onEnd;
+        }
+
+        internal void AddEndObserver(Action onEnd)
+        {
+            ThrowIfDisposed();
+            if (onEnd == null)
+                throw new ArgumentNullException(nameof(onEnd));
+
+            if (!_endObservers.Contains(onEnd))
+                _endObservers.Add(onEnd);
+        }
+
+        internal void RemoveEndObserver(Action onEnd)
+        {
+            if (_disposed || onEnd == null)
                 return;
-            }
 
-            var refDistance = Volatile.Read(ref _spatial.RefDistance);
-            var maxDistance = Volatile.Read(ref _spatial.MaxDistance);
-            var rollOff = Volatile.Read(ref _spatial.RollOff);
-
-            MiniAudioNative.ma_sound_group_set_min_distance(_group, refDistance);
-            MiniAudioNative.ma_sound_group_set_max_distance(_group, maxDistance);
-            MiniAudioNative.ma_sound_group_set_rolloff(_group, rollOff);
-            MiniAudioNative.ma_sound_group_set_attenuation_model(_group, ToMaAttenuationModel(_spatial.DistanceModel));
-
-            if (!_graph.UsesHrtf)
-            {
-                var pos = ToMaVec3(new Vector3(
-                    Volatile.Read(ref _spatial.PosX),
-                    Volatile.Read(ref _spatial.PosY),
-                    Volatile.Read(ref _spatial.PosZ)));
-                var vel = ToMaVec3(new Vector3(
-                    Volatile.Read(ref _spatial.VelX),
-                    Volatile.Read(ref _spatial.VelY),
-                    Volatile.Read(ref _spatial.VelZ)));
-
-                MiniAudioNative.ma_sound_group_set_position(_group, pos.x, pos.y, pos.z);
-                MiniAudioNative.ma_sound_group_set_velocity(_group, vel.x, vel.y, vel.z);
-            }
+            _endObservers.Remove(onEnd);
         }
 
-        private void InitializeVolumeState()
+        private void ApplyPan()
         {
-            _userVolume = 1f;
-            _currentVolume = _userVolume;
-            _fadeDuration = 0f;
-            _fadeRemaining = 0f;
-            _fadeStartVolume = _currentVolume;
-            _fadeTargetVolume = _currentVolume;
-            _stopAfterFade = false;
-            _graph.ResetEnvelope(1f);
+            var effectivePan = _steamAudioSpatial?.IsBinauralActive == true
+                ? 0f
+                : Clamp(_pan + _spatialPan, -1f, 1f);
+            var soundFlowPan = (effectivePan + 1f) * 0.5f;
+            _player.Pan = soundFlowPan;
+            _player.Volume = _currentVolume * _spatialGain;
         }
 
-        private void BeginFade(float targetVolume, float durationSeconds, bool stopAfter)
+        private void ApplyPlaybackSpeed()
+        {
+            _player.PlaybackSpeed = 1f;
+            _provider.SetRate(Math.Max(0.001f, _pitch * _spatialPitch));
+        }
+
+        private void PrimeForImmediatePlayback()
+        {
+            if (_asset.LengthSeconds <= 0f)
+                return;
+
+            var primeFrames = Math.Max(256, (int)_output.PeriodSizeInFrames * 2);
+            _provider.Prime(primeFrames);
+        }
+
+        private void StopImmediatelyUnsafe()
+        {
+            CancelFadeUnsafe();
+            _player.Stop();
+            _steamAudioSpatial?.ClearSimulationState();
+            _steamAudioSpatial?.Reset();
+            _reachedEnd = false;
+            _currentVolume = _userVolume;
+            ApplyPan();
+        }
+
+        private bool ShouldRestartForPlayUnsafe(bool loop)
+        {
+            if (!_provider.CanSeek)
+                return false;
+
+            return _reachedEnd
+                || _player.State == PlaybackState.Stopped
+                || !loop;
+        }
+
+        private bool ShouldCullOneShotForDistanceUnsafe(bool loop)
+        {
+            return !loop
+                && _spatialize
+                && _distanceAttenuation <= 0.0001f;
+        }
+
+        private void BeginFadeUnsafe(float targetVolume, float durationSeconds, bool stopAfter)
         {
             _fadeDuration = Math.Max(0.0001f, durationSeconds);
             _fadeRemaining = _fadeDuration;
             _fadeStartVolume = _currentVolume;
-            _fadeTargetVolume = targetVolume;
+            _fadeTargetVolume = Math.Max(0f, targetVolume);
             _stopAfterFade = stopAfter;
         }
 
-        private void CancelFade()
+        private void CancelFadeUnsafe()
         {
             _fadeDuration = 0f;
             _fadeRemaining = 0f;
@@ -207,45 +278,29 @@ namespace TS.Audio
 
         private void UpdateFade(double deltaTime)
         {
-            if (_fadeRemaining <= 0f)
-                return;
-
-            _fadeRemaining -= (float)deltaTime;
-            if (_fadeRemaining <= 0f)
+            lock (_stateSync)
             {
-                _currentVolume = _fadeTargetVolume;
-                SetRuntimeVolume(_currentVolume);
+                if (_fadeRemaining <= 0f)
+                    return;
 
-                var shouldStop = _stopAfterFade;
-                CancelFade();
-                if (shouldStop)
+                _fadeRemaining -= (float)deltaTime;
+                if (_fadeRemaining <= 0f)
                 {
-                    MiniAudioExNative.ma_ex_audio_source_stop(_sourceHandle);
-                    _paused = false;
-                    _notifiedEnd = false;
-                    _startRequestedUtc = null;
-                    _silentStartReported = false;
-                    Emit(AudioDiagnosticLevel.Trace, AudioDiagnosticKind.SourceStopped, "Audio source stopped after fade.");
+                    _currentVolume = _fadeTargetVolume;
+                    ApplyPan();
+
+                    var shouldStop = _stopAfterFade;
+                    CancelFadeUnsafe();
+                    if (shouldStop)
+                        StopImmediatelyUnsafe();
+
+                    return;
                 }
-                return;
+
+                var progress = 1f - (_fadeRemaining / _fadeDuration);
+                _currentVolume = _fadeStartVolume + ((_fadeTargetVolume - _fadeStartVolume) * progress);
+                ApplyPan();
             }
-
-            var progress = 1f - (_fadeRemaining / _fadeDuration);
-            _currentVolume = _fadeStartVolume + ((_fadeTargetVolume - _fadeStartVolume) * progress);
-            SetRuntimeVolume(_currentVolume);
-        }
-
-        private void SetRuntimeVolume(float value)
-        {
-            var volume = value;
-            if (volume < 0f)
-                volume = 0f;
-            MiniAudioNative.ma_sound_group_set_volume(_group, volume);
-        }
-
-        private static bool UsePreciseFade(float seconds)
-        {
-            return seconds > 0f && seconds <= PreciseFadeMaxSeconds;
         }
     }
 }

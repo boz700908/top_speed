@@ -13,6 +13,8 @@ namespace TopSpeed.Input.Backends.Sdl
         private static readonly InitFlags RequiredFlags = InitFlags.Events | InitFlags.Joystick | InitFlags.Gamepad | InitFlags.Haptic;
 
         private readonly object _sync = new object();
+        private readonly IControllerEventSource? _eventSource;
+        private readonly Queue<ControllerEvent> _queuedEvents;
         private Device? _device;
         private List<Choice>? _pendingChoices;
         private Guid _selectedInstanceGuid;
@@ -22,10 +24,15 @@ namespace TopSpeed.Input.Backends.Sdl
 
         public event Action? NoControllerDetected;
 
-        public Controller()
+        public Controller(IControllerEventSource? eventSource = null)
         {
             if (!SdlRuntime.InitSubSystem(RequiredFlags) && (SdlRuntime.WasInit(RequiredFlags) & RequiredFlags) != RequiredFlags)
                 throw new InvalidOperationException($"Unable to initialize SDL controller input: {SdlRuntime.GetError()}");
+
+            _eventSource = eventSource;
+            _queuedEvents = new Queue<ControllerEvent>();
+            if (_eventSource != null)
+                _eventSource.ControllerEventRaised += OnControllerEventRaised;
         }
 
         public bool ActiveControllerIsRacingWheel => _enabled && _device != null && _device.IsRacingWheel;
@@ -185,16 +192,53 @@ namespace TopSpeed.Input.Backends.Sdl
             lock (_sync)
             {
                 _pendingChoices = null;
+                _queuedEvents.Clear();
             }
+
+            if (_eventSource != null)
+                _eventSource.ControllerEventRaised -= OnControllerEventRaised;
 
             SdlRuntime.QuitSubSystem(RequiredFlags);
         }
 
         private void PumpEvents()
         {
-            SdlRuntime.PumpEvents();
-            while (ControllerEvents.TryPoll(out var controllerEvent))
+            if (_eventSource == null)
+            {
+                SdlRuntime.PumpEvents();
+                while (ControllerEvents.TryPoll(out var controllerEvent))
+                    HandleEvent(controllerEvent);
+                return;
+            }
+
+            while (TryDequeueEvent(out var controllerEvent))
                 HandleEvent(controllerEvent);
+        }
+
+        private void OnControllerEventRaised(ControllerEvent controllerEvent)
+        {
+            if (_disposed)
+                return;
+
+            lock (_sync)
+            {
+                _queuedEvents.Enqueue(controllerEvent);
+            }
+        }
+
+        private bool TryDequeueEvent(out ControllerEvent controllerEvent)
+        {
+            lock (_sync)
+            {
+                if (_queuedEvents.Count == 0)
+                {
+                    controllerEvent = default;
+                    return false;
+                }
+
+                controllerEvent = _queuedEvents.Dequeue();
+                return true;
+            }
         }
 
         private void HandleEvent(ControllerEvent controllerEvent)

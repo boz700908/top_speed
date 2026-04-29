@@ -46,6 +46,7 @@ namespace TopSpeed.Drive.Multiplayer
         private const float RemoteSettledSpeedKph = 0.5f;
 
         private readonly AudioManager _audio;
+        private readonly RaceAudioFactory _raceAudio;
         private readonly SpeechService _speech;
         private readonly DriveSettings _settings;
         private readonly DriveInput _input;
@@ -66,9 +67,10 @@ namespace TopSpeed.Drive.Multiplayer
         private readonly ParticipantState _participants;
         private readonly SnapshotState _snapshots;
         private readonly RuntimeState _runtime;
-        private readonly AudioSource[] _soundNumbers;
+        private readonly AudioSource?[] _soundNumbers;
         private readonly AudioSource[] _soundLaps;
         private readonly AudioSource?[][] _randomSounds;
+        private readonly string?[] _randomSoundBaseNames;
         private readonly int[] _totalRandomSounds;
         private readonly AudioSource[] _soundUnkey;
         private readonly AudioSource?[] _soundPosition;

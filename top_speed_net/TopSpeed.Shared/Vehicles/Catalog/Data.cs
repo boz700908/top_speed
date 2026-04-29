@@ -1,4 +1,5 @@
 using TopSpeed.Protocol;
+using TopSpeed.Localization;
 
 namespace TopSpeed.Vehicles
 {
@@ -50,7 +51,7 @@ namespace TopSpeed.Vehicles
         public static readonly OfficialVehicleSpec[] Vehicles =
         {
             new OfficialVehicleSpec(
-                CarType.Vehicle1, "Nissan GT-R Nismo",
+                CarType.Vehicle1, LocalizationService.Mark("Nissan GT-R Nismo"),
                 hasWipers: 1, surfaceTractionFactor: 0.06f, topSpeed: 276.0f,
                 idleFreq: 22050, topFreq: 55000, shiftFreq: 26000, gears: 6, steering: 1.20f,
                 idleRpm: 900f, maxRpm: 8000f, revLimiter: 7600f, autoShiftRpm: 7600f * 0.92f, engineBraking: 0.22f,
@@ -80,7 +81,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.66f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle2, "Porsche 911 GT3 RS",
+                CarType.Vehicle2, LocalizationService.Mark("Porsche 911 GT3 RS"),
                 hasWipers: 1, surfaceTractionFactor: 0.07f, topSpeed: 286.0f,
                 idleFreq: 22050, topFreq: 60000, shiftFreq: 35000, gears: 7, steering: 1.15f,
                 idleRpm: 950f, maxRpm: 9000f, revLimiter: 8500f, autoShiftRpm: 8500f * 0.92f, engineBraking: 0.20f,
@@ -110,7 +111,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.61f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle3, "Fiat 500",
+                CarType.Vehicle3, LocalizationService.Mark("Fiat 500"),
                 hasWipers: 1, surfaceTractionFactor: 0.035f, topSpeed: 136.0f,
                 idleFreq: 6000, topFreq: 25000, shiftFreq: 19000, gears: 5, steering: 1.12f,
                 idleRpm: 750f, maxRpm: 6000f, revLimiter: 5500f, autoShiftRpm: 5500f * 0.92f, engineBraking: 0.34f,
@@ -138,7 +139,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.60f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle4, "Mini Cooper S",
+                CarType.Vehicle4, LocalizationService.Mark("Mini Cooper S"),
                 hasWipers: 1, surfaceTractionFactor: 0.045f, topSpeed: 198.0f,
                 idleFreq: 6000, topFreq: 27000, shiftFreq: 20000, gears: 6, steering: 1.08f,
                 idleRpm: 800f, maxRpm: 6500f, revLimiter: 6000f, autoShiftRpm: 6000f * 0.92f, engineBraking: 0.28f,
@@ -166,7 +167,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.66f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle5, "Ford Mustang 1969",
+                CarType.Vehicle5, LocalizationService.Mark("Ford Mustang 1969"),
                 hasWipers: 1, surfaceTractionFactor: 0.04f, topSpeed: 168.0f,
                 idleFreq: 6000, topFreq: 33000, shiftFreq: 27500, gears: 4, steering: 1.25f,
                 idleRpm: 650f, maxRpm: 5500f, revLimiter: 5000f, autoShiftRpm: 5000f * 0.92f, engineBraking: 0.29f,
@@ -194,7 +195,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.73f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle6, "Toyota Camry",
+                CarType.Vehicle6, LocalizationService.Mark("Toyota Camry"),
                 hasWipers: 1, surfaceTractionFactor: 0.035f, topSpeed: 190.0f,
                 idleFreq: 7025, topFreq: 40000, shiftFreq: 32500, gears: 8, steering: 1.20f,
                 idleRpm: 700f, maxRpm: 5600f, revLimiter: 5000f, autoShiftRpm: 4600f, engineBraking: 0.28f,
@@ -224,7 +225,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.67f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle7, "Lamborghini Aventador",
+                CarType.Vehicle7, LocalizationService.Mark("Lamborghini Aventador"),
                 hasWipers: 1, surfaceTractionFactor: 0.08f, topSpeed: 288.0f,
                 idleFreq: 6000, topFreq: 26000, shiftFreq: 21000, gears: 7, steering: 1.28f,
                 idleRpm: 1000f, maxRpm: 8500f, revLimiter: 8000f, autoShiftRpm: 8000f * 0.92f, engineBraking: 0.18f,
@@ -254,7 +255,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.64f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle8, "BMW 3 Series",
+                CarType.Vehicle8, LocalizationService.Mark("BMW 3 Series"),
                 hasWipers: 1, surfaceTractionFactor: 0.045f, topSpeed: 230.0f,
                 idleFreq: 10000, topFreq: 45000, shiftFreq: 34000, gears: 8, steering: 1.22f,
                 idleRpm: 750f, maxRpm: 6500f, revLimiter: 6000f, autoShiftRpm: 6000f * 0.92f, engineBraking: 0.24f,
@@ -284,7 +285,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.66f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle9, "Mercedes Sprinter",
+                CarType.Vehicle9, LocalizationService.Mark("Mercedes Sprinter"),
                 hasWipers: 1, surfaceTractionFactor: 0.02f, topSpeed: 145.0f,
                 idleFreq: 22050, topFreq: 30550, shiftFreq: 22550, gears: 7, steering: 1.00f,
                 idleRpm: 600f, maxRpm: 4500f, revLimiter: 4000f, autoShiftRpm: 4000f * 0.92f, engineBraking: 0.34f,
@@ -314,7 +315,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.72f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle10, "Kawasaki Ninja ZX-10R",
+                CarType.Vehicle10, LocalizationService.Mark("Kawasaki Ninja ZX-10R"),
                 hasWipers: 0, surfaceTractionFactor: 0.09f, topSpeed: 216.0f,
                 idleFreq: 22050, topFreq: 60000, shiftFreq: 35000, gears: 6, steering: 1.08f,
                 idleRpm: 1100f, maxRpm: 14000f, revLimiter: 13500f, autoShiftRpm: 13500f * 0.92f, engineBraking: 0.07f,
@@ -342,7 +343,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.14f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle11, "Ducati Panigale V4",
+                CarType.Vehicle11, LocalizationService.Mark("Ducati Panigale V4"),
                 hasWipers: 0, surfaceTractionFactor: 0.10f, topSpeed: 242.0f,
                 idleFreq: 22050, topFreq: 60000, shiftFreq: 35000, gears: 6, steering: 1.04f,
                 idleRpm: 1200f, maxRpm: 15000f, revLimiter: 14500f, autoShiftRpm: 14500f * 0.92f, engineBraking: 0.06f,
@@ -370,7 +371,7 @@ namespace TopSpeed.Vehicles
                 engineBrakeTransferEfficiency: 0.18f),
 
             new OfficialVehicleSpec(
-                CarType.Vehicle12, "Yamaha YZF-R1",
+                CarType.Vehicle12, LocalizationService.Mark("Yamaha YZF-R1"),
                 hasWipers: 0, surfaceTractionFactor: 0.085f, topSpeed: 219.0f,
                 idleFreq: 22050, topFreq: 27550, shiftFreq: 23550, gears: 6, steering: 1.10f,
                 idleRpm: 1100f, maxRpm: 14500f, revLimiter: 14000f, autoShiftRpm: 14000f * 0.92f, engineBraking: 0.07f,

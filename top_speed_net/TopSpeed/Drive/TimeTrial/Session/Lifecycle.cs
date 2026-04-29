@@ -83,9 +83,6 @@ namespace TopSpeed.Drive.TimeTrial
             DisposeSound(_soundResume);
             DisposeSound(_soundTurnEndDing);
 
-            for (var i = 0; i < _soundNumbers.Length; i++)
-                DisposeSound(_soundNumbers[i]);
-
             for (var i = 0; i < _soundUnkey.Length; i++)
                 DisposeSound(_soundUnkey[i]);
 

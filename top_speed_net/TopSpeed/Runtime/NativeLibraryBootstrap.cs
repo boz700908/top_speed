@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using MiniAudioEx.Native;
 using SteamAudio;
 using TopSpeed.Speech.Prism;
 
@@ -12,11 +11,9 @@ namespace TopSpeed.Runtime
     internal static class NativeLibraryBootstrap
     {
         private static bool _initialized;
-#if !NETFRAMEWORK
         private static readonly List<IntPtr> _loadedHandles = new List<IntPtr>();
         private static readonly Dictionary<string, IntPtr> _loadedLibraries = new Dictionary<string, IntPtr>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<Assembly> _resolvedAssemblies = new HashSet<Assembly>();
-#endif
 
         public static void Initialize()
         {
@@ -27,45 +24,12 @@ namespace TopSpeed.Runtime
             var libDirectory = Path.Combine(AppContext.BaseDirectory, "lib");
             var hasLibDirectory = Directory.Exists(libDirectory);
 
-#if NETFRAMEWORK
-            if (!hasLibDirectory)
-                return;
-            TryLoadWindows(Path.Combine(libDirectory, "miniaudioex.dll"));
-            TryLoadWindows(Path.Combine(libDirectory, "phonon.dll"));
-            TryLoadWindows(Path.Combine(libDirectory, "prism.dll"));
-#else
-            InstallResolver(typeof(MiniAudioNative).Assembly, hasLibDirectory ? libDirectory : null);
-            InstallResolver(typeof(MiniAudioExNative).Assembly, hasLibDirectory ? libDirectory : null);
             InstallResolver(typeof(IPL).Assembly, hasLibDirectory ? libDirectory : null);
             InstallResolver(typeof(Native).Assembly, hasLibDirectory ? libDirectory : null);
 
             if (hasLibDirectory)
-            {
-                TryPreload(libDirectory, GetMiniAudioCandidates());
                 TryPreload(libDirectory, GetPhononCandidates());
-            }
-#endif
         }
-
-#if NETFRAMEWORK
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr LoadLibrary(string fileName);
-
-        private static void TryLoadWindows(string absolutePath)
-        {
-            if (!File.Exists(absolutePath))
-                return;
-
-            try
-            {
-                LoadLibrary(absolutePath);
-            }
-            catch
-            {
-                // Ignore native preload failures. They will surface at call site if required.
-            }
-        }
-#else
         private static void InstallResolver(Assembly assembly, string? libDirectory)
         {
             if (_resolvedAssemblies.Contains(assembly))
@@ -86,9 +50,6 @@ namespace TopSpeed.Runtime
 
         private static IntPtr ResolveLibrary(string libraryName, string? libDirectory)
         {
-            if (IsMiniAudioLibraryName(libraryName))
-                return TryLoadFirst(libDirectory, GetMiniAudioCandidates());
-
             if (IsPhononLibraryName(libraryName))
                 return TryLoadFirst(libDirectory, GetPhononCandidates());
 
@@ -167,13 +128,6 @@ namespace TopSpeed.Runtime
             return IntPtr.Zero;
         }
 
-        private static bool IsMiniAudioLibraryName(string? libraryName)
-        {
-            if (string.IsNullOrWhiteSpace(libraryName))
-                return false;
-            return libraryName.IndexOf("miniaudioex", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
         private static bool IsPhononLibraryName(string? libraryName)
         {
             if (string.IsNullOrWhiteSpace(libraryName))
@@ -186,17 +140,6 @@ namespace TopSpeed.Runtime
             if (string.IsNullOrWhiteSpace(libraryName))
                 return false;
             return libraryName.IndexOf("prism", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private static IReadOnlyList<string> GetMiniAudioCandidates()
-        {
-            if (IsAndroid())
-                return new[] { "libminiaudioex.so", "miniaudioex" };
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return new[] { "miniaudioex.dll", "miniaudioex" };
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return new[] { "libminiaudioex.dylib", "miniaudioex" };
-            return new[] { "libminiaudioex.so", "miniaudioex" };
         }
 
         private static IReadOnlyList<string> GetPhononCandidates()
@@ -237,6 +180,5 @@ namespace TopSpeed.Runtime
             return RuntimeInformation.IsOSPlatform(OSPlatform.Create("ANDROID"));
 #endif
         }
-#endif
     }
 }

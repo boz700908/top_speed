@@ -25,10 +25,12 @@ namespace TopSpeed.Windowing
             MinimizeBox = true;
             ClientSize = new Size(640, 360);
             KeyPreview = true;
+            IsMdiContainer = true;
 
             _inputBox = new TextBox
             {
                 Visible = false,
+                Enabled = false,
                 AcceptsReturn = true,
                 CausesValidation = false,
                 ImeMode = ImeMode.NoControl,
@@ -54,8 +56,14 @@ namespace TopSpeed.Windowing
             RunOnUiThread(() =>
             {
                 _inputBox.Text = initialText ?? string.Empty;
+                _inputBox.Enabled = true;
                 _inputBox.Visible = true;
+                _inputBox.BringToFront();
+                ActiveControl = _inputBox;
+                _inputBox.SelectAll();
                 _inputBox.Focus();
+                Invalidate(_inputBox.Bounds);
+                Update();
             });
         }
 
@@ -63,9 +71,17 @@ namespace TopSpeed.Windowing
         {
             RunOnUiThread(() =>
             {
+                if (!_inputBox.Visible && !_inputBox.Enabled)
+                    return;
+
+                var bounds = _inputBox.Bounds;
+                ActiveControl = null;
+                _inputBox.Enabled = false;
                 _inputBox.Visible = false;
                 _inputBox.Clear();
                 Focus();
+                Invalidate(bounds);
+                Update();
             });
         }
 

@@ -80,7 +80,7 @@ namespace TopSpeed.Drive.Multiplayer
                 return existing;
 
             var vehicleIndex = car == CarType.CustomVehicle ? 0 : (int)car;
-            var bot = new ComputerPlayer(_audio, _track, _settings, vehicleIndex, playerNumber, () => _session.Context.RuntimeSeconds, () => _started);
+            var bot = new ComputerPlayer(_audio, _raceAudio, _track, _settings, vehicleIndex, playerNumber, () => _session.Context.RuntimeSeconds, () => _started);
             bot.Initialize(positionX, positionY, GetSpatialTrackLength());
             var remote = new RemotePlayer(bot);
             _remotePlayers[playerNumber] = remote;

@@ -66,9 +66,9 @@ namespace TopSpeed.Drive.Multiplayer
             var positionY = CalculateGridStartY(LocalPlayerNumber, rowSpacing, StartLineY);
             _car.SetPosition(positionX, positionY);
 
-            SpeakRaceIntro();
             SendPlayerState(sendStarted: false);
             _session.SetPhase(Phase.Countdown);
+            QueueRaceIntro();
             _session.QueueEvent(new Event(Events.PlaySound, _soundStart), DefaultStartCueDelaySeconds);
             _session.QueueEvent(new Event(Events.VehicleStart), 3.0f);
             _session.QueueEvent(new Event(Events.ProgressStart), DefaultProgressStartDelaySeconds);

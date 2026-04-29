@@ -61,7 +61,7 @@ namespace TopSpeed.Shortcuts
                 _needsInstruction = false;
                 _speech.Speak(LocalizationService.Format(
                     LocalizationService.Mark("Press the new key for {0}."),
-                    _displayName.ToLowerInvariant()));
+                    LocalizationService.Translate(_displayName)));
             }
 
             if (_input.WasPressed(Key.Escape))
@@ -105,7 +105,7 @@ namespace TopSpeed.Shortcuts
                 _isActive = false;
                 _speech.Speak(LocalizationService.Format(
                     LocalizationService.Mark("{0} set to {1}."),
-                    _displayName,
+                    LocalizationService.Translate(_displayName),
                     FormatKey(key)));
                 return;
             }

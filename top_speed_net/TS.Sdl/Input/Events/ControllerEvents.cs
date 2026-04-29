@@ -16,7 +16,7 @@ namespace TS.Sdl.Input
             return false;
         }
 
-        private static bool TryConvert(Event value, out ControllerEvent controllerEvent)
+        public static bool TryConvert(Event value, out ControllerEvent controllerEvent)
         {
             switch ((EventType)value.Type)
             {

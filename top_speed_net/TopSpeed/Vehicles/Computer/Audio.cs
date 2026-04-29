@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 using TopSpeed.Audio;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TS.Audio;
 
@@ -8,6 +8,40 @@ namespace TopSpeed.Vehicles
 {
     internal sealed partial class ComputerPlayer
     {
+        private void BindAudio(RemoteVehicleAudio audio)
+        {
+            _soundEngine = audio.Engine;
+            _soundHorn = audio.Horn;
+            _soundStart = audio.Start;
+            _soundCrash = audio.Crash;
+            _soundBrake = audio.Brake;
+            _soundMiniCrash = audio.MiniCrash;
+            _soundBump = audio.Bump;
+            _soundBackfire = audio.Backfire;
+        }
+
+        private void ConfigureAudioState()
+        {
+            var enableStereoWidening = _settings.StereoWidening;
+
+            _soundEngine.SetDopplerFactor(1f);
+            _soundHorn.SetDopplerFactor(0f);
+            _soundBrake.SetDopplerFactor(0f);
+            _soundCrash.SetDopplerFactor(0f);
+            _soundMiniCrash.SetDopplerFactor(0f);
+            _soundBump.SetDopplerFactor(0f);
+            _soundBackfire?.SetDopplerFactor(0f);
+
+            _soundEngine.SetStereoWidening(enableStereoWidening);
+            _soundHorn.SetStereoWidening(enableStereoWidening);
+            _soundStart.SetStereoWidening(enableStereoWidening);
+            _soundCrash.SetStereoWidening(enableStereoWidening);
+            _soundBrake.SetStereoWidening(enableStereoWidening);
+            _soundMiniCrash.SetStereoWidening(enableStereoWidening);
+            _soundBump.SetStereoWidening(enableStereoWidening);
+            _soundBackfire?.SetStereoWidening(enableStereoWidening);
+        }
+
         private void UpdateEngineFreq()
         {
             _frequency = EnginePitch.FromRpm(
@@ -91,32 +125,6 @@ namespace TopSpeed.Vehicles
 
             // Live radio applies receiver-side category scaling via AudioHelpers.
             _liveRadio.SetVolumePercent(_remoteRadioSenderVolumePercent);
-        }
-
-        private Source CreateRequiredSound(string? path, string label, bool looped = false, bool allowHrtf = true)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-                throw new InvalidOperationException($"Sound path not provided for {label}.");
-            var resolved = path!.Trim();
-            if (!File.Exists(resolved))
-                throw new FileNotFoundException("Sound file not found.", resolved);
-            var asset = _audio.LoadAsset(resolved, streamFromDisk: !looped);
-            return looped
-                ? _audio.CreateLoopingSpatialSource(asset, AudioEngineOptions.WorldBusName, allowHrtf)
-                : _audio.CreateSpatialSource(asset, AudioEngineOptions.WorldBusName, allowHrtf);
-        }
-
-        private Source? TryCreateSound(string? path, bool looped = false, bool allowHrtf = true)
-        {
-            if (string.IsNullOrWhiteSpace(path))
-                return null;
-            var resolved = path!.Trim();
-            if (!File.Exists(resolved))
-                return null;
-            var asset = _audio.LoadAsset(resolved, streamFromDisk: !looped);
-            return looped
-                ? _audio.CreateLoopingSpatialSource(asset, AudioEngineOptions.WorldBusName, allowHrtf)
-                : _audio.CreateSpatialSource(asset, AudioEngineOptions.WorldBusName, allowHrtf);
         }
 
         private float NormalizeSpeedByTopSpeed(float speedKph, float maxRatio = 1f)

@@ -26,6 +26,7 @@ namespace TS.Audio
         public AudioSystemConfig? SystemConfig { get; set; }
         public AudioOutputConfig? PrimaryOutput { get; set; }
         public AudioOutputConfig? SpeechOutput { get; set; }
+        public bool UseDedicatedSpeechOutput { get; set; } = true;
         public PlaybackPolicy Defaults { get; } = new PlaybackPolicy();
         public IList<AudioBusOptions> Buses { get; } = new List<AudioBusOptions>();
 

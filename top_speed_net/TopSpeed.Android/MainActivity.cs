@@ -4,7 +4,6 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
-using Android.Util;
 using Android.Views;
 using Java.Interop;
 
@@ -49,7 +48,6 @@ public class SdlActivityBase : Activity
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.KeyboardHidden)]
 public class MainActivity : SdlActivityBase
 {
-    private const string LogTag = "TopSpeed.Android";
     private string? _assetRoot;
     private AndroidMotionSteeringSource? _motionSteering;
     private AndroidSpeechThreadDispatcher? _speechDispatcher;
@@ -66,7 +64,6 @@ public class MainActivity : SdlActivityBase
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-        Log.Info(LogTag, "MainActivity.OnCreate");
         RequestWindowFeature(WindowFeatures.NoTitle);
         Window?.AddFlags(WindowManagerFlags.Fullscreen);
         Window?.ClearFlags(WindowManagerFlags.ForceNotFullscreen);
@@ -88,6 +85,16 @@ public class MainActivity : SdlActivityBase
             ApplyImmersiveMode();
     }
 
+    protected override void OnResume()
+    {
+        base.OnResume();
+    }
+
+    protected override void OnPause()
+    {
+        base.OnPause();
+    }
+
     protected override void OnDestroy()
     {
         global::TopSpeed.Runtime.MotionSteeringRuntime.SetSource(null);
@@ -104,7 +111,6 @@ public class MainActivity : SdlActivityBase
     [Export("getLibraries")]
     public string[] GetLibraries()
     {
-        Log.Info(LogTag, "MainActivity.getLibraries -> SDL3");
         return
         [
             "SDL3"
@@ -114,14 +120,12 @@ public class MainActivity : SdlActivityBase
     [Export("loadLibraries")]
     public void LoadLibraries()
     {
-        Log.Info(LogTag, "MainActivity.loadLibraries -> SDL3");
         Java.Lang.JavaSystem.LoadLibrary("SDL3");
     }
 
     [Export("main")]
     public void RunSdlMain()
     {
-        Log.Info(LogTag, "MainActivity.main (managed entry)");
         try
         {
             global::TopSpeed.AndroidLauncher.SetAssetRoot(_assetRoot ?? EnsureRuntimeAssets());
@@ -129,7 +133,6 @@ public class MainActivity : SdlActivityBase
         }
         catch (Exception ex)
         {
-            Log.Error(LogTag, ex.ToString());
             ShowLaunchError(ex);
         }
     }
@@ -250,4 +253,5 @@ public class MainActivity : SdlActivityBase
             // Window insets controller may not be available during early activity creation.
         }
     }
+
 }

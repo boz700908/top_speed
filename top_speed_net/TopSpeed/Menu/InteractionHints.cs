@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using TopSpeed.Localization;
 
 namespace TopSpeed.Menu
 {
@@ -9,9 +10,6 @@ namespace TopSpeed.Menu
 
         public static bool IsAndroidPlatform()
         {
-#if NETFRAMEWORK
-            return false;
-#else
             if (OperatingSystem.IsAndroid())
                 return true;
             if (RuntimeInformation.IsOSPlatform(Android))
@@ -19,14 +17,10 @@ namespace TopSpeed.Menu
             if (RuntimeInformation.RuntimeIdentifier.StartsWith("android", StringComparison.OrdinalIgnoreCase))
                 return true;
             return Type.GetType("Android.OS.Build, Mono.Android", throwOnError: false) != null;
-#endif
         }
 
         public static bool IsTouchPlatform()
         {
-#if NETFRAMEWORK
-            return false;
-#else
             var explicitTouchHints = Environment.GetEnvironmentVariable("TOPSPEED_TOUCH_HINTS");
             if (string.Equals(explicitTouchHints, "1", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(explicitTouchHints, "true", StringComparison.OrdinalIgnoreCase))
@@ -42,12 +36,26 @@ namespace TopSpeed.Menu
                 return true;
 
             return RuntimeInformation.IsOSPlatform(Android);
-#endif
         }
 
         public static string ForPlatform(string desktopText, string touchText)
         {
             return IsTouchPlatform() ? touchText : desktopText;
+        }
+
+        public static string ForPlatform(string hint, string desktopControl, string touchControl)
+        {
+            var text = LocalizationService.Translate(hint).Trim();
+            var control = LocalizationService.Translate(ForPlatform(desktopControl, touchControl)).Trim();
+            if (string.IsNullOrWhiteSpace(text))
+                return control;
+            if (string.IsNullOrWhiteSpace(control))
+                return text;
+
+            return LocalizationService.Format(
+                LocalizationService.Mark("{0} {1}"),
+                text,
+                control);
         }
     }
 }

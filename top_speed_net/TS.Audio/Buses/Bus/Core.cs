@@ -1,32 +1,25 @@
 using System;
 using System.Collections.Generic;
-using MiniAudioEx.Native;
+using SoundFlow.Abstracts;
+using SfMixer = SoundFlow.Components.Mixer;
 
 namespace TS.Audio
 {
     public sealed partial class AudioBus : IDisposable
     {
         private readonly AudioOutput _output;
-        private readonly ma_sound_group_ptr _group;
         private readonly AudioBus? _parent;
         private readonly PlaybackPolicy _defaults;
         private readonly List<AudioBus> _children;
         private readonly List<BusEffect> _effects;
-        private readonly object _effectLock = new object();
+        private readonly List<SoundModifier> _attachedModifiers;
+        private readonly object _effectLock;
+        private readonly SfMixer _mixer;
         private float _localVolume = 1f;
         private float _effectiveVolume = 1f;
         private bool _muted;
         private bool _effectsEnabled = true;
         private bool _disposed;
-
-        public string Name { get; }
-        public AudioBus? Parent => _parent;
-        public IReadOnlyList<AudioBus> Children => _children;
-        public bool Muted => _muted;
-        public bool EffectsEnabled => _effectsEnabled;
-        public PlaybackPolicy Defaults => _defaults;
-        internal ma_sound_group_ptr Handle => _group;
-        internal ma_node_ptr NodeHandle => new ma_node_ptr(_group.pointer);
 
         internal AudioBus(AudioOutput output, string name, AudioBus? parent, PlaybackPolicy? defaults = null)
         {
@@ -36,20 +29,21 @@ namespace TS.Audio
             _defaults = defaults?.Clone() ?? new PlaybackPolicy();
             _children = new List<AudioBus>();
             _effects = new List<BusEffect>();
-            _group = new ma_sound_group_ptr(true);
-
-            var parentHandle = parent?.Handle ?? default;
-            var result = MiniAudioNative.ma_sound_group_init(output.Runtime.EngineHandle, 0, parentHandle, _group);
-            if (result != ma_result.success)
+            _attachedModifiers = new List<SoundModifier>();
+            _effectLock = new object();
+            _mixer = new SfMixer(output.BackendEngine, output.SoundFlowFormat)
             {
-                _group.Free();
-                throw new InvalidOperationException("Failed to initialize audio bus: " + result);
-            }
+                Name = $"{Name} Bus"
+            };
 
-            parent?._children.Add(this);
+            if (_parent == null)
+                _output.PlaybackDevice.MasterMixer.AddComponent(_mixer);
+            else
+                _parent.Mixer.AddComponent(_mixer);
+
+            _parent?._children.Add(this);
             RecalculateMix();
-            RebuildEffectChain();
-            _output.Diagnostics.Emit(
+            _output.Diagnostics.EmitDeferred(
                 AudioDiagnosticLevel.Info,
                 AudioDiagnosticKind.BusCreated,
                 AudioDiagnosticEntityType.Bus,
@@ -63,8 +57,16 @@ namespace TS.Audio
                     ["defaultsSpatialize"] = _defaults.Spatialize,
                     ["defaultsUseHrtf"] = _defaults.UseHrtf
                 },
-                new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
+                () => new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
         }
+
+        public string Name { get; }
+        public AudioBus? Parent => _parent;
+        public IReadOnlyList<AudioBus> Children => _children;
+        public bool Muted => _muted;
+        public bool EffectsEnabled => _effectsEnabled;
+        public PlaybackPolicy Defaults => _defaults;
+        internal SfMixer Mixer => _mixer;
 
         public Source CreateSource(SoundAsset asset, bool? spatialize = null, bool? useHrtf = null)
         {
@@ -77,10 +79,7 @@ namespace TS.Audio
                 Spatialize = spatialize,
                 UseHrtf = useHrtf
             });
-            var source = CreateResolvedSource(
-                asset.Asset,
-                ownsAsset: false,
-                resolved);
+            var source = CreateResolvedSource(asset.Asset, ownsAsset: false, resolved);
             ConfigureSource(source, resolved);
             return source;
         }
@@ -93,10 +92,7 @@ namespace TS.Audio
                 Spatialize = spatialize,
                 UseHrtf = useHrtf
             });
-            var source = CreateResolvedSource(
-                new FileAsset(filePath, streamFromDisk),
-                ownsAsset: true,
-                resolved);
+            var source = CreateResolvedSource(new FileAsset(filePath, streamFromDisk), ownsAsset: true, resolved);
             ConfigureSource(source, resolved);
             return source;
         }
@@ -119,10 +115,7 @@ namespace TS.Audio
                 Spatialize = spatialize,
                 UseHrtf = useHrtf
             });
-            var source = CreateResolvedSource(
-                new ProceduralAsset(callback, channels, sampleRate),
-                ownsAsset: true,
-                resolved);
+            var source = CreateResolvedSource(new ProceduralAsset(callback, channels, sampleRate), ownsAsset: true, resolved);
             ConfigureSource(source, resolved);
             return source;
         }
@@ -195,59 +188,6 @@ namespace TS.Audio
             return source;
         }
 
-        public void SetVolume(float volume)
-        {
-            _localVolume = Clamp01(volume);
-            RecalculateMix();
-            _output.Diagnostics.Emit(
-                AudioDiagnosticLevel.Debug,
-                AudioDiagnosticKind.BusVolumeChanged,
-                AudioDiagnosticEntityType.Bus,
-                _output.Name,
-                Name,
-                null,
-                "Audio bus volume changed.",
-                new Dictionary<string, object?>
-                {
-                    ["localVolume"] = _localVolume,
-                    ["localVolumeDb"] = AudioMath.GainToDecibels(_localVolume),
-                    ["effectiveVolume"] = _effectiveVolume,
-                    ["effectiveVolumeDb"] = AudioMath.GainToDecibels(_effectiveVolume)
-                },
-                new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
-        }
-
-        public float GetVolume()
-        {
-            return _localVolume;
-        }
-
-        public float GetEffectiveVolume()
-        {
-            return _effectiveVolume;
-        }
-
-        public void SetMuted(bool muted)
-        {
-            _muted = muted;
-            RecalculateMix();
-            _output.Diagnostics.Emit(
-                AudioDiagnosticLevel.Debug,
-                AudioDiagnosticKind.BusMuteChanged,
-                AudioDiagnosticEntityType.Bus,
-                _output.Name,
-                Name,
-                null,
-                muted ? "Audio bus muted." : "Audio bus unmuted.",
-                new Dictionary<string, object?>
-                {
-                    ["muted"] = _muted,
-                    ["effectiveVolume"] = _effectiveVolume,
-                    ["effectiveVolumeDb"] = AudioMath.GainToDecibels(_effectiveVolume)
-                },
-                new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
-        }
-
         public AudioBus CreateChild(string name)
         {
             return _output.CreateBus(name, this, _defaults.Clone());
@@ -258,6 +198,36 @@ namespace TS.Audio
             CopyPolicy(defaults, _defaults);
         }
 
+        internal void RemoveEffect(BusEffect effect)
+        {
+            if (effect == null)
+                return;
+
+            lock (_effectLock)
+            {
+                if (!_effects.Remove(effect))
+                    return;
+
+                RebuildModifierChainUnsafe();
+            }
+
+            effect.MarkDetached();
+        }
+
+        internal void UpdateEffectState(BusEffect effect)
+        {
+            if (effect == null)
+                return;
+
+            lock (_effectLock)
+            {
+                if (!_effects.Contains(effect))
+                    return;
+
+                effect.ApplyBusState(_effectsEnabled);
+            }
+        }
+
         public AudioBusSnapshot CaptureSnapshot()
         {
             lock (_effectLock)
@@ -265,6 +235,7 @@ namespace TS.Audio
                 var names = new List<string>(_effects.Count);
                 for (var i = 0; i < _effects.Count; i++)
                     names.Add(_effects[i].Name);
+
                 return new AudioBusSnapshot(
                     Name,
                     _parent?.Name,
@@ -286,13 +257,16 @@ namespace TS.Audio
             if (_disposed)
                 return;
 
-            var snapshot = CaptureSnapshot();
             _disposed = true;
+            var snapshot = CaptureSnapshot();
+            var childSnapshot = _children.ToArray();
+            for (var i = 0; i < childSnapshot.Length; i++)
+                childSnapshot[i].Dispose();
+
             ClearEffects();
             _parent?._children.Remove(this);
-            MiniAudioNative.ma_node_detach_all_output_buses(NodeHandle);
-            MiniAudioNative.ma_sound_group_uninit(_group);
-            _group.Free();
+            _output.UnregisterBus(this);
+            _mixer.Dispose();
             _output.Diagnostics.Emit(
                 AudioDiagnosticLevel.Info,
                 AudioDiagnosticKind.BusDisposed,
@@ -305,27 +279,6 @@ namespace TS.Audio
                 new AudioDiagnosticSnapshot(bus: snapshot));
         }
 
-        private void ConfigureSource(Source source, ResolvedSourceOptions options)
-        {
-            source.SetVolume(options.Volume);
-            source.SetPitch(options.Pitch);
-            source.SetPan(options.Pan);
-            source.SetStereoWidening(options.StereoWidening);
-
-            if (options.Position.HasValue)
-                source.SetPosition(options.Position.Value);
-            if (options.Velocity.HasValue)
-                source.SetVelocity(options.Velocity.Value);
-            if (options.DistanceModel.HasValue)
-                source.SetDistanceModel(options.DistanceModel.Value, options.RefDistance, options.MaxDistance, options.RollOff);
-            if (options.CurveDistanceScaler.HasValue)
-                source.SetCurveDistanceScaler(options.CurveDistanceScaler.Value);
-            if (options.DopplerFactor.HasValue)
-                source.SetDopplerFactor(options.DopplerFactor.Value);
-            if (options.RoomAcoustics.HasValue)
-                source.SetRoomAcoustics(options.RoomAcoustics.Value);
-        }
-
         private ResolvedSourceOptions ResolveOptions(PlaybackPolicy? overrides)
         {
             return ResolvedSourceOptions.Merge(null, _defaults, overrides);
@@ -334,16 +287,6 @@ namespace TS.Audio
         private Source CreateResolvedSource(AudioAsset asset, bool ownsAsset, ResolvedSourceOptions options)
         {
             return new Source(_output.CreateSource(asset, options.Spatialize, options.UseHrtf, this, ownsAsset), ownsHandle: true);
-        }
-
-        private void RecalculateMix()
-        {
-            var parentVolume = _parent?._effectiveVolume ?? 1f;
-            _effectiveVolume = _muted ? 0f : Clamp01(_localVolume) * parentVolume;
-            MiniAudioNative.ma_sound_group_set_volume(_group, _effectiveVolume);
-
-            for (var i = 0; i < _children.Count; i++)
-                _children[i].RecalculateMix();
         }
 
         internal IReadOnlyList<AudioGainStageSnapshot> CaptureGainStages()

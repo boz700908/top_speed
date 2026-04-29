@@ -52,24 +52,24 @@ namespace TopSpeed.Vehicles
             _lastAudioPosition = new Vector3(worldX, 0f, worldZ);
             _audioInitialized = true;
 
-            SetSpatial(_soundEngine, position, velocity);
-            SetSpatial(_soundStart, position, velocity);
-            SetSpatial(_soundHorn, position, velocity);
-            SetSpatial(_soundCrash, crashPosition, velocity);
-            SetSpatial(_soundBrake, position, velocity);
-            SetSpatial(_soundBackfire, position, velocity);
-            SetSpatial(_soundBump, position, velocity);
-            SetSpatial(_soundMiniCrash, position, velocity);
+            var owner = $"remote:{_playerNumber + 1}";
+            SetSpatial(owner, "engine", _soundEngine, position, velocity);
+            SetSpatial(owner, "start", _soundStart, position, velocity);
+            SetSpatial(owner, "horn", _soundHorn, position, velocity);
+            SetSpatial(owner, "crash", _soundCrash, crashPosition, velocity);
+            SetSpatial(owner, "brake", _soundBrake, position, velocity);
+            SetSpatial(owner, "backfire", _soundBackfire, position, velocity);
+            SetSpatial(owner, "bump", _soundBump, position, velocity);
+            SetSpatial(owner, "miniCrash", _soundMiniCrash, position, velocity);
             _radio.UpdateSpatial(worldX, worldZ, velUnits);
             _liveRadio.UpdateSpatial(position, velocity);
         }
 
-        private static void SetSpatial(Source? sound, Vector3 position, Vector3 velocity)
+        private static void SetSpatial(string owner, string slot, Source? sound, Vector3 position, Vector3 velocity)
         {
             if (sound == null)
                 return;
-            sound.SetPosition(position);
-            sound.SetVelocity(velocity);
+            sound.SetTransform(position, velocity);
         }
     }
 }

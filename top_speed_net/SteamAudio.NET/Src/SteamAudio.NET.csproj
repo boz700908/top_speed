@@ -16,7 +16,7 @@
 	<PropertyGroup>
 		<!-- Packaging -->
 		<IncludeContentInPack>true</IncludeContentInPack>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591;1572;1573</NoWarn>
 

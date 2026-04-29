@@ -26,8 +26,6 @@ namespace TopSpeed.Tracks
 
             for (var i = 0; i < _allTrackSounds.Count; i++)
                 _allTrackSounds[i].Dispose();
-
-            DisposePendingHandleStops();
         }
 
         private static void DisposeSound(Source? sound)

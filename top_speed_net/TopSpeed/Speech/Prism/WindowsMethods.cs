@@ -5,11 +5,7 @@ namespace TopSpeed.Speech.Prism
 {
     internal sealed class WindowsMethods : IMethods
     {
-#if NETFRAMEWORK
-        private const string Library = "lib\\prism.dll";
-#else
         private const string Library = "prism";
-#endif
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void PrismAudioCallback(IntPtr userData, IntPtr samples, UIntPtr sampleCount, UIntPtr channels, UIntPtr sampleRate);
 

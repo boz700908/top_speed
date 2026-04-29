@@ -1,59 +1,138 @@
 using System;
 using System.IO;
 using TopSpeed.Core;
+using TopSpeed.Drive.Session;
 using TS.Audio;
 
 namespace TopSpeed.Drive.Multiplayer
 {
     internal sealed partial class MultiplayerSession
     {
-        private void LoadDefaultRandomSounds()
+        private void ConfigureDefaultRandomSounds()
         {
-            LoadRandomSounds(RandomSoundSlot.EasyLeft, "race\\copilot\\easyleft");
-            LoadRandomSounds(RandomSoundSlot.Left, "race\\copilot\\left");
-            LoadRandomSounds(RandomSoundSlot.HardLeft, "race\\copilot\\hardleft");
-            LoadRandomSounds(RandomSoundSlot.HairpinLeft, "race\\copilot\\hairpinleft");
-            LoadRandomSounds(RandomSoundSlot.EasyRight, "race\\copilot\\easyright");
-            LoadRandomSounds(RandomSoundSlot.Right, "race\\copilot\\right");
-            LoadRandomSounds(RandomSoundSlot.HardRight, "race\\copilot\\hardright");
-            LoadRandomSounds(RandomSoundSlot.HairpinRight, "race\\copilot\\hairpinright");
-            LoadRandomSounds(RandomSoundSlot.Asphalt, "race\\copilot\\asphalt");
-            LoadRandomSounds(RandomSoundSlot.Gravel, "race\\copilot\\gravel");
-            LoadRandomSounds(RandomSoundSlot.Water, "race\\copilot\\water");
-            LoadRandomSounds(RandomSoundSlot.Sand, "race\\copilot\\sand");
-            LoadRandomSounds(RandomSoundSlot.Snow, "race\\copilot\\snow");
-            LoadRandomSounds(RandomSoundSlot.Finish, "race\\info\\finish");
-            LoadRandomSounds(RandomSoundSlot.Front, "race\\info\\front");
-            LoadRandomSounds(RandomSoundSlot.Tail, "race\\info\\tail");
+            ConfigureRandomSounds(RandomSoundSlot.EasyLeft, "race\\copilot\\easyleft");
+            ConfigureRandomSounds(RandomSoundSlot.Left, "race\\copilot\\left");
+            ConfigureRandomSounds(RandomSoundSlot.HardLeft, "race\\copilot\\hardleft");
+            ConfigureRandomSounds(RandomSoundSlot.HairpinLeft, "race\\copilot\\hairpinleft");
+            ConfigureRandomSounds(RandomSoundSlot.EasyRight, "race\\copilot\\easyright");
+            ConfigureRandomSounds(RandomSoundSlot.Right, "race\\copilot\\right");
+            ConfigureRandomSounds(RandomSoundSlot.HardRight, "race\\copilot\\hardright");
+            ConfigureRandomSounds(RandomSoundSlot.HairpinRight, "race\\copilot\\hairpinright");
+            ConfigureRandomSounds(RandomSoundSlot.Asphalt, "race\\copilot\\asphalt");
+            ConfigureRandomSounds(RandomSoundSlot.Gravel, "race\\copilot\\gravel");
+            ConfigureRandomSounds(RandomSoundSlot.Water, "race\\copilot\\water");
+            ConfigureRandomSounds(RandomSoundSlot.Sand, "race\\copilot\\sand");
+            ConfigureRandomSounds(RandomSoundSlot.Snow, "race\\copilot\\snow");
+            ConfigureRandomSounds(RandomSoundSlot.Finish, "race\\info\\finish");
+            ConfigureRandomSounds(RandomSoundSlot.Front, "race\\info\\front");
+            ConfigureRandomSounds(RandomSoundSlot.Tail, "race\\info\\tail");
         }
 
-        private void LoadRandomSounds(RandomSoundSlot slot, string baseName)
+        private void ConfigureRandomSounds(RandomSoundSlot slot, string baseName)
         {
-            var first = $"{baseName}1";
-            _randomSounds[(int)slot][0] = LoadLanguageSound(first);
-            _totalRandomSounds[(int)slot] = 1;
+            var slotIndex = (int)slot;
+            _randomSoundBaseNames[slotIndex] = baseName;
+            _totalRandomSounds[slotIndex] = 1;
 
             for (var i = 1; i < RandomSoundMax; i++)
             {
-                var sound = TryLoadLanguageSound($"{baseName}{i + 1}", allowFallback: false);
-                _randomSounds[(int)slot][i] = sound;
-                if (sound == null)
+                if (ResolveLanguageSoundPath($"{baseName}{i + 1}", allowFallback: false) == null)
                 {
-                    _totalRandomSounds[(int)slot] = i;
+                    _totalRandomSounds[slotIndex] = i;
                     break;
                 }
             }
         }
 
-        private void LoadPositionSounds()
+        private Source? GetNumberSound(int index)
+        {
+            if (index < 0 || index >= _soundNumbers.Length)
+                return null;
+
+            return _soundNumbers[index] ??= LoadLanguageSound($"numbers\\{index}");
+        }
+
+        private Source? GetRandomSoundBySlot(int slot)
+        {
+            if (slot < 0 || slot >= _randomSounds.Length || slot >= _totalRandomSounds.Length)
+                return null;
+
+            var count = _totalRandomSounds[slot];
+            if (count <= 0)
+                return null;
+
+            return GetRandomSound(slot, TopSpeed.Common.Algorithm.RandomInt(count));
+        }
+
+        private Source? GetRandomSound(int slot, int variantIndex)
+        {
+            if (slot < 0 || slot >= _randomSounds.Length)
+                return null;
+            if (variantIndex < 0 || variantIndex >= _randomSounds[slot].Length)
+                return null;
+
+            var cached = _randomSounds[slot][variantIndex];
+            if (cached != null)
+                return cached;
+
+            var baseName = _randomSoundBaseNames[slot];
+            if (string.IsNullOrWhiteSpace(baseName))
+                return null;
+
+            Source? sound = variantIndex == 0
+                ? LoadLanguageSound($"{baseName}1")
+                : TryLoadLanguageSound($"{baseName}{variantIndex + 1}", allowFallback: false);
+            _randomSounds[slot][variantIndex] = sound;
+            return sound;
+        }
+
+        private Source? GetPlayerNumberSoundByIndex(int index)
+        {
+            if (index < 0 || index >= _soundPlayerNr.Length)
+                return null;
+
+            return _soundPlayerNr[index] ??= LoadLanguageSound($"race\\info\\player{index + 1}");
+        }
+
+        private Source? GetPositionSoundByIndex(int index)
+        {
+            if (index < 0 || index >= _soundPosition.Length)
+                return null;
+
+            var positionIndex = index == MaxPlayers - 1 ? MaxPlayers : index + 1;
+            return _soundPosition[index] ??= LoadLanguageSound($"race\\info\\youarepos{positionIndex}");
+        }
+
+        private Source? GetFinishedSoundByIndex(int index)
+        {
+            if (index < 0 || index >= _soundFinished.Length)
+                return null;
+
+            var finishIndex = Math.Min(index, MaxPlayers - 1);
+            var positionIndex = finishIndex == MaxPlayers - 1 ? MaxPlayers : finishIndex + 1;
+            return _soundFinished[finishIndex] ??= LoadLanguageSound($"race\\info\\finished{positionIndex}");
+        }
+
+        private void PreloadRaceSpeechSources()
         {
             for (var i = 0; i < MaxPlayers; i++)
             {
-                var playerNumber = i + 1;
-                var positionIndex = i == MaxPlayers - 1 ? MaxPlayers : playerNumber;
-                _soundPlayerNr[i] = LoadLanguageSound($"race\\info\\player{playerNumber}");
-                _soundPosition[i] = LoadLanguageSound($"race\\info\\youarepos{positionIndex}");
-                _soundFinished[i] = LoadLanguageSound($"race\\info\\finished{positionIndex}");
+                GetNumberSound(i + 1);
+                GetPlayerNumberSoundByIndex(i);
+                GetPositionSoundByIndex(i);
+                GetFinishedSoundByIndex(i);
+            }
+
+            PreloadRandomSounds();
+        }
+
+        private void PreloadRandomSounds()
+        {
+            for (var slot = 0; slot < _randomSounds.Length && slot < _totalRandomSounds.Length; slot++)
+            {
+                var count = Math.Min(_totalRandomSounds[slot], _randomSounds[slot].Length);
+                for (var variant = 0; variant < count; variant++)
+                    GetRandomSound(slot, variant);
             }
         }
 
@@ -66,13 +145,20 @@ namespace TopSpeed.Drive.Multiplayer
             _soundTurnEndDing = LoadLegacySound("ding.ogg");
         }
 
-        private void SpeakRaceIntro()
+        private void QueueRaceIntro()
         {
-            SpeakIfLoaded(_soundYouAre);
-            SpeakIfLoaded(_soundPlayer);
+            QueueIntroSound(_soundYouAre);
+            QueueIntroSound(_soundPlayer);
             var soundIndex = LocalPlayerNumber + 1;
-            if (soundIndex >= 0 && soundIndex < _soundNumbers.Length)
-                Speak(_soundNumbers[soundIndex]);
+            QueueIntroSound(GetNumberSound(soundIndex));
+        }
+
+        private void QueueIntroSound(Source? sound)
+        {
+            if (sound == null)
+                return;
+
+            _session.QueueEvent(new Event(Events.PlaySound, sound), 0f);
         }
 
         private void SpeakIfLoaded(Source? sound, bool unKey = false)
@@ -82,7 +168,7 @@ namespace TopSpeed.Drive.Multiplayer
             Speak(sound, unKey);
         }
 
-        private Source LoadLanguageSound(string key, bool streamFromDisk = true)
+        private Source LoadLanguageSound(string key, bool streamFromDisk = false)
         {
             var sound = TryLoadLanguageSound(key, allowFallback: true, streamFromDisk: streamFromDisk);
             if (sound != null)
@@ -90,20 +176,25 @@ namespace TopSpeed.Drive.Multiplayer
 
             var errorPath = AssetPaths.ResolveLegacySoundPath("error.wav");
             if (errorPath != null)
-                return LoadBusSource(errorPath, AudioEngineOptions.CopilotBusName, streamFromDisk: true);
+                return LoadBusSource(errorPath, AudioEngineOptions.CopilotBusName, streamFromDisk: false);
 
             throw new FileNotFoundException($"Missing language sound {key}.");
         }
 
-        private Source? TryLoadLanguageSound(string key, bool allowFallback, bool streamFromDisk = true)
+        private Source? TryLoadLanguageSound(string key, bool allowFallback, bool streamFromDisk = false)
         {
-            var path = allowFallback
-                ? AssetPaths.ResolveLanguageSoundPathWithFallback(_settings.Language, key)
-                : AssetPaths.ResolveLanguageSoundPath(_settings.Language, key);
+            var path = ResolveLanguageSoundPath(key, allowFallback);
             if (path != null)
                 return LoadBusSource(path, AudioEngineOptions.CopilotBusName, streamFromDisk);
 
             return null;
+        }
+
+        private string? ResolveLanguageSoundPath(string key, bool allowFallback)
+        {
+            return allowFallback
+                ? AssetPaths.ResolveLanguageSoundPathWithFallback(_settings.Language, key)
+                : AssetPaths.ResolveLanguageSoundPath(_settings.Language, key);
         }
 
         private Source LoadLegacySound(string fileName)
@@ -112,15 +203,16 @@ namespace TopSpeed.Drive.Multiplayer
             if (path == null)
                 throw new FileNotFoundException($"Missing legacy sound {fileName}.");
 
-            return LoadBusSource(path, AudioEngineOptions.CopilotBusName, streamFromDisk: true);
+            return LoadBusSource(path, AudioEngineOptions.CopilotBusName, streamFromDisk: false);
         }
 
         private Source LoadBusSource(string path, string busName, bool streamFromDisk)
         {
             var asset = _audio.LoadAsset(path, streamFromDisk);
-            return streamFromDisk
+            var source = streamFromDisk
                 ? _audio.CreateSource(asset, busName)
                 : _audio.CreateLoopingSource(asset, busName);
+            return source;
         }
     }
 }

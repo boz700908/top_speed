@@ -7,7 +7,7 @@ namespace TopSpeed.Core.Multiplayer
 {
     internal sealed partial class MultiplayerCoordinator
     {
-        private static string[] BuildNumericOptions(int min, int max, string singularUnit, string pluralUnit)
+        private static string[] BuildNumberOptions(int min, int max)
         {
             if (max < min)
                 return Array.Empty<string>();
@@ -16,8 +16,23 @@ namespace TopSpeed.Core.Multiplayer
             for (var i = min; i <= max; i++)
             {
                 var index = i - min;
-                var unit = i == 1 ? singularUnit : pluralUnit;
-                options[index] = i + " " + LocalizationService.Translate(unit);
+                options[index] = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return options;
+        }
+
+        private static string[] BuildNumericOptions(int min, int max, string singularTemplate, string pluralTemplate)
+        {
+            if (max < min)
+                return Array.Empty<string>();
+
+            var options = new string[max - min + 1];
+            for (var i = min; i <= max; i++)
+            {
+                var index = i - min;
+                var template = i == 1 ? singularTemplate : pluralTemplate;
+                options[index] = LocalizationService.Format(template, i);
             }
 
             return options;

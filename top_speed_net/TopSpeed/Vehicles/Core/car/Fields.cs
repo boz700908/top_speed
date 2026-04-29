@@ -1,6 +1,6 @@
 using System;
-using TopSpeed.Audio;
 using TopSpeed.Data;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Physics.Powertrain;
 using TopSpeed.Protocol;
@@ -27,17 +27,16 @@ namespace TopSpeed.Vehicles
 
         private bool _stickReleased = true;
 
-        private readonly AudioManager _audio;
         private readonly Track _track;
         private readonly DriveSettings _settings;
         private readonly Func<float> _currentTime;
         private readonly Func<bool> _started;
-        private readonly string _legacyRoot;
         private readonly EventQueue _events;
         private readonly Processor _eventProcessor;
         private readonly IFlow _audioFlow;
         private readonly CarRuntimeContext _runtimeContext;
         private readonly IVibrationDevice? _vibration;
+        private readonly PlayerVehicleAudio _raceAudio;
 
         private IModel _physicsModel;
 

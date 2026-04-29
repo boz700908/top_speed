@@ -44,6 +44,7 @@ namespace TopSpeed.Drive.Single
         private const float PostFinishStopSpeedKph = 0.5f;
         private const float BotSettledSpeedKph = 0.5f;
         private readonly AudioManager _audio;
+        private readonly RaceAudioFactory _raceAudio;
         private readonly SpeechService _speech;
         private readonly DriveSettings _settings;
         private readonly DriveInput _input;
@@ -59,8 +60,9 @@ namespace TopSpeed.Drive.Single
         private readonly VehiclePanelManager _panelManager;
         private readonly int _nrOfLaps;
         private readonly ComputerPlayer?[] _computerPlayers;
-        private readonly Source[] _soundNumbers;
+        private readonly Source?[] _soundNumbers;
         private readonly Source?[][] _randomSounds;
+        private readonly string?[] _randomSoundBaseNames;
         private readonly int[] _totalRandomSounds;
         private readonly Source[] _soundUnkey;
         private readonly Source[] _soundLaps;
@@ -131,6 +133,7 @@ namespace TopSpeed.Drive.Single
             _input = input ?? throw new ArgumentNullException(nameof(input));
             _vibrationDevice = vibrationDevice;
             _fileDialogs = fileDialogs ?? throw new ArgumentNullException(nameof(fileDialogs));
+            _raceAudio = new RaceAudioFactory(_audio);
             _soundQueue = new Queue();
             _finishLockController = new FinishLockInputController(input);
             _manualTransmission = !automaticTransmission;
@@ -140,6 +143,7 @@ namespace TopSpeed.Drive.Single
             _computerPlayers = new ComputerPlayer?[MaxComputerPlayers];
             _soundNumbers = CreateNumberSounds();
             (_randomSounds, _totalRandomSounds) = CreateRandomSoundContainers();
+            _randomSoundBaseNames = new string?[RandomSoundGroups];
             _soundUnkey = CreateUnkeySounds();
             _soundPosition = new Source?[MaxPlayers];
             _soundPlayerNr = new Source?[MaxPlayers];
@@ -155,12 +159,11 @@ namespace TopSpeed.Drive.Single
             _localRadio = runtimeObjects.LocalRadio;
             _radioPanel = runtimeObjects.RadioPanel;
             _panelManager = runtimeObjects.PanelManager;
-            LoadDefaultRandomSounds();
-            LoadPositionSounds();
+            ConfigureDefaultRandomSounds();
             LoadRaceUiSounds();
             _soundStart = LoadLanguageSound("race\\start321");
 
-            _trackAudio = new TrackAudioService(_settings, _randomSounds, _totalRandomSounds, _soundTurnEndDing, QueueSound, (sessionEvent, delay) => _session!.QueueEvent(sessionEvent, delay));
+            _trackAudio = new TrackAudioService(_settings, GetRandomSoundBySlot, _soundTurnEndDing, QueueSound, (sessionEvent, delay) => _session!.QueueEvent(sessionEvent, delay));
             _panels = new PanelsSubsystem("panels", 110, _input, _panelManager, _radioPanel, SpeakText);
             _playerVehicle = new PlayerVehicleSubsystem(
                 "vehicle",
@@ -256,10 +259,9 @@ namespace TopSpeed.Drive.Single
                 _computerPlayers,
                 _nComputerPlayers,
                 () => _playerNumber,
-                _soundPosition,
-                _soundPlayerNr,
-                _randomSounds,
-                _totalRandomSounds,
+                GetPositionSoundByIndex,
+                GetPlayerNumberSoundByIndex,
+                GetRandomSoundBySlot,
                 () => _started,
                 () => _lap,
                 () => _nrOfLaps,
@@ -281,7 +283,7 @@ namespace TopSpeed.Drive.Single
             var allowedExternalEvents = Defaults.NoExternalEvents;
             var policy = new PolicyBuilder(Phase.Initializing, Phase.Countdown)
                 .Add(Phase.Initializing, false, false, InputPolicy.Create(false, true, false), Defaults.NoSubsystems, allowedCommands, allowedExternalEvents, new[] { Phase.Countdown, Phase.Aborted })
-                .Add(Phase.Countdown, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_bots, _panels, _playerVehicle, _progress, _listener, _collisions, _coreRequests, _commentary, _playerInfo, _generalRequests, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Running, Phase.Paused, Phase.Aborted })
+                .Add(Phase.Countdown, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_bots, _panels, _playerVehicle, _progress, _listener, _coreRequests, _commentary, _playerInfo, _generalRequests, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Running, Phase.Paused, Phase.Aborted })
                 .Add(Phase.Running, true, true, InputPolicy.Create(true, true, true), PhaseDefinition.Subsystems(_bots, _panels, _playerVehicle, _progress, _listener, _collisions, _coreRequests, _commentary, _playerInfo, _generalRequests, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Paused, Phase.Finished, Phase.Aborted })
                 .Add(Phase.Paused, false, false, InputPolicy.Create(false, true, false), Defaults.NoSubsystems, allowedCommands, allowedExternalEvents, new[] { Phase.Countdown, Phase.Running, Phase.Finished, Phase.Aborted })
                 .Add(Phase.Finished, true, true, InputPolicy.Create(false, true, false), PhaseDefinition.Subsystems(_bots, _playerVehicle, _listener, _exit), allowedCommands, allowedExternalEvents, new[] { Phase.Aborted })

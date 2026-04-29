@@ -40,7 +40,7 @@ namespace TopSpeed.Drive.Multiplayer
         {
             var loadedTrack = Track.LoadFromData(trackName, trackData, _audio, trackData.UserDefined);
             var car = CarFactory.CreateDefault(
-                _audio,
+                _raceAudio,
                 loadedTrack,
                 _input,
                 _settings,
@@ -69,13 +69,9 @@ namespace TopSpeed.Drive.Multiplayer
             return (loadedTrack, car, localRadio, radioPanel, panelManager);
         }
 
-        private Source[] CreateNumberSounds()
+        private Source?[] CreateNumberSounds()
         {
-            var sounds = new Source[101];
-            for (var i = 0; i <= 100; i++)
-                sounds[i] = LoadLanguageSound($"numbers\\{i}");
-
-            return sounds;
+            return new Source?[101];
         }
 
         private Source[] CreateLapSounds(int laps)

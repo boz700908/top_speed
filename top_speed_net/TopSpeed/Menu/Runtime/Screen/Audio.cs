@@ -125,7 +125,7 @@ namespace TopSpeed.Menu
             var resolvedPath = ResolveMenuSoundPath(fileName);
             if (string.IsNullOrWhiteSpace(resolvedPath))
                 return null;
-            return _audio.LoadAsset(resolvedPath!, streamFromDisk: true);
+            return _audio.LoadAsset(resolvedPath!, streamFromDisk: false);
         }
 
         private void PlaySfx(SoundAsset? sound)

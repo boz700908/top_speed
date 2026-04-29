@@ -66,9 +66,13 @@ namespace TopSpeed.Menu
 
         private void ApplyGestureInput(IInputService input, ref UpdateInputState state)
         {
+            var currentItem = _index >= 0 && _index < _items.Count
+                ? _items[_index]
+                : null;
+
             if (UseMultiplayerTouchZones())
             {
-                ApplyMultiplayerZoneGestureInput(input, ref state);
+                ApplyMultiplayerZoneGestureInput(input, currentItem, ref state);
                 return;
             }
 
@@ -86,9 +90,6 @@ namespace TopSpeed.Menu
             state.MoveUp |= swipeLeft;
             state.MoveDown |= swipeRight;
 
-            var currentItem = _index >= 0 && _index < _items.Count
-                ? _items[_index]
-                : null;
             var isSlider = currentItem is Slider;
             var supportsFineAdjust = currentItem is Slider || currentItem is RadioButton || currentItem is ToggleItem;
 
@@ -121,18 +122,47 @@ namespace TopSpeed.Menu
             return InteractionHints.IsTouchPlatform() && MenuTouchProfile.UsesMultiplayerZones(Id);
         }
 
-        private static void ApplyMultiplayerZoneGestureInput(IInputService input, ref UpdateInputState state)
+        private static void ApplyMultiplayerZoneGestureInput(IInputService input, MenuItem? currentItem, ref UpdateInputState state)
         {
             var bottomSwipeLeft = input.WasZoneGesturePressed(GestureIntent.SwipeLeft, MenuTouchProfile.MultiplayerBottomZoneId);
             var bottomSwipeRight = input.WasZoneGesturePressed(GestureIntent.SwipeRight, MenuTouchProfile.MultiplayerBottomZoneId);
             var bottomSwipeUp = input.WasZoneGesturePressed(GestureIntent.SwipeUp, MenuTouchProfile.MultiplayerBottomZoneId);
             var bottomSwipeDown = input.WasZoneGesturePressed(GestureIntent.SwipeDown, MenuTouchProfile.MultiplayerBottomZoneId);
+            var bottomTwoFingerSwipeLeft = input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeLeft, MenuTouchProfile.MultiplayerBottomZoneId);
+            var bottomTwoFingerSwipeRight = input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeRight, MenuTouchProfile.MultiplayerBottomZoneId);
+            var bottomTwoFingerSwipeUp = input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeUp, MenuTouchProfile.MultiplayerBottomZoneId);
+            var bottomTwoFingerSwipeDown = input.WasZoneGesturePressed(GestureIntent.TwoFingerSwipeDown, MenuTouchProfile.MultiplayerBottomZoneId);
+            var bottomThreeFingerSwipeUp = input.WasZoneGesturePressed(GestureIntent.ThreeFingerSwipeUp, MenuTouchProfile.MultiplayerBottomZoneId);
+            var bottomThreeFingerSwipeDown = input.WasZoneGesturePressed(GestureIntent.ThreeFingerSwipeDown, MenuTouchProfile.MultiplayerBottomZoneId);
 
             // Left/right maps to previous/next item in menu ordering.
             state.MoveUp |= bottomSwipeLeft;
             state.MoveDown |= bottomSwipeRight;
-            state.Activate |= bottomSwipeUp;
-            state.Back |= bottomSwipeDown;
+
+            var isSlider = currentItem is Slider;
+            var supportsFineAdjust = currentItem is Slider || currentItem is RadioButton || currentItem is ToggleItem;
+
+            if (isSlider)
+            {
+                state.PageUp |= bottomTwoFingerSwipeUp;
+                state.PageDown |= bottomTwoFingerSwipeDown;
+                state.MoveHome |= bottomThreeFingerSwipeUp;
+                state.MoveEnd |= bottomThreeFingerSwipeDown;
+                state.Back |= bottomSwipeDown;
+            }
+            else
+            {
+                state.Activate |= bottomSwipeUp;
+                state.Back |= bottomSwipeDown;
+                state.MoveHome |= bottomTwoFingerSwipeUp;
+                state.MoveEnd |= bottomTwoFingerSwipeDown;
+            }
+
+            if (supportsFineAdjust || (currentItem?.HasActions ?? false))
+            {
+                state.MoveLeft |= bottomTwoFingerSwipeLeft;
+                state.MoveRight |= bottomTwoFingerSwipeRight;
+            }
         }
 
         private bool TryHandleHeldInputGate(IInputService input, UpdateInputState state, out MenuUpdateResult result)

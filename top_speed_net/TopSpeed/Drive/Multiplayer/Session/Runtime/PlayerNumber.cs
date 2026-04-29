@@ -8,8 +8,7 @@ namespace TopSpeed.Drive.Multiplayer
                 return;
 
             var index = LocalPlayerNumber + 1;
-            if (index >= 0 && index < _soundNumbers.Length)
-                QueueSound(_soundNumbers[index]);
+            QueueSound(GetNumberSound(index));
         }
     }
 }

@@ -116,10 +116,10 @@ public sealed class DiagnosticsBehaviorTests
                     },
                     new AudioDiagnosticSnapshot(
                         output: new AudioOutputSnapshot("main", 48000, 2, 1f, 0f, 1.2f, 1.58f, 0.98f, -0.17f, false, 1, 0, 0, 0, Array.Empty<AudioBusSnapshot>(), Array.Empty<AudioSourceSnapshot>()),
-                        source: new AudioSourceSnapshot(42, "vehicles", false, true, false, 2, 48000, true, 1f, 0f, 1f, 0f, 0.8f, -1.94f, 0.8f, -1.94f, Array.Empty<AudioGainStageSnapshot>(), 1.25f),
+                        source: new AudioSourceSnapshot(42, "vehicles", false, true, false, 2, 48000, true, 1f, 0f, 1f, 1f, 1f, 0f, 0.8f, -1.94f, 0.8f, -1.94f, Array.Empty<AudioGainStageSnapshot>(), 1.25f),
                         mix: new AudioDiagnosticMixSnapshot("main", 1f, 0f, 1.2f, 1.58f, 0.98f, -0.17f, 0.9f, -0.92f, new[]
                         {
-                            new AudioSourceSnapshot(42, "vehicles", false, true, false, 2, 48000, true, 1f, 0f, 1f, 0f, 0.8f, -1.94f, 0.8f, -1.94f, Array.Empty<AudioGainStageSnapshot>(), 1.25f)
+                            new AudioSourceSnapshot(42, "vehicles", false, true, false, 2, 48000, true, 1f, 0f, 1f, 1f, 1f, 0f, 0.8f, -1.94f, 0.8f, -1.94f, Array.Empty<AudioGainStageSnapshot>(), 1.25f)
                         })));
             }
 

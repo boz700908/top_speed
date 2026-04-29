@@ -30,6 +30,8 @@ namespace TS.Sdl.Input
 
         public event Action<GestureEvent>? Raised;
 
+        public GestureOptions Options => _options;
+
         public void Reset()
         {
             _touches.Clear();

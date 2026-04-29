@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net472;net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
@@ -9,12 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MiniAudioExNET\MiniAudioExNET.csproj" />
+    <ProjectReference Include="..\SoundFlow\Src\SoundFlow.csproj" />
+    <ProjectReference Include="..\SoundFlow\Codecs\SoundFlow.Codecs.FFMpeg\SoundFlow.Codecs.FFMpeg.csproj" />
     <ProjectReference Include="..\SteamAudio.NET\Src\SteamAudio.NET.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-
+  <Target Name="CleanReferencedRuntimeArtifacts" AfterTargets="Build">
+    <RemoveDir Directories="$(OutDir)runtimes" Condition="Exists('$(OutDir)runtimes')" />
+    <RemoveDir Directories="$(OutDir)lib" Condition="Exists('$(OutDir)lib')" />
+  </Target>
 </Project>

@@ -119,7 +119,7 @@ namespace TopSpeed.Game
 
         private static string CombineCrashText(string prefix, string remark)
         {
-            return string.Concat(prefix, " ", remark);
+            return string.Concat(LocalizationService.Translate(prefix), " ", LocalizationService.Translate(remark));
         }
 
         private void AppendTimeTrialRunSummary(List<DialogItem> items, DriveResultSummary summary)

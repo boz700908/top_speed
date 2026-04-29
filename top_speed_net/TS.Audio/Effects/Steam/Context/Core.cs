@@ -1,20 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Threading;
 using SteamAudio;
 
 namespace TS.Audio
 {
-    public sealed partial class SteamAudioContext : IDisposable
+    internal sealed unsafe partial class SteamAudioRuntime : IDisposable
     {
         internal sealed class ListenerState
         {
-            public readonly IPL.Vector3 Right;
-            public readonly IPL.Vector3 Up;
-            public readonly IPL.Vector3 Ahead;
-            public readonly IPL.Vector3 Origin;
-
             public ListenerState(IPL.Vector3 right, IPL.Vector3 up, IPL.Vector3 ahead, IPL.Vector3 origin)
             {
                 Right = right;
@@ -22,192 +18,184 @@ namespace TS.Audio
                 Ahead = ahead;
                 Origin = origin;
             }
+
+            public IPL.Vector3 Right { get; }
+            public IPL.Vector3 Up { get; }
+            public IPL.Vector3 Ahead { get; }
+            public IPL.Vector3 Origin { get; }
         }
 
-        public IPL.Context Context;
-        public IPL.Hrtf Hrtf;
-        public readonly int SampleRate;
-        public readonly int FrameSize;
-        public readonly int ReflectionOrder;
-        public readonly int ReflectionChannels;
-        public readonly int ReflectionIrSize;
-        public readonly float ReflectionDurationSeconds;
-        public readonly IPL.ReflectionEffectType ReflectionType;
-        private volatile ListenerState _listenerState;
-        internal ListenerState ListenerSnapshot => _listenerState;
+        private const float ReflectionDurationSeconds = 0.5f;
+        private const int ReflectionOrder = 0;
+        private readonly object _simulationLock = new object();
+        private readonly Dictionary<AudioSourceHandle, IPL.Source> _sources = new Dictionary<AudioSourceHandle, IPL.Source>();
+        private readonly HashSet<AudioSourceHandle> _activeSources = new HashSet<AudioSourceHandle>();
+        private readonly List<AudioSourceHandle> _sourcesToRemove = new List<AudioSourceHandle>();
+        private IPL.Context _context;
+        private IPL.Hrtf _hrtf;
         private IPL.Simulator _simulator;
         private IPL.Scene _scene;
-        private readonly Dictionary<AudioSourceHandle, IPL.Source> _sources = new Dictionary<AudioSourceHandle, IPL.Source>();
-        private readonly object _simLock = new object();
+        private bool _disposed;
+        private volatile ListenerState _listenerState;
 
-        public IDisposable AcquireSimulationLock()
+        private SteamAudioRuntime(IPL.Context context, IPL.Hrtf hrtf, IPL.AudioSettings audioSettings, bool hrtfAvailable)
         {
-            return new SimulationLock(_simLock);
-        }
-
-        public SteamAudioContext(int sampleRate, int frameSize, string? hrtfSofaPath)
-        {
-            SampleRate = sampleRate;
-            FrameSize = frameSize;
-            ReflectionOrder = 0;
+            _context = context;
+            _hrtf = hrtf;
+            AudioSettings = audioSettings;
+            HrtfAvailable = hrtfAvailable;
             ReflectionChannels = (ReflectionOrder + 1) * (ReflectionOrder + 1);
-            ReflectionDurationSeconds = 0.5f;
-            ReflectionIrSize = Math.Max(1, (int)Math.Ceiling(ReflectionDurationSeconds * SampleRate));
             ReflectionType = IPL.ReflectionEffectType.Parametric;
-            _listenerState = CreateIdentityState();
-
-            var contextSettings = new IPL.ContextSettings
-            {
-                Version = IPL.Version,
-                LogCallback = null,
-                AllocateCallback = null,
-                FreeCallback = null,
-                SimdLevel = IPL.SimdLevel.Avx2,
-                Flags = 0
-            };
-
-            var error = IPL.ContextCreate(in contextSettings, out Context);
-            if (error != IPL.Error.Success)
-                throw new InvalidOperationException("Failed to create SteamAudio context: " + error);
-
-            var hrtfSettings = new IPL.HrtfSettings
-            {
-                Type = string.IsNullOrWhiteSpace(hrtfSofaPath) ? IPL.HrtfType.Default : IPL.HrtfType.Sofa,
-                SofaFileName = string.IsNullOrWhiteSpace(hrtfSofaPath) ? null : hrtfSofaPath,
-                SofaData = IntPtr.Zero,
-                SofaDataSize = 0,
-                Volume = 1.0f,
-                NormType = IPL.HrtfNormType.None
-            };
-
-            var audioSettings = new IPL.AudioSettings
-            {
-                SamplingRate = sampleRate,
-                FrameSize = frameSize
-            };
-
-            error = IPL.HrtfCreate(Context, in audioSettings, in hrtfSettings, out Hrtf);
-            if (error != IPL.Error.Success)
-            {
-                IPL.ContextRelease(ref Context);
-                Context = default;
-                throw new InvalidOperationException("Failed to create SteamAudio HRTF: " + error);
-            }
+            _listenerState = CreateIdentityListener();
         }
 
-        public void SetScene(IPL.Scene scene)
+        public IPL.Context Context => _context;
+        public IPL.Hrtf Hrtf => _hrtf;
+        public IPL.AudioSettings AudioSettings { get; }
+        public bool HrtfAvailable { get; }
+        public bool IsAvailable => Context.Handle != IntPtr.Zero;
+        public int ReflectionChannels { get; }
+        public IPL.ReflectionEffectType ReflectionType { get; }
+        public bool HasScene => _scene.Handle != IntPtr.Zero;
+        internal bool SupportsReflections => ReflectionType == IPL.ReflectionEffectType.Parametric;
+        internal ListenerState ListenerSnapshot => _listenerState;
+
+        public static SteamAudioRuntime? TryCreate(AudioSystemConfig config, int sampleRate, int channels, int frameSize)
         {
-            if (scene.Handle == IntPtr.Zero || Context.Handle == IntPtr.Zero)
-                return;
+            if (sampleRate <= 0 || channels <= 0 || frameSize <= 0)
+                return null;
 
-            lock (_simLock)
+            IPL.Context context = default;
+            IPL.Hrtf hrtf = default;
+
+            try
             {
-                if (_simulator.Handle == IntPtr.Zero)
-                    CreateSimulator();
-
-                _scene = scene;
-
-                if (_simulator.Handle != IntPtr.Zero)
+                var contextSettings = new IPL.ContextSettings
                 {
-                    IPL.SimulatorSetScene(_simulator, scene);
-                    IPL.SimulatorCommit(_simulator);
-                }
-            }
-        }
+                    Version = IPL.Version
+                };
 
-        public void ClearScene()
-        {
-            lock (_simLock)
-            {
-                if (_simulator.Handle != IntPtr.Zero)
+                if (IPL.ContextCreate(in contextSettings, out context) != IPL.Error.Success || context.Handle == IntPtr.Zero)
+                    return null;
+
+                var audioSettings = new IPL.AudioSettings
                 {
-                    IPL.SimulatorSetScene(_simulator, default);
-                    IPL.SimulatorCommit(_simulator);
+                    SamplingRate = sampleRate,
+                    FrameSize = frameSize
+                };
+
+                var hrtfAvailable = false;
+                if (config.UseHrtf && channels >= 2)
+                {
+                    var hrtfSettings = CreateHrtfSettings(config);
+                    if (IPL.HrtfCreate(context, in audioSettings, in hrtfSettings, out hrtf) == IPL.Error.Success && hrtf.Handle != IntPtr.Zero)
+                        hrtfAvailable = true;
                 }
 
-                _scene = default;
+                return new SteamAudioRuntime(context, hrtf, audioSettings, hrtfAvailable);
             }
-        }
-
-        public void UpdateListener(Vector3 position, Vector3 forward, Vector3 up)
-        {
-            if (Context.Handle == IntPtr.Zero)
-                return;
-
-            var normForward = Vector3.Normalize(forward);
-            var normUp = Vector3.Normalize(up);
-            var right = Vector3.Normalize(Vector3.Cross(normUp, normForward));
-
-            _listenerState = new ListenerState(
-                ToIpl(right),
-                ToIpl(normUp),
-                new IPL.Vector3 { X = -normForward.X, Y = -normForward.Y, Z = -normForward.Z },
-                ToIpl(position));
+            catch
+            {
+                if (hrtf.Handle != IntPtr.Zero)
+                    IPL.HrtfRelease(ref hrtf);
+                if (context.Handle != IntPtr.Zero)
+                    IPL.ContextRelease(ref context);
+                return null;
+            }
         }
 
         public void Dispose()
         {
-            lock (_simLock)
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+            lock (_simulationLock)
             {
-                foreach (var entry in _sources.Values)
+                foreach (var entry in _sources)
                 {
-                    var source = entry;
-                    if (source.Handle != IntPtr.Zero)
-                    {
+                    var source = entry.Value;
+                    if (source.Handle == IntPtr.Zero)
+                        continue;
+
+                    if (_simulator.Handle != IntPtr.Zero)
                         IPL.SourceRemove(source, _simulator);
-                        IPL.SourceRelease(ref source);
-                    }
+                    IPL.SourceRelease(ref source);
                 }
                 _sources.Clear();
 
                 if (_simulator.Handle != IntPtr.Zero)
-                {
                     IPL.SimulatorRelease(ref _simulator);
-                    _simulator = default;
+
+                _scene = default;
+            }
+
+            if (_hrtf.Handle != IntPtr.Zero)
+                IPL.HrtfRelease(ref _hrtf);
+            if (_context.Handle != IntPtr.Zero)
+                IPL.ContextRelease(ref _context);
+        }
+
+        private static ListenerState CreateIdentityListener()
+        {
+            return new ListenerState(
+                new IPL.Vector3(1f, 0f, 0f),
+                new IPL.Vector3(0f, 1f, 0f),
+                new IPL.Vector3(0f, 0f, -1f),
+                new IPL.Vector3(0f, 0f, 0f));
+        }
+
+        private static IPL.HrtfSettings CreateHrtfSettings(AudioSystemConfig config)
+        {
+            var settings = new IPL.HrtfSettings
+            {
+                Type = IPL.HrtfType.Default,
+                SofaFileName = string.Empty,
+                SofaData = IntPtr.Zero,
+                SofaDataSize = 0,
+                Volume = 1f,
+                NormType = IPL.HrtfNormType.None
+            };
+
+            if (!string.IsNullOrWhiteSpace(config.HrtfSofaPath))
+            {
+                var sofaPath = Path.GetFullPath(config.HrtfSofaPath);
+                if (File.Exists(sofaPath))
+                {
+                    settings.Type = IPL.HrtfType.Sofa;
+                    settings.SofaFileName = sofaPath;
                 }
             }
 
-            if (Hrtf.Handle != IntPtr.Zero)
-            {
-                IPL.HrtfRelease(ref Hrtf);
-                Hrtf = default;
-            }
-
-            if (Context.Handle != IntPtr.Zero)
-            {
-                IPL.ContextRelease(ref Context);
-                Context = default;
-            }
+            return settings;
         }
 
-        public static IPL.Vector3 ToIpl(Vector3 v)
+        private static IPL.Vector3 ToIpl(Vector3 value)
         {
-            return new IPL.Vector3 { X = v.X, Y = v.Y, Z = v.Z };
+            return new IPL.Vector3(value.X, value.Y, value.Z);
         }
 
-        private sealed class SimulationLock : IDisposable
+        private static Vector3 NormalizeOrFallback(Vector3 value, Vector3 fallback)
         {
-            private readonly object _lock;
-
-            public SimulationLock(object simLock)
-            {
-                _lock = simLock;
-                Monitor.Enter(_lock);
-            }
-
-            public void Dispose()
-            {
-                Monitor.Exit(_lock);
-            }
+            var lengthSquared = value.LengthSquared();
+            if (lengthSquared <= 1e-6f)
+                return fallback;
+            return Vector3.Normalize(value);
         }
 
-        private static ListenerState CreateIdentityState()
+        private static float Clamp01(float value)
         {
-            return new ListenerState(
-                new IPL.Vector3 { X = 1, Y = 0, Z = 0 },
-                new IPL.Vector3 { X = 0, Y = 1, Z = 0 },
-                new IPL.Vector3 { X = 0, Y = 0, Z = -1 },
-                new IPL.Vector3 { X = 0, Y = 0, Z = 0 });
+            if (value < 0f)
+                return 0f;
+            if (value > 1f)
+                return 1f;
+            return value;
+        }
+
+        private static float Lerp(float from, float to, float amount)
+        {
+            return from + ((to - from) * amount);
         }
     }
 }

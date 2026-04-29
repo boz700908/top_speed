@@ -1,8 +1,7 @@
 using System;
-using TopSpeed.Audio;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Tracks;
-using TS.Audio;
 using TopSpeed.Input.Devices.Vibration;
 
 namespace TopSpeed.Vehicles
@@ -10,7 +9,7 @@ namespace TopSpeed.Vehicles
     internal sealed class RaceCar : Car
     {
         public RaceCar(
-            AudioManager audio,
+            RaceAudioFactory raceAudio,
             Track track,
             DriveInput input,
             DriveSettings settings,
@@ -19,7 +18,7 @@ namespace TopSpeed.Vehicles
             Func<float> currentTime,
             Func<bool> started,
             IVibrationDevice? vibrationDevice = null)
-            : base(audio, track, input, settings, vehicleIndex, vehicleFile, currentTime, started, vibrationDevice)
+            : base(raceAudio, track, input, settings, vehicleIndex, vehicleFile, currentTime, started, vibrationDevice)
         {
         }
     }

@@ -1,247 +1,506 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Threading;
-using MiniAudioEx.Native;
 
 namespace TS.Audio
 {
     public sealed partial class AudioSourceHandle
     {
+        public void SetVolume(float value)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+            {
+                _userVolume = Clamp01(value);
+                if (_fadeRemaining > 0f && !_stopAfterFade)
+                {
+                    _fadeTargetVolume = _userVolume;
+                }
+                else
+                {
+                    _currentVolume = _userVolume;
+                    ApplyPan();
+                }
+            }
+
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceVolumeChanged))
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceVolumeChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source volume changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["volume"] = _currentVolume,
+                        ["volumeDb"] = AudioMath.GainToDecibels(_currentVolume)
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
+
+        public float GetVolume()
+        {
+            return _currentVolume;
+        }
+
+        public void SetPitch(float value)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+            {
+                _pitch = value <= 0f ? 0.001f : value;
+                ApplyPlaybackSpeed();
+            }
+
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourcePitchChanged))
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourcePitchChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source pitch changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["pitch"] = _pitch
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
+
+        public float GetPitch()
+        {
+            return _pitch;
+        }
+
+        public void SetPan(float value)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+            {
+                _pan = Clamp(value, -1f, 1f);
+                ApplyPan();
+            }
+
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourcePanChanged))
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourcePanChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source pan changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["pan"] = _pan
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
+
+        public float GetPan()
+        {
+            return _pan;
+        }
+
+        public void SetStereoWidening(bool enabled)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+                _stereoWidening = enabled;
+
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceStereoWideningChanged))
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceStereoWideningChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source stereo widening changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["enabled"] = enabled
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
+
         public void SetPosition(Vector3 position)
         {
             ThrowIfDisposed();
-            if (!_spatialize)
-                return;
+            lock (_stateSync)
+                _position = position;
 
-            Volatile.Write(ref _spatial.PosX, position.X);
-            Volatile.Write(ref _spatial.PosY, position.Y);
-            Volatile.Write(ref _spatial.PosZ, position.Z);
-
-            if (!_graph.UsesHrtf)
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourcePositionChanged))
             {
-                var mapped = ToMaVec3(position);
-                MiniAudioNative.ma_sound_group_set_position(_group, mapped.x, mapped.y, mapped.z);
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourcePositionChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source position changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["x"] = position.X,
+                        ["y"] = position.Y,
+                        ["z"] = position.Z
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
             }
-
-            Emit(
-                AudioDiagnosticLevel.Trace,
-                AudioDiagnosticKind.SourcePositionChanged,
-                "Audio source position changed.",
-                new Dictionary<string, object?>
-                {
-                    ["x"] = position.X,
-                    ["y"] = position.Y,
-                    ["z"] = position.Z
-                });
         }
 
         public void SetVelocity(Vector3 velocity)
         {
             ThrowIfDisposed();
-            if (!_spatialize)
-                return;
+            lock (_stateSync)
+                _velocity = velocity;
 
-            Volatile.Write(ref _spatial.VelX, velocity.X);
-            Volatile.Write(ref _spatial.VelY, velocity.Y);
-            Volatile.Write(ref _spatial.VelZ, velocity.Z);
-
-            if (!_graph.UsesHrtf)
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceVelocityChanged))
             {
-                var mapped = ToMaVec3(velocity);
-                MiniAudioNative.ma_sound_group_set_velocity(_group, mapped.x, mapped.y, mapped.z);
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceVelocityChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source velocity changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["x"] = velocity.X,
+                        ["y"] = velocity.Y,
+                        ["z"] = velocity.Z
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
             }
-
-            Emit(
-                AudioDiagnosticLevel.Trace,
-                AudioDiagnosticKind.SourceVelocityChanged,
-                "Audio source velocity changed.",
-                new Dictionary<string, object?>
-                {
-                    ["x"] = velocity.X,
-                    ["y"] = velocity.Y,
-                    ["z"] = velocity.Z
-                });
         }
 
-        public void SetDistanceModel(DistanceModel model, float refDistance, float maxDistance, float rolloff)
+        public void SetTransform(Vector3 position, Vector3 velocity)
         {
             ThrowIfDisposed();
-            if (!_spatialize)
+            lock (_stateSync)
+            {
+                if (_position == position && _velocity == velocity)
+                    return;
+
+                _position = position;
+                _velocity = velocity;
+            }
+
+            var emitPosition = ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourcePositionChanged);
+            var emitVelocity = ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceVelocityChanged);
+            if (!emitPosition && !emitVelocity)
                 return;
 
-            if (refDistance <= 0f)
-                refDistance = 0.0001f;
-            if (maxDistance <= 0f)
-                maxDistance = MaxDistanceInfinite;
-            if (maxDistance < refDistance)
-                maxDistance = refDistance;
+            if (emitPosition)
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourcePositionChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source position changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["x"] = position.X,
+                        ["y"] = position.Y,
+                        ["z"] = position.Z
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
 
-            Volatile.Write(ref _spatial.RefDistance, refDistance);
-            Volatile.Write(ref _spatial.MaxDistance, maxDistance);
-            Volatile.Write(ref _spatial.RollOff, rolloff);
-            _spatial.DistanceModel = model;
+            if (emitVelocity)
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceVelocityChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source velocity changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["x"] = velocity.X,
+                        ["y"] = velocity.Y,
+                        ["z"] = velocity.Z
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
 
-            MiniAudioNative.ma_sound_group_set_min_distance(_group, refDistance);
-            MiniAudioNative.ma_sound_group_set_max_distance(_group, maxDistance);
-            MiniAudioNative.ma_sound_group_set_rolloff(_group, rolloff);
-            MiniAudioNative.ma_sound_group_set_attenuation_model(_group, ToMaAttenuationModel(model));
-            Emit(
-                AudioDiagnosticLevel.Debug,
-                AudioDiagnosticKind.SourceDistanceModelChanged,
-                "Audio source distance model changed.",
-                new Dictionary<string, object?>
-                {
-                    ["model"] = model.ToString(),
-                    ["refDistance"] = refDistance,
-                    ["maxDistance"] = maxDistance,
-                    ["rollOff"] = rolloff
-                });
+        public void SetDistanceModel(DistanceModel model, float minDistance, float maxDistance, float rollOff)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+            {
+                _distanceModel = model;
+                _minDistance = minDistance;
+                _maxDistance = maxDistance;
+                _rollOff = rollOff;
+            }
+
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceDistanceModelChanged))
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceDistanceModelChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source distance model changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["distanceModel"] = model.ToString(),
+                        ["minDistance"] = minDistance,
+                        ["maxDistance"] = maxDistance,
+                        ["rollOff"] = rollOff
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
+
+        public void ApplyCurveDistanceScaler(float value)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+                _curveDistanceScaler = value;
+        }
+
+        public void SetDopplerFactor(float value)
+        {
+            ThrowIfDisposed();
+            lock (_stateSync)
+                _dopplerFactor = value;
+
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceDopplerChanged))
+            {
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceDopplerChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source doppler factor changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["dopplerFactor"] = value
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
         }
 
         public void SetRoomAcoustics(RoomAcoustics acoustics)
         {
-            Volatile.Write(ref _spatial.RoomFlags, acoustics.HasRoom ? AudioSourceSpatialParams.RoomHasProfile : 0);
-            Volatile.Write(ref _spatial.RoomReverbTimeSeconds, acoustics.ReverbTimeSeconds);
-            Volatile.Write(ref _spatial.RoomReverbGain, acoustics.ReverbGain);
-            Volatile.Write(ref _spatial.RoomHfDecayRatio, acoustics.HfDecayRatio);
-            Volatile.Write(ref _spatial.RoomLateReverbGain, acoustics.LateReverbGain);
-            Volatile.Write(ref _spatial.RoomDiffusion, acoustics.Diffusion);
-            Volatile.Write(ref _spatial.RoomAirAbsorptionScale, acoustics.AirAbsorptionScale);
-            Volatile.Write(ref _spatial.RoomOcclusionScale, acoustics.OcclusionScale);
-            Volatile.Write(ref _spatial.RoomTransmissionScale, acoustics.TransmissionScale);
-            Volatile.Write(ref _spatial.RoomOcclusionOverride, acoustics.OcclusionOverride ?? float.NaN);
-            Volatile.Write(ref _spatial.RoomTransmissionOverrideLow, acoustics.TransmissionOverrideLow ?? float.NaN);
-            Volatile.Write(ref _spatial.RoomTransmissionOverrideMid, acoustics.TransmissionOverrideMid ?? float.NaN);
-            Volatile.Write(ref _spatial.RoomTransmissionOverrideHigh, acoustics.TransmissionOverrideHigh ?? float.NaN);
-            Volatile.Write(ref _spatial.RoomAirAbsorptionOverrideLow, acoustics.AirAbsorptionOverrideLow ?? float.NaN);
-            Volatile.Write(ref _spatial.RoomAirAbsorptionOverrideMid, acoustics.AirAbsorptionOverrideMid ?? float.NaN);
-            Volatile.Write(ref _spatial.RoomAirAbsorptionOverrideHigh, acoustics.AirAbsorptionOverrideHigh ?? float.NaN);
-            Emit(
-                AudioDiagnosticLevel.Trace,
-                AudioDiagnosticKind.SourceRoomAcousticsChanged,
-                "Audio source room acoustics changed.",
-                new Dictionary<string, object?>
-                {
-                    ["hasRoom"] = acoustics.HasRoom,
-                    ["reverbTimeSeconds"] = acoustics.ReverbTimeSeconds,
-                    ["occlusionScale"] = acoustics.OcclusionScale
-                });
-        }
+            ThrowIfDisposed();
+            lock (_stateSync)
+                _roomAcoustics = acoustics;
 
-        internal void ApplyDirectSimulation(float occlusion, float airLow, float airMid, float airHigh, float transLow, float transMid, float transHigh)
-        {
-            Volatile.Write(ref _spatial.Occlusion, occlusion);
-            Volatile.Write(ref _spatial.AirAbsLow, airLow);
-            Volatile.Write(ref _spatial.AirAbsMid, airMid);
-            Volatile.Write(ref _spatial.AirAbsHigh, airHigh);
-            Volatile.Write(ref _spatial.TransLow, transLow);
-            Volatile.Write(ref _spatial.TransMid, transMid);
-            Volatile.Write(ref _spatial.TransHigh, transHigh);
-            Volatile.Write(ref _spatial.SimulationFlags,
-                AudioSourceSpatialParams.SimOcclusion |
-                AudioSourceSpatialParams.SimTransmission |
-                AudioSourceSpatialParams.SimAirAbsorption);
-        }
-
-        internal void ApplyReverbSimulation(float timeLow, float timeMid, float timeHigh, float eqLow, float eqMid, float eqHigh, int delay)
-        {
-            Volatile.Write(ref _spatial.ReverbTimeLow, timeLow);
-            Volatile.Write(ref _spatial.ReverbTimeMid, timeMid);
-            Volatile.Write(ref _spatial.ReverbTimeHigh, timeHigh);
-            Volatile.Write(ref _spatial.ReverbEqLow, eqLow);
-            Volatile.Write(ref _spatial.ReverbEqMid, eqMid);
-            Volatile.Write(ref _spatial.ReverbEqHigh, eqHigh);
-            Volatile.Write(ref _spatial.ReverbDelay, delay);
-            Volatile.Write(ref _spatial.SimulationFlags, _spatial.SimulationFlags | AudioSourceSpatialParams.SimReflections);
-        }
-
-        public void ApplyCurveDistanceScaler(float curveDistanceScaler)
-        {
-            if (!_spatialize)
-                return;
-
-            if (curveDistanceScaler <= 0f)
-                curveDistanceScaler = 0.0001f;
-
-            SetDistanceModel(DistanceModel.Inverse, curveDistanceScaler, MaxDistanceInfinite, 1.0f);
-        }
-
-        public void SetDopplerFactor(float dopplerFactor)
-        {
-            if (!_spatialize)
-                return;
-
-            _dopplerFactor = Math.Max(0f, dopplerFactor);
-            MiniAudioNative.ma_sound_group_set_doppler_factor(_group, _dopplerFactor);
-            Emit(
-                AudioDiagnosticLevel.Trace,
-                AudioDiagnosticKind.SourceDopplerChanged,
-                "Audio source doppler factor changed.",
-                new Dictionary<string, object?>
-                {
-                    ["dopplerFactor"] = _dopplerFactor
-                });
-        }
-
-        public void UpdateDoppler(Vector3 listenerPos, Vector3 listenerVel, AudioSystemConfig config)
-        {
-            if (!_graph.UsesHrtf)
-                return;
-
-            var srcPos = new Vector3(
-                Volatile.Read(ref _spatial.PosX),
-                Volatile.Read(ref _spatial.PosY),
-                Volatile.Read(ref _spatial.PosZ));
-
-            var srcVel = new Vector3(
-                Volatile.Read(ref _spatial.VelX),
-                Volatile.Read(ref _spatial.VelY),
-                Volatile.Read(ref _spatial.VelZ));
-
-            var rel = srcPos - listenerPos;
-            var distance = rel.Length();
-            if (distance <= 0.0001f)
+            if (ShouldEmitSourceDiagnostic(AudioDiagnosticKind.SourceRoomAcousticsChanged))
             {
-                MiniAudioNative.ma_sound_group_set_pitch(_group, _basePitch);
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.SourceRoomAcousticsChanged,
+                    AudioDiagnosticEntityType.Source,
+                    _output.Name,
+                    _bus.Name,
+                    SourceId,
+                    "Audio source room acoustics changed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["sourceId"] = SourceId,
+                        ["hasRoom"] = acoustics.HasRoom,
+                        ["reverbTimeSeconds"] = acoustics.ReverbTimeSeconds
+                    },
+                    () => new AudioDiagnosticSnapshot(source: CaptureSnapshot()));
+            }
+        }
+
+        public void Update(double deltaTime)
+        {
+            DispatchPlaybackEndedIfNeeded();
+            EmitStartedDiagnosticIfNeeded();
+            UpdateFade(deltaTime);
+
+            if (!_spatialize)
                 return;
+
+            Vector3 position;
+            Vector3 velocity;
+            DistanceModel distanceModel;
+            float minDistance;
+            float maxDistance;
+            float rollOff;
+            float? curveDistanceScaler;
+            float dopplerFactor;
+            RoomAcoustics roomAcoustics;
+            bool stereoWidening;
+
+            lock (_stateSync)
+            {
+                position = _position;
+                velocity = _velocity;
+                distanceModel = _distanceModel;
+                minDistance = _minDistance;
+                maxDistance = _maxDistance;
+                rollOff = _rollOff;
+                curveDistanceScaler = _curveDistanceScaler;
+                dopplerFactor = _dopplerFactor;
+                roomAcoustics = _roomAcoustics;
+                stereoWidening = _stereoWidening;
             }
 
-            var dir = rel / distance;
-            float vL = Vector3.Dot(listenerVel, dir);
-            float vS = Vector3.Dot(srcVel, dir);
+            var listener = _output.CaptureListenerState();
+            var localPosition = GetLocalPosition(position, listener);
+            var distance = localPosition.Length();
+            var attenuation = CalculateDistanceAttenuation(distance, distanceModel, minDistance, maxDistance, rollOff, curveDistanceScaler);
+            var spatialBlend = _allowHrtf && _output.IsHrtfActive ? 1f : 0f;
+            var air = CalculateAirAbsorption(distance, roomAcoustics);
+            var occlusion = roomAcoustics.OcclusionOverride ?? 1f;
+            var spatialPan = _steamAudioSpatial?.IsBinauralActive == true
+                ? 0f
+                : Clamp(localPosition.X / Math.Max(1f, distance), -1f, 1f);
+            var spatialPitch = CalculateDoppler(position, velocity, listener, localPosition, dopplerFactor);
+            var spatialGain = _steamAudioSpatial?.UsesSteamAudio == true ? 1f : attenuation;
 
-            float c = config.SpeedOfSound;
-            var dopplerFactor = config.DopplerFactor * _dopplerFactor;
+            lock (_stateSync)
+            {
+                _spatialPan = spatialPan;
+                _spatialPitch = spatialPitch;
+                _spatialGain = spatialGain;
+                _distanceAttenuation = attenuation;
+                ApplyPan();
+                ApplyPlaybackSpeed();
+            }
+
+            _steamAudioSpatial?.UpdateSpatialState(localPosition, attenuation, air.Low, air.Mid, air.High, occlusion, spatialBlend, stereoWidening);
+        }
+
+        public float GetLengthSeconds()
+        {
+            return _asset.LengthSeconds > 0f ? _asset.LengthSeconds : _player.Duration;
+        }
+
+        private static Vector3 GetLocalPosition(Vector3 position, ListenerStateSnapshot listener)
+        {
+            var delta = position - listener.Position;
+            var forward = NormalizeOrFallback(listener.Forward, new Vector3(0f, 0f, 1f));
+            var up = NormalizeOrFallback(listener.Up, new Vector3(0f, 1f, 0f));
+            var right = Vector3.Cross(up, forward);
+            right = NormalizeOrFallback(right, new Vector3(1f, 0f, 0f));
+            up = NormalizeOrFallback(Vector3.Cross(forward, right), up);
+            return new Vector3(
+                Vector3.Dot(delta, right),
+                Vector3.Dot(delta, up),
+                -Vector3.Dot(delta, forward));
+        }
+
+        private static float CalculateDistanceAttenuation(float distance, DistanceModel distanceModel, float minDistance, float maxDistance, float rollOff, float? curveDistanceScaler)
+        {
+            minDistance = GetEffectiveMinDistance(minDistance, curveDistanceScaler);
+            maxDistance = GetEffectiveMaxDistance(minDistance, maxDistance, curveDistanceScaler);
+
+            if (distance <= minDistance)
+                return 1f;
+
+            return distanceModel switch
+            {
+                DistanceModel.Inverse => Clamp01(minDistance / (minDistance + (rollOff * (distance - minDistance)))),
+                DistanceModel.Exponential => Clamp01(MathF.Pow(distance / minDistance, -Math.Max(0.001f, rollOff))),
+                _ => distance >= maxDistance
+                    ? 0f
+                    : Clamp01(1f - ((distance - minDistance) / Math.Max(0.001f, maxDistance - minDistance)) * rollOff)
+            };
+        }
+
+        private float CalculateDoppler(Vector3 position, Vector3 velocity, ListenerStateSnapshot listener, Vector3 localPosition, float dopplerFactor)
+        {
             if (dopplerFactor <= 0f)
-            {
-                MiniAudioNative.ma_sound_group_set_pitch(_group, _basePitch);
-                return;
-            }
+                return 1f;
 
-            float doppler = (c + dopplerFactor * vL) / (c + dopplerFactor * vS);
-            if (doppler < 0.5f) doppler = 0.5f;
-            if (doppler > 2.0f) doppler = 2.0f;
+            var lengthSquared = localPosition.LengthSquared();
+            if (lengthSquared <= 1e-6f)
+                return 1f;
 
-            MiniAudioNative.ma_sound_group_set_pitch(_group, _basePitch * doppler);
+            var direction = Vector3.Normalize(position - listener.Position);
+            var listenerProjection = Vector3.Dot(listener.Velocity, direction);
+            var sourceProjection = Vector3.Dot(velocity, direction);
+            var speedOfSound = Math.Max(1f, _output.SystemConfig.SpeedOfSound);
+            var factor = Math.Max(0f, dopplerFactor * _output.SystemConfig.DopplerFactor);
+            var numerator = speedOfSound - (factor * listenerProjection);
+            var denominator = speedOfSound - (factor * sourceProjection);
+            if (Math.Abs(denominator) < 0.001f)
+                return 1f;
+
+            return Clamp(numerator / denominator, 0.5f, 2f);
         }
 
-        private static ma_attenuation_model ToMaAttenuationModel(DistanceModel model)
+        private static (float Low, float Mid, float High) CalculateAirAbsorption(float distance, RoomAcoustics roomAcoustics)
         {
-            switch (model)
+            if (roomAcoustics.AirAbsorptionOverrideLow.HasValue
+                || roomAcoustics.AirAbsorptionOverrideMid.HasValue
+                || roomAcoustics.AirAbsorptionOverrideHigh.HasValue)
             {
-                case DistanceModel.Linear:
-                    return ma_attenuation_model.linear;
-                case DistanceModel.Exponential:
-                    return ma_attenuation_model.exponential;
-                default:
-                    return ma_attenuation_model.inverse;
+                return (
+                    Clamp01(roomAcoustics.AirAbsorptionOverrideLow ?? 1f),
+                    Clamp01(roomAcoustics.AirAbsorptionOverrideMid ?? 1f),
+                    Clamp01(roomAcoustics.AirAbsorptionOverrideHigh ?? 1f));
             }
+
+            var scale = roomAcoustics.HasRoom
+                ? Math.Max(0f, roomAcoustics.AirAbsorptionScale)
+                : 0f;
+            if (scale <= 0f)
+                return (1f, 1f, 1f);
+
+            return (
+                Clamp01(MathF.Exp(-distance * 0.0004f * scale)),
+                Clamp01(MathF.Exp(-distance * 0.0010f * scale)),
+                Clamp01(MathF.Exp(-distance * 0.0025f * scale)));
         }
 
-        private static ma_vec3f ToMaVec3(Vector3 value)
+        private static float GetEffectiveMinDistance(float minDistance, float? curveDistanceScaler)
         {
-            return new ma_vec3f { x = value.X, y = value.Y, z = -value.Z };
+            minDistance = Math.Max(0.001f, minDistance);
+            if (curveDistanceScaler.HasValue && curveDistanceScaler.Value > 0f)
+                minDistance *= curveDistanceScaler.Value;
+            return minDistance;
+        }
+
+        private static float GetEffectiveMaxDistance(float minDistance, float maxDistance, float? curveDistanceScaler)
+        {
+            maxDistance = Math.Max(minDistance, maxDistance);
+            if (curveDistanceScaler.HasValue && curveDistanceScaler.Value > 0f)
+                maxDistance *= curveDistanceScaler.Value;
+            if (maxDistance < minDistance)
+                maxDistance = minDistance;
+            return maxDistance;
         }
     }
 }

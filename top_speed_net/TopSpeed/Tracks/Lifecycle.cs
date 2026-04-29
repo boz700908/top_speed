@@ -44,8 +44,6 @@ namespace TopSpeed.Tracks
             for (var i = 0; i < _allTrackSounds.Count; i++)
                 _allTrackSounds[i].Stop();
 
-            DisposePendingHandleStops();
-
             _activeAudioSegmentIndex = -1;
             _activeRoomAcoustics = RoomAcoustics.Default;
             _audio.SetRoomAcoustics(RoomAcoustics.Default);
@@ -53,8 +51,6 @@ namespace TopSpeed.Tracks
 
         public void Run(float position)
         {
-            UpdatePendingHandleStops();
-
             if (_noisePlaying && position > _noiseEndPos)
                 _noisePlaying = false;
 

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using TopSpeed.Audio;
 using TopSpeed.Bots;
 using TopSpeed.Common;
 using TopSpeed.Core;
 using TopSpeed.Data;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Physics.Powertrain;
 using TopSpeed.Protocol;
@@ -18,6 +18,7 @@ namespace TopSpeed.Vehicles
     {
         public ComputerPlayer(
             AudioManager audio,
+            RaceAudioFactory raceAudio,
             Track track,
             DriveSettings settings,
             int vehicleIndex,
@@ -26,7 +27,8 @@ namespace TopSpeed.Vehicles
             Func<bool> started,
             Action<string>? debugSpeak = null)
         {
-            _audio = audio;
+            if (raceAudio == null)
+                throw new ArgumentNullException(nameof(raceAudio));
             _track = track;
             _settings = settings;
             _playerNumber = playerNumber;
@@ -35,7 +37,6 @@ namespace TopSpeed.Vehicles
             _started = started;
             _debugSpeak = debugSpeak;
             _events = new List<BotEvent>();
-            _legacyRoot = Path.Combine(AssetPaths.SoundsRoot, "Legacy");
             _radio = new VehicleRadioController(audio);
             _liveRadio = new LiveRadio(audio, settings);
 
@@ -269,20 +270,9 @@ namespace TopSpeed.Vehicles
                 overrunCurveExponent: build.OverrunCurveExponent,
                 engineBrakeTransferEfficiency: build.EngineBrakeTransferEfficiency);
 
-            _soundEngine = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Engine), "engine", looped: true);
-            _soundStart = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Start), "start");
-            _soundHorn = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Horn), "horn", looped: true);
-            _soundCrash = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Crash), "crash");
-            _soundBrake = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Brake), "brake", looped: true, allowHrtf: false);
-            _soundEngine.SetDopplerFactor(1f);
-            _soundHorn.SetDopplerFactor(0f);
-            _soundBrake.SetDopplerFactor(0f);
-            _soundMiniCrash = CreateRequiredSound(Path.Combine(_legacyRoot, "crashshort.wav"), "mini crash");
-            _soundBump = CreateRequiredSound(Path.Combine(_legacyRoot, "bump.wav"), "bump", allowHrtf: false);
-            _soundCrash.SetDopplerFactor(0f);
-            _soundMiniCrash.SetDopplerFactor(0f);
-            _soundBump.SetDopplerFactor(0f);
-            _soundBackfire = TryCreateSound(definition.GetSoundPath(VehicleAction.Backfire));
+            _raceAudio = raceAudio.CreateRemote(definition);
+            BindAudio(_raceAudio);
+            ConfigureAudioState();
             RefreshCategoryVolumes(force: true);
         }
     }

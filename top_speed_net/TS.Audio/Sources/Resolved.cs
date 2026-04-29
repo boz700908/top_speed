@@ -78,7 +78,7 @@ namespace TS.Audio
                 ResolveRoom(engineDefaults?.RoomAcoustics, busDefaults?.RoomAcoustics, overrides?.RoomAcoustics),
                 ResolveDistance(engineDefaults?.DistanceModel, busDefaults?.DistanceModel, overrides?.DistanceModel),
                 ResolveFloat(engineDefaults?.RefDistance, busDefaults?.RefDistance, overrides?.RefDistance, 1f),
-                ResolveFloat(engineDefaults?.MaxDistance, busDefaults?.MaxDistance, overrides?.MaxDistance, 10000f),
+                ResolveFloat(engineDefaults?.MaxDistance, busDefaults?.MaxDistance, overrides?.MaxDistance, 200f),
                 ResolveFloat(engineDefaults?.RollOff, busDefaults?.RollOff, overrides?.RollOff, 1f));
         }
 

@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Diagnostics;
+using SoundFlow.Backends.MiniAudio;
+using SoundFlow.Codecs.FFMpeg;
+using SfAudioEngine = SoundFlow.Abstracts.AudioEngine;
 
 namespace TS.Audio
 {
@@ -8,8 +12,9 @@ namespace TS.Audio
     {
         private readonly AudioSystemConfig _config;
         private readonly Dictionary<string, AudioOutput> _outputs;
-        private DateTime _lastUpdate;
+        private long _lastUpdateTimestamp;
         private readonly AudioDiagnostics _diagnostics;
+        private readonly SfAudioEngine _backendEngine;
 
         public IReadOnlyDictionary<string, AudioOutput> Outputs => _outputs;
         public AudioDiagnostics Diagnostics => _diagnostics;
@@ -31,8 +36,10 @@ namespace TS.Audio
         {
             _config = config ?? new AudioSystemConfig();
             _outputs = new Dictionary<string, AudioOutput>(StringComparer.OrdinalIgnoreCase);
-            _lastUpdate = DateTime.Now;
+            _lastUpdateTimestamp = Stopwatch.GetTimestamp();
             _diagnostics = diagnostics ?? new AudioDiagnostics();
+            _backendEngine = new MiniAudioEngine();
+            _backendEngine.RegisterCodecFactory(new FFmpegCodecFactory());
         }
 
         public AudioOutput CreateOutput(AudioOutputConfig outputConfig)
@@ -50,7 +57,7 @@ namespace TS.Audio
             if (outputConfig.PeriodSizeInFrames == 0)
                 outputConfig.PeriodSizeInFrames = _config.PeriodSizeInFrames;
 
-            var output = new AudioOutput(outputConfig, _config, _diagnostics);
+            var output = new AudioOutput(_backendEngine, outputConfig, _config, _diagnostics);
             _outputs.Add(outputConfig.Name, output);
             _diagnostics.Emit(
                 AudioDiagnosticLevel.Info,
@@ -66,8 +73,7 @@ namespace TS.Audio
                     ["channels"] = output.Channels,
                     ["periodSizeInFrames"] = output.PeriodSizeInFrames,
                     ["hrtfActive"] = output.IsHrtfActive
-                },
-                new AudioDiagnosticSnapshot(output: output.CaptureSnapshot()));
+                });
             return output;
         }
 
@@ -95,16 +101,18 @@ namespace TS.Audio
 
         public void Update()
         {
-            var now = DateTime.Now;
-            var delta = now - _lastUpdate;
-            double dt = delta.TotalSeconds;
+            var nowTimestamp = Stopwatch.GetTimestamp();
+            var elapsedTicks = nowTimestamp - _lastUpdateTimestamp;
+            if (elapsedTicks < 0)
+                elapsedTicks = 0;
+            var dt = (double)elapsedTicks / Stopwatch.Frequency;
 
             foreach (var output in _outputs.Values)
             {
                 output.Update(dt);
             }
 
-            _lastUpdate = now;
+            _lastUpdateTimestamp = nowTimestamp;
         }
 
         public void UpdateListenerAll(Vector3 position, Vector3 forward, Vector3 up, Vector3 velocity)
@@ -132,6 +140,7 @@ namespace TS.Audio
                 output.Dispose();
             }
             _outputs.Clear();
+            _backendEngine.Dispose();
         }
     }
 }

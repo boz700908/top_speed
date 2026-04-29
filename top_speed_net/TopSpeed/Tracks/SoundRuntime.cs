@@ -16,16 +16,15 @@ namespace TopSpeed.Tracks
             private readonly string _sourceRootFullPath;
             private readonly Random _random;
             private readonly IReadOnlyDictionary<string, TrackSoundSourceDefinition> _soundDefinitions;
-            private readonly Action<Source, float> _enqueueFadeOut;
+            private readonly List<PreparedVariant> _preparedVariants;
             private Source? _handle;
-            private string? _selectedPath;
+            private PreparedVariant? _activeVariant;
 
             public RuntimeTrackSound(
                 AudioManager audio,
                 string sourceDirectory,
                 Random random,
                 IReadOnlyDictionary<string, TrackSoundSourceDefinition> soundDefinitions,
-                Action<Source, float> enqueueFadeOut,
                 string id,
                 TrackSoundSourceDefinition definition)
             {
@@ -33,11 +32,12 @@ namespace TopSpeed.Tracks
                 _sourceRootFullPath = Path.GetFullPath(sourceDirectory);
                 _random = random;
                 _soundDefinitions = soundDefinitions;
-                _enqueueFadeOut = enqueueFadeOut;
+                _preparedVariants = new List<PreparedVariant>();
                 Id = id;
                 Definition = definition;
                 ActiveDefinition = definition;
                 LastAreaIndex = -1;
+                BuildPreparedVariants();
             }
 
             public string Id { get; }
@@ -61,25 +61,22 @@ namespace TopSpeed.Tracks
                     return false;
 
                 var activeDefinition = selection.Value.Definition;
-                var path = selection.Value.Path;
-                if (_handle != null && !refreshRandomVariant && string.Equals(path, _selectedPath, StringComparison.OrdinalIgnoreCase))
+                var nextVariant = selection.Value.Variant;
+                if (_handle != null && !refreshRandomVariant && ReferenceEquals(nextVariant, _activeVariant))
                 {
                     ActiveDefinition = activeDefinition;
+                    ApplySourceSettings(_handle, activeDefinition, categoryScale);
                     return true;
                 }
 
                 var previousHandle = _handle;
-                _selectedPath = path;
+                _activeVariant = nextVariant;
                 ActiveDefinition = activeDefinition;
-
-                var asset = _audio.LoadAsset(path, streamFromDisk: true);
-                _handle = activeDefinition.Spatial
-                    ? _audio.CreateSpatialSource(asset, AudioEngineOptions.TrackBusName, activeDefinition.AllowHrtf)
-                    : _audio.CreateSource(asset, AudioEngineOptions.TrackBusName, useHrtf: false);
+                _handle = nextVariant.Handle;
                 ApplySourceSettings(_handle, activeDefinition, categoryScale);
 
-                if (previousHandle != null)
-                    DisposePreviousHandle(previousHandle, refreshRandomVariant);
+                if (previousHandle != null && !ReferenceEquals(previousHandle, _handle))
+                    StopPreviousHandle(previousHandle, refreshRandomVariant);
 
                 if (_handle != null)
                     _handle.SeekToStart();
@@ -124,28 +121,31 @@ namespace TopSpeed.Tracks
 
             public void Dispose()
             {
-                DisposeHandle();
+                for (var i = 0; i < _preparedVariants.Count; i++)
+                    DisposeHandle(_preparedVariants[i].Handle);
+                _preparedVariants.Clear();
+                _activeVariant = null;
+                _handle = null;
             }
 
-            private (TrackSoundSourceDefinition Definition, string Path)? SelectVariant(bool refreshRandomVariant)
+            private (TrackSoundSourceDefinition Definition, PreparedVariant Variant)? SelectVariant(bool refreshRandomVariant)
             {
-                if (!refreshRandomVariant && !string.IsNullOrWhiteSpace(_selectedPath))
-                    return (ActiveDefinition, _selectedPath!);
+                if (!refreshRandomVariant && _activeVariant != null)
+                    return (ActiveDefinition, _activeVariant);
 
-                var variants = BuildVariantCandidates();
-                if (variants.Count == 0)
+                if (_preparedVariants.Count == 0)
                     return null;
 
-                if (Definition.Type == TrackSoundSourceType.Random && variants.Count > 1)
+                if (Definition.Type == TrackSoundSourceType.Random && _preparedVariants.Count > 1)
                 {
-                    var index = _random.Next(variants.Count);
-                    return variants[index];
+                    var index = _random.Next(_preparedVariants.Count);
+                    return (_preparedVariants[index].Definition, _preparedVariants[index]);
                 }
 
-                return variants[0];
+                return (_preparedVariants[0].Definition, _preparedVariants[0]);
             }
 
-            private List<(TrackSoundSourceDefinition Definition, string Path)> BuildVariantCandidates()
+            private void BuildPreparedVariants()
             {
                 var resolved = new List<(TrackSoundSourceDefinition Definition, string Path)>();
                 if (!string.IsNullOrWhiteSpace(Definition.Path))
@@ -179,7 +179,16 @@ namespace TopSpeed.Tracks
                         resolved.Add((sourceDefinition, path));
                 }
 
-                return resolved;
+                for (var i = 0; i < resolved.Count; i++)
+                {
+                    var item = resolved[i];
+                    var asset = _audio.LoadAsset(item.Path, streamFromDisk: true);
+                    var handle = item.Definition.Spatial
+                        ? _audio.CreateSpatialSource(asset, AudioEngineOptions.TrackBusName, item.Definition.AllowHrtf)
+                        : _audio.CreateSource(asset, AudioEngineOptions.TrackBusName, useHrtf: false);
+                    ApplySourceSettings(handle, item.Definition, categoryScale: 1f);
+                    _preparedVariants.Add(new PreparedVariant(item.Definition, item.Path, handle));
+                }
             }
 
             private static void ApplySourceSettings(Source handle, TrackSoundSourceDefinition definition, float categoryScale)
@@ -256,16 +265,13 @@ namespace TopSpeed.Tracks
                 return false;
             }
 
-            private void DisposeHandle()
+            private static void DisposeHandle(Source handle)
             {
-                if (_handle == null)
-                    return;
-                _handle.Stop();
-                _handle.Dispose();
-                _handle = null;
+                handle.Stop();
+                handle.Dispose();
             }
 
-            private void DisposePreviousHandle(Source previousHandle, bool refreshRandomVariant)
+            private void StopPreviousHandle(Source previousHandle, bool refreshRandomVariant)
             {
                 var fadeOutSeconds = 0f;
                 if (refreshRandomVariant && Definition.Type == TrackSoundSourceType.Random)
@@ -278,25 +284,25 @@ namespace TopSpeed.Tracks
                 if (fadeOutSeconds > 0f && previousHandle.IsPlaying)
                 {
                     previousHandle.Stop(fadeOutSeconds);
-                    _enqueueFadeOut(previousHandle, fadeOutSeconds);
                     return;
                 }
 
                 previousHandle.Stop();
-                previousHandle.Dispose();
             }
         }
 
-        private sealed class PendingHandleStop
+        private sealed class PreparedVariant
         {
-            public PendingHandleStop(Source handle, DateTime disposeAtUtc)
+            public PreparedVariant(TrackSoundSourceDefinition definition, string path, Source handle)
             {
+                Definition = definition;
+                Path = path;
                 Handle = handle;
-                DisposeAtUtc = disposeAtUtc;
             }
 
+            public TrackSoundSourceDefinition Definition { get; }
+            public string Path { get; }
             public Source Handle { get; }
-            public DateTime DisposeAtUtc { get; }
         }
     }
 }

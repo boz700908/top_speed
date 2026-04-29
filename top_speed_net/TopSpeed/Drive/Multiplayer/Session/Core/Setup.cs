@@ -60,8 +60,7 @@ namespace TopSpeed.Drive.Multiplayer
         {
             var trackAudio = new TrackAudioService(
                 _settings,
-                _randomSounds,
-                _totalRandomSounds,
+                GetRandomSoundBySlot,
                 _soundTurnEndDing,
                 QueueSound,
                 (sessionEvent, delay) => _session!.QueueEvent(sessionEvent, delay));
@@ -134,7 +133,7 @@ namespace TopSpeed.Drive.Multiplayer
                     playerNumber =>
                     {
                         var positionFinish = _positionFinish;
-                        AnnounceFinishOrder(_soundPlayerNr, _soundFinished, playerNumber, ref positionFinish);
+                        AnnounceFinishOrder(playerNumber, ref positionFinish);
                         _positionFinish = positionFinish;
                     },
                     SpeakIfLoaded,
@@ -165,10 +164,9 @@ namespace TopSpeed.Drive.Multiplayer
                     _input,
                     _car,
                     _remotePlayers,
-                    _soundPosition,
-                    _soundPlayerNr,
-                    _randomSounds,
-                    _totalRandomSounds,
+                    GetPositionSoundByIndex,
+                    GetPlayerNumberSoundByIndex,
+                    GetRandomSoundBySlot,
                     () => _started,
                     () => _lap,
                     () => _lapLimit,

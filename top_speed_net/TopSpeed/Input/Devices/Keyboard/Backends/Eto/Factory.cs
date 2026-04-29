@@ -9,14 +9,7 @@ namespace TopSpeed.Input.Devices.Keyboard.Backends.Eto
         public string Id => "eto";
         public int Priority => 200;
 
-        public bool IsSupported()
-        {
-#if NETFRAMEWORK
-            return false;
-#else
-            return true;
-#endif
-        }
+        public bool IsSupported() => true;
 
         public IKeyboardDevice Create(IntPtr windowHandle, IKeyboardEventSource? eventSource)
         {

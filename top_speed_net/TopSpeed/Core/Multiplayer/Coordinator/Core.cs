@@ -27,13 +27,9 @@ namespace TopSpeed.Core.Multiplayer
         private static readonly string[] RoomCapacityOptions = BuildNumericOptions(
             2,
             ProtocolConstants.MaxRoomPlayersToStart,
-            LocalizationService.Mark("player"),
-            LocalizationService.Mark("players"));
-        private static readonly string[] LapCountOptions = BuildNumericOptions(
-            1,
-            16,
-            LocalizationService.Mark("lap"),
-            LocalizationService.Mark("laps"));
+            LocalizationService.Mark("{0} player"),
+            LocalizationService.Mark("{0} players"));
+        private static readonly string[] LapCountOptions = BuildNumberOptions(1, 16);
         private static readonly TrackInfo[] RoomTrackOptions = BuildRoomTrackOptions();
         private const int ConnectingPulseIntervalMs = 500;
         private readonly CoordinatorState _state = new CoordinatorState();

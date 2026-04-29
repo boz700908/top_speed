@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading;
+using TopSpeed.Input;
 using TS.Audio;
 
 namespace TopSpeed.Audio
@@ -9,14 +11,18 @@ namespace TopSpeed.Audio
     internal sealed partial class AudioManager : IGameAudio
     {
         private readonly AudioEngine _engine;
+        private readonly ManualResetEventSlim _updateWake = new ManualResetEventSlim(false);
         private Thread? _updateThread;
         private volatile bool _updateRunning;
+        private bool _disposed;
 
         public bool IsHrtfActive => _engine.System.IsHrtfActive;
         public int OutputChannels => _engine.PrimaryOutput.Channels;
         public int OutputSampleRate => _engine.PrimaryOutput.SampleRate;
 
-        public AudioManager(bool useHrtf = false, bool autoDetectDeviceFormat = true)
+        public AudioManager(
+            bool useHrtf = false,
+            bool autoDetectDeviceFormat = true)
         {
             var config = new AudioSystemConfig
             {
@@ -49,14 +55,35 @@ namespace TopSpeed.Audio
                 speechOutputConfig.SampleRate = config.SampleRate;
             }
 
+            ApplyAndroidOutputPolicy(outputConfig);
+            ApplyAndroidOutputPolicy(speechOutputConfig);
+
             var engineOptions = new AudioEngineOptions
             {
                 SystemConfig = config,
                 PrimaryOutput = outputConfig,
-                SpeechOutput = speechOutputConfig
+                SpeechOutput = speechOutputConfig,
+                UseDedicatedSpeechOutput = !IsAndroid()
             };
 
             _engine = new AudioEngine(engineOptions);
+        }
+
+        private static void ApplyAndroidOutputPolicy(AudioOutputConfig config)
+        {
+            if (!IsAndroid())
+                return;
+
+            config.PeriodSizeInFrames = 1024;
+        }
+
+        private static bool IsAndroid()
+        {
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsAndroid())
+                return true;
+#endif
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Create("ANDROID"));
         }
 
         public SoundAsset LoadAsset(string path, bool streamFromDisk = true)

@@ -41,6 +41,7 @@ namespace TopSpeed.Drive.Multiplayer
             _vibrationDevice = vibrationDevice;
             _fileDialogs = fileDialogs ?? throw new ArgumentNullException(nameof(fileDialogs));
             _network = network ?? throw new ArgumentNullException(nameof(network));
+            _raceAudio = new RaceAudioFactory(_audio);
             _raceInstanceId = raceInstanceId;
             _resolvePlayerName = resolvePlayerName ?? throw new ArgumentNullException(nameof(resolvePlayerName));
             _finishLockController = new FinishLockInputController(input);
@@ -65,11 +66,12 @@ namespace TopSpeed.Drive.Multiplayer
             _soundNumbers = CreateNumberSounds();
             _soundLaps = CreateLapSounds(_lapLimit);
             (_randomSounds, _totalRandomSounds) = CreateRandomSoundContainers();
-            LoadDefaultRandomSounds();
+            _randomSoundBaseNames = new string?[RandomSoundGroups];
+            ConfigureDefaultRandomSounds();
             _soundUnkey = CreateUnkeySounds();
             _soundStart = LoadLanguageSound("race\\start321");
-            LoadPositionSounds();
             LoadRaceUiSounds();
+            PreloadRaceSpeechSources();
 
             var subsystems = CreateSubsystems();
             _trackAudio = subsystems.TrackAudio;

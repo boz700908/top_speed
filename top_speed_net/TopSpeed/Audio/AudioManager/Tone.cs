@@ -1,6 +1,6 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.IO;
+using System.Text;
 using TS.Audio;
 
 namespace TopSpeed.Audio
@@ -21,61 +21,60 @@ namespace TopSpeed.Audio
             if (remainder != 0)
                 totalFrames += samplesPerCycle - remainder;
 
-            var frameCursor = 0;
-            Source? source = null;
-            source = CreateProceduralSource(
-                (float[] buffer, int frames, int channels, ref ulong frameIndex) =>
-                {
-                    for (var i = 0; i < frames; i++)
-                    {
-                        float sample = 0f;
-                        if (frameCursor < totalFrames)
-                        {
-                            var phase = (double)(frameCursor % samplesPerCycle) / samplesPerCycle;
-                            double triangle;
-                            if (phase < 0.25d)
-                            {
-                                triangle = phase * 4.0d;
-                            }
-                            else if (phase < 0.75d)
-                            {
-                                triangle = 2.0d - (phase * 4.0d);
-                            }
-                            else
-                            {
-                                triangle = (phase * 4.0d) - 4.0d;
-                            }
+            var wave = BuildTriangleToneWave(sampleRate, samplesPerCycle, totalFrames);
+            var asset = _engine.CreateBufferAsset(wave, "ui-tone");
+            _engine.PlayOneShot(asset, AudioEngineOptions.UiBusName, configure: source => source.SetVolume(volume), spatialize: false, useHrtf: false);
+            asset.Dispose();
+        }
 
-                            sample = (float)(triangle * 0.65d);
-                            frameCursor++;
-                        }
+        private static byte[] BuildTriangleToneWave(int sampleRate, int samplesPerCycle, int totalFrames)
+        {
+            using var stream = new MemoryStream(44 + (totalFrames * sizeof(short)));
+            using var writer = new BinaryWriter(stream, Encoding.ASCII, leaveOpen: true);
 
-                        for (var c = 0; c < channels; c++)
-                            buffer[(i * channels) + c] = sample;
-                    }
-                },
-                channels: 1,
-                sampleRate: (uint)sampleRate,
-                busName: AudioEngineOptions.UiBusName,
-                spatialize: false,
-                useHrtf: false);
+            const short channels = 1;
+            const short bitsPerSample = 16;
+            var blockAlign = (short)(channels * (bitsPerSample / 8));
+            var byteRate = sampleRate * blockAlign;
+            var dataLength = totalFrames * blockAlign;
 
-            source.SetVolume(volume);
-            source.Play(loop: false);
-            Task.Run(() =>
+            writer.Write(Encoding.ASCII.GetBytes("RIFF"));
+            writer.Write(36 + dataLength);
+            writer.Write(Encoding.ASCII.GetBytes("WAVE"));
+            writer.Write(Encoding.ASCII.GetBytes("fmt "));
+            writer.Write(16);
+            writer.Write((short)1);
+            writer.Write(channels);
+            writer.Write(sampleRate);
+            writer.Write(byteRate);
+            writer.Write(blockAlign);
+            writer.Write(bitsPerSample);
+            writer.Write(Encoding.ASCII.GetBytes("data"));
+            writer.Write(dataLength);
+
+            for (var frame = 0; frame < totalFrames; frame++)
             {
-                try
+                var phase = (double)(frame % samplesPerCycle) / samplesPerCycle;
+                double triangle;
+                if (phase < 0.25d)
                 {
-                    var alignedDurationMs = (int)Math.Ceiling((totalFrames * 1000.0d) / sampleRate);
-                    Thread.Sleep(alignedDurationMs + 30);
-                    source.Stop();
-                    source.Dispose();
+                    triangle = phase * 4.0d;
                 }
-                catch
+                else if (phase < 0.75d)
                 {
-                    // Ignore tone cleanup errors.
+                    triangle = 2.0d - (phase * 4.0d);
                 }
-            });
+                else
+                {
+                    triangle = (phase * 4.0d) - 4.0d;
+                }
+
+                var sample = (short)Math.Clamp((int)Math.Round(triangle * 0.65d * short.MaxValue), short.MinValue, short.MaxValue);
+                writer.Write(sample);
+            }
+
+            writer.Flush();
+            return stream.ToArray();
         }
     }
 }

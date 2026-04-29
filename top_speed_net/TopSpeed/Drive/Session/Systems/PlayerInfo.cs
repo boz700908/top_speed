@@ -146,7 +146,7 @@ namespace TopSpeed.Drive.Session.Systems
         private void SpeakPlayerDetails(int playerIndex)
         {
             var playerLabel = LocalizationService.Format(LocalizationService.Mark("player {0}"), playerIndex + 1);
-            var vehicleName = _getVehicleName(playerIndex);
+            var vehicleName = LocalizationService.Translate(_getVehicleName(playerIndex));
             if (_getPlayerPercent == null)
             {
                 _speakText(LocalizationService.Format(

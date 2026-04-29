@@ -76,12 +76,7 @@ namespace TopSpeed.Drive.TimeTrial
 
         private void PlayFinishAnnouncement()
         {
-            var finishSounds = _randomSounds[(int)RandomSoundSlot.Finish];
-            var finishSoundCount = _totalRandomSounds[(int)RandomSoundSlot.Finish];
-            if (finishSoundCount <= 0)
-                return;
-
-            var finishSound = finishSounds[Algorithm.RandomInt(finishSoundCount)];
+            var finishSound = GetRandomSoundBySlot((int)RandomSoundSlot.Finish);
             if (finishSound != null)
                 Speak(finishSound, true);
         }

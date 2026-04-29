@@ -6,7 +6,9 @@ namespace TS.Sdl.Input
 {
     public sealed class TouchZoneRouter : IDisposable
     {
-        private readonly GestureRecognizer _recognizer;
+        private readonly GestureOptions _gestureOptions;
+        private readonly RecognizerEntry _defaultRecognizer;
+        private readonly Dictionary<string, RecognizerEntry> _zoneRecognizers;
         private readonly Dictionary<ulong, TouchTrack> _touches;
         private bool _disposed;
 
@@ -18,42 +20,56 @@ namespace TS.Sdl.Input
         public TouchZoneRouter(GestureRecognizer? recognizer)
         {
             Zones = new TouchZoneRegistry();
-            _recognizer = recognizer ?? new GestureRecognizer();
-            _recognizer.Raised += OnGestureRaised;
+            var defaultRecognizer = recognizer ?? new GestureRecognizer();
+            _gestureOptions = defaultRecognizer.Options;
+            _defaultRecognizer = CreateRecognizerEntry(string.Empty, defaultRecognizer);
+            _zoneRecognizers = new Dictionary<string, RecognizerEntry>(StringComparer.Ordinal);
             _touches = new Dictionary<ulong, TouchTrack>();
         }
 
-        public GestureRecognizer Recognizer => _recognizer;
+        public GestureRecognizer Recognizer => _defaultRecognizer.Recognizer;
         public TouchZoneRegistry Zones { get; }
 
         public event Action<TouchZoneTouchEvent>? TouchRaised;
         public event Action<TouchZoneGestureEvent>? GestureRaised;
 
         public void SetZone(in TouchZone zone) => Zones.Set(zone);
-        public bool RemoveZone(string id) => Zones.Remove(id);
+
+        public bool RemoveZone(string id)
+        {
+            var removed = Zones.Remove(id);
+            if (removed)
+                RemoveZoneRecognizer(NormalizeZoneId(id));
+            return removed;
+        }
 
         public void ClearZones()
         {
             Zones.Clear();
             _touches.Clear();
+            ClearZoneRecognizers();
         }
 
         public void Reset()
         {
             _touches.Clear();
-            _recognizer.Reset();
+            _defaultRecognizer.Recognizer.Reset();
+            foreach (var entry in _zoneRecognizers.Values)
+                entry.Recognizer.Reset();
         }
 
         public void Update()
         {
             ThrowIfDisposed();
-            _recognizer.Update();
+            Update(Runtime.GetTicksNs());
         }
 
         public void Update(ulong timestamp)
         {
             ThrowIfDisposed();
-            _recognizer.Update(timestamp);
+            _defaultRecognizer.Recognizer.Update(timestamp);
+            foreach (var entry in _zoneRecognizers.Values)
+                entry.Recognizer.Update(timestamp);
         }
 
         public void Process(in Event value)
@@ -63,24 +79,21 @@ namespace TS.Sdl.Input
             switch (type)
             {
                 case EventType.FingerDown:
-                    HandleFingerDown(value.TouchFinger);
-                    _recognizer.Process(value);
+                    HandleFingerDown(value);
                     return;
 
                 case EventType.FingerMotion:
-                    HandleFingerMotion(value.TouchFinger);
-                    _recognizer.Process(value);
+                    HandleFingerMotion(value);
                     return;
 
                 case EventType.FingerUp:
                 case EventType.FingerCanceled:
-                    HandleFingerUp(type, value.TouchFinger);
-                    _recognizer.Process(value);
+                    HandleFingerUp(type, value);
                     CleanupTouch(value.TouchFinger.TouchId);
                     return;
 
                 default:
-                    _recognizer.Process(value);
+                    _defaultRecognizer.Recognizer.Process(value);
                     return;
             }
         }
@@ -91,59 +104,71 @@ namespace TS.Sdl.Input
                 return;
 
             _disposed = true;
-            _recognizer.Raised -= OnGestureRaised;
+            _defaultRecognizer.Detach();
+            ClearZoneRecognizers();
             _touches.Clear();
         }
 
-        private void HandleFingerDown(in TouchFingerEvent value)
+        private void HandleFingerDown(in Event value)
         {
-            var track = GetOrCreateTrack(value.TouchId);
-            var hit = ResolveHit(value.X, value.Y, out var zone);
+            var finger = value.TouchFinger;
+            var track = GetOrCreateTrack(finger.TouchId);
+            var hit = ResolveHit(finger.X, finger.Y, out var zone);
             var behavior = zone.HasValue ? zone.Value.Behavior : TouchZoneBehavior.Lock;
-            var state = new FingerState(hit, behavior, down: true);
-            track.Fingers[value.FingerId] = state;
-            TouchRaised?.Invoke(new TouchZoneTouchEvent(EventType.FingerDown, value, hit));
+            var recognitionZoneId = hit.IsAssigned ? NormalizeZoneId(hit.ZoneId) : string.Empty;
+            var state = new FingerState(hit, behavior, down: true, recognitionZoneId);
+            track.Fingers[finger.FingerId] = state;
+            TouchRaised?.Invoke(new TouchZoneTouchEvent(EventType.FingerDown, finger, hit));
+            ProcessGesture(value, recognitionZoneId);
         }
 
-        private void HandleFingerMotion(in TouchFingerEvent value)
+        private void HandleFingerMotion(in Event value)
         {
-            if (!_touches.TryGetValue(value.TouchId, out var track))
-                track = GetOrCreateTrack(value.TouchId);
+            var finger = value.TouchFinger;
+            if (!_touches.TryGetValue(finger.TouchId, out var track))
+                track = GetOrCreateTrack(finger.TouchId);
 
-            if (!track.Fingers.TryGetValue(value.FingerId, out var state))
+            if (!track.Fingers.TryGetValue(finger.FingerId, out var state))
             {
-                var fallback = ResolveHit(value.X, value.Y, out _);
-                TouchRaised?.Invoke(new TouchZoneTouchEvent(EventType.FingerMotion, value, fallback));
+                var fallback = ResolveHit(finger.X, finger.Y, out _);
+                TouchRaised?.Invoke(new TouchZoneTouchEvent(EventType.FingerMotion, finger, fallback));
+                ProcessGesture(value, fallback.IsAssigned ? NormalizeZoneId(fallback.ZoneId) : string.Empty);
                 return;
             }
 
             if (state.Behavior == TouchZoneBehavior.Dynamic)
-                state.Zone = ResolveHit(value.X, value.Y, out _);
+                state.Zone = ResolveHit(finger.X, finger.Y, out _);
 
             state.Down = true;
-            track.Fingers[value.FingerId] = state;
-            TouchRaised?.Invoke(new TouchZoneTouchEvent(EventType.FingerMotion, value, state.Zone));
+            track.Fingers[finger.FingerId] = state;
+            TouchRaised?.Invoke(new TouchZoneTouchEvent(EventType.FingerMotion, finger, state.Zone));
+            ProcessGesture(value, state.RecognitionZoneId);
         }
 
-        private void HandleFingerUp(EventType type, in TouchFingerEvent value)
+        private void HandleFingerUp(EventType type, in Event value)
         {
+            var finger = value.TouchFinger;
             var hit = TouchZoneHit.None;
-            if (_touches.TryGetValue(value.TouchId, out var track) &&
-                track.Fingers.TryGetValue(value.FingerId, out var state))
+            var recognitionZoneId = string.Empty;
+            if (_touches.TryGetValue(finger.TouchId, out var track) &&
+                track.Fingers.TryGetValue(finger.FingerId, out var state))
             {
                 state.Down = false;
-                track.Fingers[value.FingerId] = state;
+                track.Fingers[finger.FingerId] = state;
                 hit = state.Zone;
+                recognitionZoneId = state.RecognitionZoneId;
             }
             else
             {
-                hit = ResolveHit(value.X, value.Y, out _);
+                hit = ResolveHit(finger.X, finger.Y, out _);
+                recognitionZoneId = hit.IsAssigned ? NormalizeZoneId(hit.ZoneId) : string.Empty;
             }
 
-            TouchRaised?.Invoke(new TouchZoneTouchEvent(type, value, hit));
+            TouchRaised?.Invoke(new TouchZoneTouchEvent(type, finger, hit));
+            ProcessGesture(value, recognitionZoneId);
         }
 
-        private TouchZoneHit ResolveGestureZone(in GestureEvent value)
+        private TouchZoneHit ResolveGestureZone(in GestureEvent value, string recognitionZoneId)
         {
             if (value.FingerCount <= 1)
             {
@@ -163,6 +188,9 @@ namespace TS.Sdl.Input
             var matched = TouchZoneHit.None;
             foreach (var finger in multiTrack.Fingers.Values)
             {
+                if (!string.Equals(finger.RecognitionZoneId, recognitionZoneId, StringComparison.Ordinal))
+                    continue;
+
                 if (!finger.Zone.IsAssigned)
                 {
                     foundUnassigned = true;
@@ -187,10 +215,36 @@ namespace TS.Sdl.Input
             return matched;
         }
 
-        private void OnGestureRaised(GestureEvent value)
+        private void OnGestureRaised(GestureEvent value, string recognitionZoneId)
         {
-            var zone = ResolveGestureZone(value);
+            var zone = ResolveGestureZone(value, recognitionZoneId);
             GestureRaised?.Invoke(new TouchZoneGestureEvent(value, zone));
+        }
+
+        private void ProcessGesture(in Event value, string recognitionZoneId)
+        {
+            var entry = GetRecognizerEntry(recognitionZoneId);
+            entry.Recognizer.Process(value);
+        }
+
+        private RecognizerEntry GetRecognizerEntry(string recognitionZoneId)
+        {
+            if (string.IsNullOrWhiteSpace(recognitionZoneId))
+                return _defaultRecognizer;
+
+            if (_zoneRecognizers.TryGetValue(recognitionZoneId, out var entry))
+                return entry;
+
+            entry = CreateRecognizerEntry(recognitionZoneId, new GestureRecognizer(_gestureOptions));
+            _zoneRecognizers.Add(recognitionZoneId, entry);
+            return entry;
+        }
+
+        private RecognizerEntry CreateRecognizerEntry(string recognitionZoneId, GestureRecognizer recognizer)
+        {
+            Action<GestureEvent> handler = value => OnGestureRaised(value, recognitionZoneId);
+            recognizer.Raised += handler;
+            return new RecognizerEntry(recognizer, handler);
         }
 
         private TouchTrack GetOrCreateTrack(ulong touchId)
@@ -229,6 +283,27 @@ namespace TS.Sdl.Input
             _touches.Remove(touchId);
         }
 
+        private void ClearZoneRecognizers()
+        {
+            foreach (var entry in _zoneRecognizers.Values)
+                entry.Detach();
+            _zoneRecognizers.Clear();
+        }
+
+        private void RemoveZoneRecognizer(string zoneId)
+        {
+            if (!_zoneRecognizers.TryGetValue(zoneId, out var entry))
+                return;
+
+            entry.Detach();
+            _zoneRecognizers.Remove(zoneId);
+        }
+
+        private static string NormalizeZoneId(string? zoneId)
+        {
+            return string.IsNullOrWhiteSpace(zoneId) ? string.Empty : zoneId!.Trim();
+        }
+
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -242,16 +317,36 @@ namespace TS.Sdl.Input
 
         private struct FingerState
         {
-            public FingerState(TouchZoneHit zone, TouchZoneBehavior behavior, bool down)
+            public FingerState(TouchZoneHit zone, TouchZoneBehavior behavior, bool down, string recognitionZoneId)
             {
                 Zone = zone;
                 Behavior = behavior;
                 Down = down;
+                RecognitionZoneId = recognitionZoneId ?? string.Empty;
             }
 
             public TouchZoneHit Zone;
             public TouchZoneBehavior Behavior;
             public bool Down;
+            public string RecognitionZoneId;
+        }
+
+        private sealed class RecognizerEntry
+        {
+            private readonly Action<GestureEvent> _handler;
+
+            public RecognizerEntry(GestureRecognizer recognizer, Action<GestureEvent> handler)
+            {
+                Recognizer = recognizer;
+                _handler = handler;
+            }
+
+            public GestureRecognizer Recognizer { get; }
+
+            public void Detach()
+            {
+                Recognizer.Raised -= _handler;
+            }
         }
     }
 }

@@ -92,14 +92,7 @@ namespace TopSpeed.Drive.Multiplayer
         private void ApplyPlayerFinishState()
         {
             _finished = true;
-            var finishSounds = _randomSounds[(int)RandomSoundSlot.Finish];
-            var finishSoundCount = _totalRandomSounds[(int)RandomSoundSlot.Finish];
-            if (finishSoundCount > 0)
-            {
-                var finishSound = finishSounds[TopSpeed.Common.Algorithm.RandomInt(finishSoundCount)];
-                if (finishSound != null)
-                    Speak(finishSound, true);
-            }
+            SpeakIfLoaded(GetRandomSoundBySlot((int)RandomSoundSlot.Finish), true);
 
             _car.ManualTransmission = false;
             _car.SetOverrideController(_finishLockController);

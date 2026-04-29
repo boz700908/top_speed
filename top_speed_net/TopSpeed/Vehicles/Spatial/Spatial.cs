@@ -85,35 +85,35 @@ namespace TopSpeed.Vehicles
                     AudioWorld.ToMeters(listenerZ));
             }
 
-            SetSpatial(_soundEngine, enginePos, velocity);
-            SetSpatial(_soundThrottle, enginePos, velocity);
-            SetSpatial(_soundHorn, enginePos, velocity);
-            SetSpatial(_soundBrake, brakePos, velocity);
-            SetSpatial(_soundBackfire, enginePos, velocity);
-            SetSpatial(_soundStart, enginePos, velocity);
-            SetSpatial(_soundStop, enginePos, velocity);
-            SetSpatial(_soundCrash, crashPos, velocity);
-            SetSpatial(_soundMiniCrash, vehiclePos, velocity);
-            SetSpatial(_soundBump, vehiclePos, velocity);
-            SetSpatial(_soundBadSwitch, enginePos, velocity);
-            SetSpatial(_soundWipers, vehiclePos, velocity);
+            SetSpatial("player.engine", _soundEngine, enginePos, velocity);
+            SetSpatial("player.throttle", _soundThrottle, enginePos, velocity);
+            SetSpatial("player.horn", _soundHorn, enginePos, velocity);
+            SetSpatial("player.brake", _soundBrake, brakePos, velocity);
+            SetSpatial("player.backfire", _soundBackfire, enginePos, velocity);
+            SetSpatial("player.start", _soundStart, enginePos, velocity);
+            SetSpatial("player.stop", _soundStop, enginePos, velocity);
+            SetSpatial("player.crash", _soundCrash, crashPos, velocity);
+            SetSpatial("player.miniCrash", _soundMiniCrash, vehiclePos, velocity);
+            SetSpatial("player.bump", _soundBump, vehiclePos, velocity);
+            SetSpatial("player.badSwitch", _soundBadSwitch, enginePos, velocity);
+            SetSpatial("player.wipers", _soundWipers, vehiclePos, velocity);
 
             switch (_surface)
             {
                 case TrackSurface.Asphalt:
-                    SetSpatial(_soundAsphalt, vehiclePos, velocity);
+                    SetSpatial("player.surface.asphalt", _soundAsphalt, vehiclePos, velocity);
                     break;
                 case TrackSurface.Gravel:
-                    SetSpatial(_soundGravel, vehiclePos, velocity);
+                    SetSpatial("player.surface.gravel", _soundGravel, vehiclePos, velocity);
                     break;
                 case TrackSurface.Water:
-                    SetSpatial(_soundWater, vehiclePos, velocity);
+                    SetSpatial("player.surface.water", _soundWater, vehiclePos, velocity);
                     break;
                 case TrackSurface.Sand:
-                    SetSpatial(_soundSand, vehiclePos, velocity);
+                    SetSpatial("player.surface.sand", _soundSand, vehiclePos, velocity);
                     break;
                 case TrackSurface.Snow:
-                    SetSpatial(_soundSnow, vehiclePos, velocity);
+                    SetSpatial("player.surface.snow", _soundSnow, vehiclePos, velocity);
                     break;
             }
         }
@@ -135,12 +135,11 @@ namespace TopSpeed.Vehicles
                 AudioWorld.ToMeters(listenerZ + offsetZ));
         }
 
-        private static void SetSpatial(Source? sound, Vector3 position, Vector3 velocity)
+        private static void SetSpatial(string slot, Source? sound, Vector3 position, Vector3 velocity)
         {
             if (sound == null)
                 return;
-            sound.SetPosition(position);
-            sound.SetVelocity(velocity);
+            sound.SetTransform(position, velocity);
         }
     }
 }

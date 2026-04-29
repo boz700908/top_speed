@@ -1,11 +1,11 @@
-using System.Threading;
+using System;
 using SteamAudio;
 
 namespace TS.Audio
 {
-    public sealed partial class SteamAudioContext
+    internal sealed unsafe partial class SteamAudioRuntime
     {
-        private static unsafe void ApplyRoomOnlyOutputs(AudioSourceHandle handle)
+        private static void ApplyRoomOnlyOutputs(AudioSourceHandle handle)
         {
             var direct = new IPL.DirectEffectParams
             {
@@ -19,69 +19,62 @@ namespace TS.Audio
             direct.Transmission[2] = 1f;
             ApplyDirectOutputs(handle, in direct);
 
-            var roomFlags = Volatile.Read(ref handle.SpatialParams.RoomFlags);
-            var hasRoom = (roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0;
-            if (!hasRoom)
+            if (!handle.RoomAcoustics.HasRoom)
+            {
+                handle.ClearReverbSimulation();
                 return;
+            }
 
             var reflections = new IPL.ReflectionEffectParams();
             ApplyReverbOutputs(handle, in reflections);
         }
 
-        private static unsafe void ApplyDirectOutputs(AudioSourceHandle handle, in IPL.DirectEffectParams direct)
+        private static void ApplyDirectOutputs(AudioSourceHandle handle, in IPL.DirectEffectParams direct)
         {
-            var spatial = handle.SpatialParams;
-            var roomFlags = Volatile.Read(ref spatial.RoomFlags);
-            var hasRoom = (roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0;
+            var room = handle.RoomAcoustics;
+            var hasRoom = room.HasRoom;
 
-            float airLow = direct.AirAbsorption[0];
-            float airMid = direct.AirAbsorption[1];
-            float airHigh = direct.AirAbsorption[2];
-            float transLow = direct.Transmission[0];
-            float transMid = direct.Transmission[1];
-            float transHigh = direct.Transmission[2];
-
+            var airLow = direct.AirAbsorption[0];
+            var airMid = direct.AirAbsorption[1];
+            var airHigh = direct.AirAbsorption[2];
+            var transLow = direct.Transmission[0];
+            var transMid = direct.Transmission[1];
+            var transHigh = direct.Transmission[2];
             var occlusion = direct.Occlusion;
-            var occlusionOverride = Volatile.Read(ref spatial.RoomOcclusionOverride);
-            if (!float.IsNaN(occlusionOverride))
+
+            if (room.OcclusionOverride.HasValue)
             {
-                occlusion = Clamp01(occlusionOverride);
+                occlusion = Clamp01(room.OcclusionOverride.Value);
             }
             else if (hasRoom)
             {
-                var scale = Clamp01(Volatile.Read(ref spatial.RoomOcclusionScale));
+                var scale = Clamp01(room.OcclusionScale);
                 occlusion = Lerp(1f, occlusion, scale);
             }
 
-            var transOverrideLow = Volatile.Read(ref spatial.RoomTransmissionOverrideLow);
-            var transOverrideMid = Volatile.Read(ref spatial.RoomTransmissionOverrideMid);
-            var transOverrideHigh = Volatile.Read(ref spatial.RoomTransmissionOverrideHigh);
-            if (!float.IsNaN(transOverrideLow) || !float.IsNaN(transOverrideMid) || !float.IsNaN(transOverrideHigh))
+            if (room.TransmissionOverrideLow.HasValue || room.TransmissionOverrideMid.HasValue || room.TransmissionOverrideHigh.HasValue)
             {
-                if (!float.IsNaN(transOverrideLow)) transLow = Clamp01(transOverrideLow);
-                if (!float.IsNaN(transOverrideMid)) transMid = Clamp01(transOverrideMid);
-                if (!float.IsNaN(transOverrideHigh)) transHigh = Clamp01(transOverrideHigh);
+                if (room.TransmissionOverrideLow.HasValue) transLow = Clamp01(room.TransmissionOverrideLow.Value);
+                if (room.TransmissionOverrideMid.HasValue) transMid = Clamp01(room.TransmissionOverrideMid.Value);
+                if (room.TransmissionOverrideHigh.HasValue) transHigh = Clamp01(room.TransmissionOverrideHigh.Value);
             }
             else if (hasRoom)
             {
-                var scale = Clamp01(Volatile.Read(ref spatial.RoomTransmissionScale));
+                var scale = Clamp01(room.TransmissionScale);
                 transLow = Lerp(1f, transLow, scale);
                 transMid = Lerp(1f, transMid, scale);
                 transHigh = Lerp(1f, transHigh, scale);
             }
 
-            var airOverrideLow = Volatile.Read(ref spatial.RoomAirAbsorptionOverrideLow);
-            var airOverrideMid = Volatile.Read(ref spatial.RoomAirAbsorptionOverrideMid);
-            var airOverrideHigh = Volatile.Read(ref spatial.RoomAirAbsorptionOverrideHigh);
-            if (!float.IsNaN(airOverrideLow) || !float.IsNaN(airOverrideMid) || !float.IsNaN(airOverrideHigh))
+            if (room.AirAbsorptionOverrideLow.HasValue || room.AirAbsorptionOverrideMid.HasValue || room.AirAbsorptionOverrideHigh.HasValue)
             {
-                if (!float.IsNaN(airOverrideLow)) airLow = Clamp01(airOverrideLow);
-                if (!float.IsNaN(airOverrideMid)) airMid = Clamp01(airOverrideMid);
-                if (!float.IsNaN(airOverrideHigh)) airHigh = Clamp01(airOverrideHigh);
+                if (room.AirAbsorptionOverrideLow.HasValue) airLow = Clamp01(room.AirAbsorptionOverrideLow.Value);
+                if (room.AirAbsorptionOverrideMid.HasValue) airMid = Clamp01(room.AirAbsorptionOverrideMid.Value);
+                if (room.AirAbsorptionOverrideHigh.HasValue) airHigh = Clamp01(room.AirAbsorptionOverrideHigh.Value);
             }
             else if (hasRoom)
             {
-                var scale = Clamp01(Volatile.Read(ref spatial.RoomAirAbsorptionScale));
+                var scale = Clamp01(room.AirAbsorptionScale);
                 airLow = Lerp(1f, airLow, scale);
                 airMid = Lerp(1f, airMid, scale);
                 airHigh = Lerp(1f, airHigh, scale);
@@ -90,44 +83,55 @@ namespace TS.Audio
             handle.ApplyDirectSimulation(occlusion, airLow, airMid, airHigh, transLow, transMid, transHigh);
         }
 
-        private static unsafe void ApplyReverbOutputs(AudioSourceHandle handle, in IPL.ReflectionEffectParams reflections)
+        private static void ApplyReverbOutputs(AudioSourceHandle handle, in IPL.ReflectionEffectParams reflections)
         {
-            var spatial = handle.SpatialParams;
-            var roomFlags = Volatile.Read(ref spatial.RoomFlags);
-            var hasRoom = (roomFlags & AudioSourceSpatialParams.RoomHasProfile) != 0;
-
-            if (!hasRoom)
+            var room = handle.RoomAcoustics;
+            if (!room.HasRoom)
             {
-                var timeLow = reflections.ReverbTimes[0];
-                var timeMid = reflections.ReverbTimes[1];
-                var timeHigh = reflections.ReverbTimes[2];
-                var eqLow = reflections.Eq[0];
-                var eqMid = reflections.Eq[1];
-                var eqHigh = reflections.Eq[2];
-                var delay = reflections.Delay;
-                handle.ApplyReverbSimulation(timeLow, timeMid, timeHigh, eqLow, eqMid, eqHigh, delay);
+                handle.ClearReverbSimulation();
                 return;
             }
 
-            var timeMidRoom = System.Math.Max(0f, Volatile.Read(ref spatial.RoomReverbTimeSeconds));
-            var hfRatio = Clamp01(Volatile.Read(ref spatial.RoomHfDecayRatio));
-            var roomTimeLow = timeMidRoom;
-            var roomTimeMid = timeMidRoom;
-            var roomTimeHigh = timeMidRoom * hfRatio;
+            var timeLow = reflections.ReverbTimes[0];
+            var timeMid = reflections.ReverbTimes[1];
+            var timeHigh = reflections.ReverbTimes[2];
+            var eqLow = reflections.Eq[0];
+            var eqMid = reflections.Eq[1];
+            var eqHigh = reflections.Eq[2];
+            var delay = reflections.Delay;
 
-            handle.ApplyReverbSimulation(roomTimeLow, roomTimeMid, roomTimeHigh, 1f, 1f, 1f, 0);
+            var roomTimeMid = Math.Max(0f, room.ReverbTimeSeconds);
+            var roomTimeLow = roomTimeMid;
+            var roomTimeHigh = roomTimeMid * Clamp01(room.HfDecayRatio);
+
+            if (roomTimeMid > 0f)
+            {
+                timeLow = roomTimeLow;
+                timeMid = roomTimeMid;
+                timeHigh = roomTimeHigh;
+                eqLow = 1f;
+                eqMid = 1f;
+                eqHigh = 1f;
+                delay = Math.Max(0, delay);
+            }
+
+            handle.ApplyReverbSimulation(
+                timeLow,
+                timeMid,
+                timeHigh,
+                eqLow,
+                eqMid,
+                eqHigh,
+                delay,
+                GetReflectionWetScale(room));
         }
 
-        private static float Clamp01(float value)
+        private static float GetReflectionWetScale(RoomAcoustics room)
         {
-            if (value < 0f) return 0f;
-            if (value > 1f) return 1f;
-            return value;
-        }
-
-        private static float Lerp(float from, float to, float t)
-        {
-            return from + ((to - from) * t);
+            const float defaultWetScale = 0.35f;
+            if (!room.HasRoom)
+                return 0f;
+            return defaultWetScale * Clamp01(room.ReverbGain);
         }
     }
 }

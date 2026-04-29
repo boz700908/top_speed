@@ -37,7 +37,6 @@ namespace TopSpeed.Tracks
         private readonly Dictionary<string, int> _segmentIndexById;
         private readonly Dictionary<string, RuntimeTrackSound> _segmentTrackSounds;
         private readonly List<RuntimeTrackSound> _allTrackSounds;
-        private readonly List<PendingHandleStop> _pendingHandleStops;
         private readonly Random _random;
         private readonly string _sourceDirectory;
         private readonly float[] _segmentStartDistances;
@@ -104,7 +103,6 @@ namespace TopSpeed.Tracks
             _segmentIndexById = BuildSegmentIndex(_definition);
             _segmentTrackSounds = new Dictionary<string, RuntimeTrackSound>(StringComparer.OrdinalIgnoreCase);
             _allTrackSounds = new List<RuntimeTrackSound>();
-            _pendingHandleStops = new List<PendingHandleStop>();
             _random = new Random();
             _sourceDirectory = ResolveSourceDirectory(data.SourcePath);
             _segmentStartDistances = new float[Math.Max(0, _segmentCount)];

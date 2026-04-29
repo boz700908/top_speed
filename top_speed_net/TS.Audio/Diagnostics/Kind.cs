@@ -3,6 +3,9 @@ namespace TS.Audio
     public enum AudioDiagnosticKind
     {
         OutputCreated,
+        OutputBackendDiagnostics,
+        OutputBackendStateChanged,
+        OutputBackendAnomaly,
         OutputDisposed,
         OutputMasterVolumeChanged,
         OutputRoomAcousticsChanged,

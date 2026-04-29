@@ -53,8 +53,7 @@ namespace TopSpeed.Vehicles.Live
             {
                 _position = position;
                 _velocity = velocity;
-                _source?.SetPosition(position);
-                _source?.SetVelocity(velocity);
+                _source?.SetTransform(position, velocity);
             }
         }
 

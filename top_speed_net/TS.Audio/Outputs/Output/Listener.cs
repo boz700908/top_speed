@@ -1,6 +1,5 @@
-using System.Numerics;
 using System.Collections.Generic;
-using MiniAudioEx.Native;
+using System.Numerics;
 
 namespace TS.Audio
 {
@@ -8,16 +7,13 @@ namespace TS.Audio
     {
         public void UpdateListener(Vector3 position, Vector3 forward, Vector3 up, Vector3 velocity)
         {
-            _listenerPosition = position;
-            _listenerVelocity = velocity;
-
-            var pos = ToMaVec3(position);
-            var dir = ToMaVec3(forward);
-            var vel = ToMaVec3(velocity);
-            var upVec = new ma_vec3f { x = up.X, y = up.Y, z = up.Z };
-            _runtime.UpdateListener(pos, dir, upVec, vel);
-
-            _steamAudio?.UpdateListener(position, forward, up);
+            var snapshot = new ListenerStateSnapshot(
+                position,
+                velocity,
+                NormalizeOrFallback(forward, new Vector3(0f, 0f, 1f)),
+                NormalizeOrFallback(up, new Vector3(0f, 1f, 0f)));
+            _listenerState = snapshot;
+            _steamAudioRuntime?.UpdateListener(snapshot.Position, snapshot.Forward, snapshot.Up);
         }
 
         public void SetRoomAcoustics(RoomAcoustics acoustics)
@@ -44,11 +40,6 @@ namespace TS.Audio
                     ["reverbTimeSeconds"] = acoustics.ReverbTimeSeconds,
                     ["reverbGain"] = acoustics.ReverbGain
                 });
-        }
-
-        private static ma_vec3f ToMaVec3(Vector3 value)
-        {
-            return new ma_vec3f { x = value.X, y = value.Y, z = -value.Z };
         }
     }
 }

@@ -117,7 +117,7 @@ namespace TopSpeed.Core.Multiplayer
             }
 
             var trackName = TryGetTrackDisplay(_state.RoomDrafts.RoomOptionsTrackName, out var display)
-                ? display
+                ? LocalizationService.Translate(display)
                 : _state.RoomDrafts.RoomOptionsTrackName;
             return LocalizationService.Format(
                 LocalizationService.Mark("Track, currently {0}."),

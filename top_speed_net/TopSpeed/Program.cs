@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-#if NETFRAMEWORK
+#if WINDOWS
 using System.Windows.Forms;
 #else
 using Eto.Forms;
@@ -9,7 +9,7 @@ using Eto.Forms;
 using TopSpeed.Game;
 using TopSpeed.Localization;
 using TopSpeed.Runtime;
-#if NETFRAMEWORK
+#if WINDOWS
 using TopSpeed.Windowing.WinForms;
 #else
 using TopSpeed.Windowing.Eto;
@@ -22,10 +22,8 @@ namespace TopSpeed
         [STAThread]
         private static void Main()
         {
-#if NETFRAMEWORK
+#if WINDOWS
             using var timerResolution = new WindowsTimerResolution(1);
-#endif
-#if NETFRAMEWORK
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -36,7 +34,7 @@ namespace TopSpeed
 
             NativeLibraryBootstrap.Initialize();
 
-#if NETFRAMEWORK
+#if WINDOWS
             var window = new WindowHost();
             using (var app = new GameApp(
                        window,
@@ -59,7 +57,7 @@ namespace TopSpeed
             }
         }
 
-#if NETFRAMEWORK
+#if WINDOWS
         private sealed class WindowsTimerResolution : IDisposable
         {
             private readonly uint _milliseconds;
@@ -89,7 +87,6 @@ namespace TopSpeed
                 }
                 catch
                 {
-                    // Ignore timer API shutdown failures.
                 }
             }
 
@@ -115,7 +112,7 @@ namespace TopSpeed
                 // Ignore logging failures.
             }
 
-#if NETFRAMEWORK
+#if WINDOWS
             try
             {
                 MessageBox.Show(

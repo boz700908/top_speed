@@ -117,7 +117,7 @@ public sealed class TouchZoneRouterBehaviorTests
     }
 
     [Fact]
-    public void TwoFingerSwipeAcrossDifferentZones_ReportsUnassignedZone()
+    public void TwoFingerSwipeAcrossDifferentZones_DoesNotCombineZones()
     {
         var recognizer = new GestureRecognizer(new GestureOptions
         {
@@ -137,8 +137,34 @@ public sealed class TouchZoneRouterBehaviorTests
         router.Process(Touch(EventType.FingerUp, Ms(130), 20, 201, 0.30f, 0.20f));
         router.Process(Touch(EventType.FingerUp, Ms(140), 20, 202, 0.70f, 0.20f));
 
-        var swipe = gestures.Should().ContainSingle(x => x.Gesture.Kind == GestureKind.Swipe && x.Gesture.FingerCount == 2).Subject;
-        swipe.Zone.IsAssigned.Should().BeFalse();
+        gestures.Should().NotContain(x => x.Gesture.Kind == GestureKind.Swipe && x.Gesture.FingerCount == 2);
+        gestures.Should().ContainSingle(x => x.Gesture.Kind == GestureKind.Swipe && x.Zone.ZoneId == "left");
+        gestures.Should().ContainSingle(x => x.Gesture.Kind == GestureKind.Swipe && x.Zone.ZoneId == "right");
+    }
+
+    [Fact]
+    public void HeldFingerInBottomZone_DoesNotBlockTopZoneSwipe()
+    {
+        var recognizer = new GestureRecognizer(new GestureOptions
+        {
+            SwipeMinDistance = 0.05f,
+            SwipeMinVelocity = 0.1f
+        });
+        using var router = new TouchZoneRouter(recognizer);
+        router.SetZone(new TouchZone("top", new TouchZoneRect(0f, 0f, 1f, 0.5f), behavior: TouchZoneBehavior.Lock));
+        router.SetZone(new TouchZone("bottom", new TouchZoneRect(0f, 0.5f, 1f, 0.5f), behavior: TouchZoneBehavior.Lock));
+        var gestures = new List<TouchZoneGestureEvent>();
+        router.GestureRaised += value => gestures.Add(value);
+
+        router.Process(Touch(EventType.FingerDown, Ms(0), 30, 301, 0.50f, 0.80f));
+        router.Process(Touch(EventType.FingerDown, Ms(10), 30, 302, 0.50f, 0.40f));
+        router.Process(Touch(EventType.FingerMotion, Ms(80), 30, 302, 0.50f, 0.10f));
+        router.Process(Touch(EventType.FingerUp, Ms(120), 30, 302, 0.50f, 0.10f));
+        router.Process(Touch(EventType.FingerUp, Ms(220), 30, 301, 0.50f, 0.80f));
+
+        var swipe = gestures.Should().ContainSingle(x => x.Gesture.Kind == GestureKind.Swipe).Subject;
+        swipe.Gesture.FingerCount.Should().Be(1);
+        swipe.Zone.ZoneId.Should().Be("top");
     }
 
     [Fact]

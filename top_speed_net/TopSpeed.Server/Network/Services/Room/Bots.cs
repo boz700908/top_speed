@@ -34,7 +34,7 @@ namespace TopSpeed.Server.Network
 
                 if (GetRoomParticipantCount(room) >= room.PlayersToStart)
                 {
-                    _owner.SendProtocolMessage(player, ProtocolMessageCode.RoomFull, LocalizationService.Mark("This game room is unavailable because it is full."));
+                    _owner.SendProtocolMessage(player, ProtocolMessageCode.RoomFull, RoomTexts.RoomUnavailableFull);
                     return;
                 }
 
@@ -79,7 +79,7 @@ namespace TopSpeed.Server.Network
 
                 if (room.Bots.Count == 0)
                 {
-                    _owner.SendProtocolMessage(player, ProtocolMessageCode.Failed, LocalizationService.Mark("There are no bots to remove."));
+                    _owner.SendProtocolMessage(player, ProtocolMessageCode.Failed, RoomTexts.NoBotsToRemove);
                     return;
                 }
 

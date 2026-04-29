@@ -22,6 +22,7 @@ namespace TopSpeed.Drive.Single
             _finishOrder.Clear();
             _currentRoad.Surface = _track.InitialSurface;
             _lastRecordedCarState = _car.State;
+            PreloadRaceSpeechSources();
             _listener.Reset();
             _trackAudio.Reset();
             _generalRequests.Reset();
@@ -41,8 +42,8 @@ namespace TopSpeed.Drive.Single
             _session.Reset();
             CreateComputerPlayers();
             PositionGrid();
-            SpeakRaceIntro();
             _session.SetPhase(Phase.Countdown);
+            QueueRaceIntro();
             _session.QueueEvent(new Event(Events.PlaySound, _soundStart), DefaultStartCueDelaySeconds);
             _session.QueueEvent(new Event(Events.VehicleStart), 3.0f);
             _session.QueueEvent(new Event(Events.ProgressStart), DefaultProgressStartDelaySeconds);

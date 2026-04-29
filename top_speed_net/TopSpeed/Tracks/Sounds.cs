@@ -51,7 +51,6 @@ namespace TopSpeed.Tracks
                     _sourceDirectory,
                     _random,
                     _soundDefinitions,
-                    EnqueuePendingHandleStop,
                     pair.Key,
                     pair.Value);
                 _segmentTrackSounds[pair.Key] = runtime;
@@ -62,40 +61,6 @@ namespace TopSpeed.Tracks
             }
         }
 
-        private void EnqueuePendingHandleStop(Source handle, float fadeOutSeconds)
-        {
-            if (fadeOutSeconds <= 0f)
-            {
-                handle.Dispose();
-                return;
-            }
-
-            var disposeAt = DateTime.UtcNow.AddSeconds(fadeOutSeconds);
-            _pendingHandleStops.Add(new PendingHandleStop(handle, disposeAt));
-        }
-
-        private void UpdatePendingHandleStops()
-        {
-            if (_pendingHandleStops.Count == 0)
-                return;
-
-            var now = DateTime.UtcNow;
-            for (var i = _pendingHandleStops.Count - 1; i >= 0; i--)
-            {
-                if (now < _pendingHandleStops[i].DisposeAtUtc)
-                    continue;
-
-                _pendingHandleStops[i].Handle.Dispose();
-                _pendingHandleStops.RemoveAt(i);
-            }
-        }
-
-        private void DisposePendingHandleStops()
-        {
-            for (var i = 0; i < _pendingHandleStops.Count; i++)
-                _pendingHandleStops[i].Handle.Dispose();
-            _pendingHandleStops.Clear();
-        }
     }
 }
 

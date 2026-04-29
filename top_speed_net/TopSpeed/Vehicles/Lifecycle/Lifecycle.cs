@@ -303,7 +303,8 @@ namespace TopSpeed.Vehicles
                 _speed = 0;
             _lateralVelocityMps = 0f;
             _yawRateRad = 0f;
-            _soundBump.Play(loop: false);
+            if (!_soundBump.IsPlaying)
+                _soundBump.Play(loop: false);
             PushEvent(EventType.StopBumpVibration, BumpVibrationSeconds);
         }
 
@@ -348,23 +349,7 @@ namespace TopSpeed.Vehicles
         public virtual void Dispose()
         {
             StopAllVibrations();
-            _soundEngine.Dispose();
-            _soundThrottle?.Dispose();
-            _soundHorn.Dispose();
-            _soundStart.Dispose();
-            _soundStop?.Dispose();
-            DisposeSoundVariants(_soundCrashVariants);
-            _soundBrake.Dispose();
-            _soundAsphalt.Dispose();
-            _soundGravel.Dispose();
-            _soundWater.Dispose();
-            _soundSand.Dispose();
-            _soundSnow.Dispose();
-            _soundMiniCrash.Dispose();
-            _soundWipers?.Dispose();
-            _soundBump.Dispose();
-            _soundBadSwitch.Dispose();
-            DisposeSoundVariants(_soundBackfireVariants);
+            _raceAudio.Dispose();
         }
 
         private void StopAllVibrations()

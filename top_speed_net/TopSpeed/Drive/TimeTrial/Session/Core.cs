@@ -39,6 +39,7 @@ namespace TopSpeed.Drive.TimeTrial
         private const float FinishAnnouncementDelaySeconds = 2.0f;
         private const float PostFinishStopSpeedKph = 0.5f;
         private readonly AudioManager _audio;
+        private readonly RaceAudioFactory _raceAudio;
         private readonly SpeechService _speech;
         private readonly DriveSettings _settings;
         private readonly DriveInput _input;
@@ -56,8 +57,8 @@ namespace TopSpeed.Drive.TimeTrial
         private readonly VehicleRadioController _localRadio;
         private readonly RadioVehiclePanel _radioPanel;
         private readonly VehiclePanelManager _panelManager;
-        private readonly Source[] _soundNumbers;
         private readonly Source?[][] _randomSounds;
+        private readonly string?[] _randomSoundBaseNames;
         private readonly int[] _totalRandomSounds;
         private readonly Source[] _soundUnkey;
         private readonly Source[] _soundLaps;
@@ -115,6 +116,7 @@ namespace TopSpeed.Drive.TimeTrial
             _vibrationDevice = vibrationDevice;
             _fileDialogs = fileDialogs ?? throw new ArgumentNullException(nameof(fileDialogs));
             _trackId = trackId ?? throw new ArgumentNullException(nameof(trackId));
+            _raceAudio = new RaceAudioFactory(_audio);
             _scores = Store.CreateDefault();
             _soundQueue = new Queue();
             _lapTimes = new List<int>();
@@ -130,9 +132,9 @@ namespace TopSpeed.Drive.TimeTrial
             _localRadio = runtimeObjects.LocalRadio;
             _radioPanel = runtimeObjects.RadioPanel;
             _panelManager = runtimeObjects.PanelManager;
-            _soundNumbers = CreateNumberSounds();
             (_randomSounds, _totalRandomSounds) = CreateRandomSoundContainers();
-            LoadDefaultRandomSounds();
+            _randomSoundBaseNames = new string?[RandomSoundGroups];
+            ConfigureDefaultRandomSounds();
             _soundUnkey = CreateUnkeySounds();
             _soundLaps = CreateLapSounds(_nrOfLaps);
             _soundStart = LoadLanguageSound("race\\start321");
@@ -140,7 +142,8 @@ namespace TopSpeed.Drive.TimeTrial
             _soundPause = LoadLanguageSound("race\\pause");
             _soundResume = LoadLanguageSound("race\\unpause");
             _soundTurnEndDing = LoadLegacySound("ding.ogg");
-            _trackAudio = new TrackAudioService(_settings, _randomSounds, _totalRandomSounds, _soundTurnEndDing, QueueSound, (sessionEvent, delay) => _session!.QueueEvent(sessionEvent, delay));
+            PreloadRaceSpeechSources();
+            _trackAudio = new TrackAudioService(_settings, GetRandomSoundBySlot, _soundTurnEndDing, QueueSound, (sessionEvent, delay) => _session!.QueueEvent(sessionEvent, delay));
             _panels = new PanelsSubsystem("panels", 100, _input, _panelManager, _radioPanel, SpeakText);
             _playerVehicle = new PlayerVehicleSubsystem(
                 "vehicle",

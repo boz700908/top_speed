@@ -42,10 +42,14 @@ namespace TS.Audio
 
         public void SetPosition(Vector3 position) => _handle.SetPosition(position);
         public void SetVelocity(Vector3 velocity) => _handle.SetVelocity(velocity);
+        public void SetTransform(Vector3 position, Vector3 velocity) => _handle.SetTransform(position, velocity);
         public void SetDistanceModel(DistanceModel model, float minDistance, float maxDistance, float rollOff) => _handle.SetDistanceModel(model, minDistance, maxDistance, rollOff);
         public void SetCurveDistanceScaler(float value) => _handle.ApplyCurveDistanceScaler(value);
         public void SetDopplerFactor(float value) => _handle.SetDopplerFactor(value);
         public void SetRoomAcoustics(RoomAcoustics acoustics) => _handle.SetRoomAcoustics(acoustics);
+
+        internal void AddEndObserver(Action onEnd) => _handle.AddEndObserver(onEnd);
+        internal void RemoveEndObserver(Action onEnd) => _handle.RemoveEndObserver(onEnd);
 
         public void Dispose()
         {

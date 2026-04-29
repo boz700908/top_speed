@@ -11,17 +11,19 @@ namespace TS.Audio
     {
         private readonly object _lock;
         private readonly StreamWriter _writer;
+        private readonly bool _includeSnapshots;
         private bool _disposed;
 
         public string Path { get; }
 
-        public AudioDiagnosticJsonlSink(string path, bool append = false)
+        public AudioDiagnosticJsonlSink(string path, bool append = false, bool includeSnapshots = true)
         {
             if (string.IsNullOrWhiteSpace(path))
                 throw new ArgumentException("Path is required.", nameof(path));
 
             Path = path;
             _lock = new object();
+            _includeSnapshots = includeSnapshots;
 
             var directory = System.IO.Path.GetDirectoryName(path);
             if (!string.IsNullOrWhiteSpace(directory))
@@ -32,12 +34,26 @@ namespace TS.Audio
             _writer.AutoFlush = true;
         }
 
+        public AudioDiagnosticJsonlSink(Stream stream, string? path = null, bool includeSnapshots = true)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+            if (!stream.CanWrite)
+                throw new ArgumentException("Stream must be writable.", nameof(stream));
+
+            Path = path ?? string.Empty;
+            _lock = new object();
+            _includeSnapshots = includeSnapshots;
+            _writer = new StreamWriter(stream, new UTF8Encoding(false));
+            _writer.AutoFlush = true;
+        }
+
         public void Write(AudioDiagnosticEvent diagnosticEvent)
         {
             if (diagnosticEvent == null || _disposed)
                 return;
 
-            var line = BuildJsonLine(diagnosticEvent);
+            var line = BuildJsonLine(diagnosticEvent, _includeSnapshots);
             lock (_lock)
             {
                 if (_disposed)
@@ -59,7 +75,7 @@ namespace TS.Audio
             }
         }
 
-        private static string BuildJsonLine(AudioDiagnosticEvent diagnosticEvent)
+        private static string BuildJsonLine(AudioDiagnosticEvent diagnosticEvent, bool includeSnapshots)
         {
             var builder = new StringBuilder(1024);
             builder.Append('{');
@@ -72,7 +88,8 @@ namespace TS.Audio
             WriteProperty(builder, "sourceId", diagnosticEvent.SourceId);
             WriteProperty(builder, "message", diagnosticEvent.Message);
             WriteProperty(builder, "data", diagnosticEvent.Data);
-            WriteProperty(builder, "snapshot", diagnosticEvent.Snapshot);
+            if (includeSnapshots)
+                WriteProperty(builder, "snapshot", diagnosticEvent.Snapshot);
             builder.Append('}');
             return builder.ToString();
         }
@@ -285,11 +302,20 @@ namespace TS.Audio
             WriteProperty(builder, "isPlaying", snapshot.IsPlaying);
             WriteProperty(builder, "isSpatialized", snapshot.IsSpatialized);
             WriteProperty(builder, "usesSteamAudio", snapshot.UsesSteamAudio);
+            WriteProperty(builder, "name", snapshot.Name);
             WriteProperty(builder, "inputChannels", snapshot.InputChannels);
             WriteProperty(builder, "inputSampleRate", snapshot.InputSampleRate);
+            WriteProperty(builder, "outputSampleRate", snapshot.OutputSampleRate);
+            WriteProperty(builder, "providerSampleRate", snapshot.ProviderSampleRate);
+            WriteProperty(builder, "providerPositionSamples", snapshot.ProviderPositionSamples);
+            WriteProperty(builder, "innerPositionSamples", snapshot.InnerPositionSamples);
+            WriteProperty(builder, "bufferedFrames", snapshot.BufferedFrames);
+            WriteProperty(builder, "playbackTimeSeconds", snapshot.PlaybackTimeSeconds);
             WriteProperty(builder, "looping", snapshot.Looping);
             WriteProperty(builder, "volume", snapshot.Volume);
             WriteProperty(builder, "volumeDb", snapshot.VolumeDb);
+            WriteProperty(builder, "spatialGain", snapshot.SpatialGain);
+            WriteProperty(builder, "distanceAttenuation", snapshot.DistanceAttenuation);
             WriteProperty(builder, "pitch", snapshot.Pitch);
             WriteProperty(builder, "pan", snapshot.Pan);
             WriteProperty(builder, "busEffectiveVolume", snapshot.BusEffectiveVolume);

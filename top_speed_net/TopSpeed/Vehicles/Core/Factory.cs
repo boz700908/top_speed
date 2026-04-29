@@ -1,8 +1,7 @@
 using System;
-using TopSpeed.Audio;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Tracks;
-using TS.Audio;
 using TopSpeed.Input.Devices.Vibration;
 
 namespace TopSpeed.Vehicles.Core
@@ -10,7 +9,7 @@ namespace TopSpeed.Vehicles.Core
     internal static class CarFactory
     {
         public static ICar CreateDefault(
-            AudioManager audio,
+            RaceAudioFactory raceAudio,
             Track track,
             DriveInput input,
             DriveSettings settings,
@@ -20,7 +19,7 @@ namespace TopSpeed.Vehicles.Core
             Func<bool> started,
             IVibrationDevice? vibrationDevice = null)
         {
-            return new RaceCar(audio, track, input, settings, vehicleIndex, vehicleFile, currentTime, started, vibrationDevice);
+            return new RaceCar(raceAudio, track, input, settings, vehicleIndex, vehicleFile, currentTime, started, vibrationDevice);
         }
     }
 }

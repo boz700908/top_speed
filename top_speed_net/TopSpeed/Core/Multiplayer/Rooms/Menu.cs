@@ -72,24 +72,27 @@ namespace TopSpeed.Core.Multiplayer
                 MenuAction.None,
                 onActivate: OpenRoomTrackTypeMenu,
                 hint: InteractionHints.ForPlatform(
-                    LocalizationService.Mark("Press ENTER to change the track used during the race."),
-                    LocalizationService.Mark("Swipe up to change the track used during the race."))));
+                    LocalizationService.Mark("Change the track used during the race."),
+                    LocalizationService.Mark("Press ENTER to change."),
+                    LocalizationService.Mark("Swipe up to change."))));
 
             items.Add(new RadioButton(LocalizationService.Mark("Number of laps"),
                 LapCountOptions,
                 GetRoomOptionsLapsIndex,
                 value => SetRoomOptionsLaps((byte)(value + 1)),
                 hint: InteractionHints.ForPlatform(
-                    LocalizationService.Mark("Choose the number of laps for this room. Use LEFT or RIGHT to change."),
-                    LocalizationService.Mark("Choose the number of laps for this room. Swipe left or right with two fingers to change."))));
+                    LocalizationService.Mark("Choose the number of laps for this room."),
+                    LocalizationService.Mark("Use LEFT or RIGHT to change."),
+                    LocalizationService.Mark("Swipe left or right with two fingers to change."))));
 
             var maxPlayersItem = new RadioButton(LocalizationService.Mark("Maximum players allowed in this room"),
                 RoomCapacityOptions,
                 GetRoomOptionsPlayersToStartIndex,
                 value => SetRoomOptionsPlayersToStart((byte)(value + 2)),
                 hint: InteractionHints.ForPlatform(
-                    LocalizationService.Mark("Select the player capacity for this room. The host can start with fewer players than the specified maximum players, so this is not a hard requirement. Use LEFT or RIGHT to change."),
-                    LocalizationService.Mark("Select the player capacity for this room. The host can start with fewer players than the specified maximum players, so this is not a hard requirement. Swipe left or right with two fingers to change.")))
+                    LocalizationService.Mark("Select the player capacity for this room. The host can start with fewer players than the specified maximum players, so this is not a hard requirement."),
+                    LocalizationService.Mark("Use LEFT or RIGHT to change."),
+                    LocalizationService.Mark("Swipe left or right with two fingers to change.")))
             {
                 Hidden = _state.Rooms.CurrentRoom.RoomType == GameRoomType.OneOnOne
             };

@@ -45,7 +45,7 @@ namespace TopSpeed.Drive.Single
         private void HandlePlayerNumberRequest()
         {
             if (_input.GetPlayerNumber())
-                QueueSound(_soundNumbers[_playerNumber + 1]);
+                QueueSound(GetNumberSound(_playerNumber + 1));
         }
 
         private uint NextLocalMediaId()

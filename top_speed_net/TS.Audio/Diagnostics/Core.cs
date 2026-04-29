@@ -200,6 +200,26 @@ namespace TS.Audio
             }
         }
 
+        internal void EmitDeferred(
+            AudioDiagnosticLevel level,
+            AudioDiagnosticKind kind,
+            AudioDiagnosticEntityType entityType,
+            string? outputName,
+            string? busName,
+            int? sourceId,
+            string message,
+            IReadOnlyDictionary<string, object?>? data,
+            Func<AudioDiagnosticSnapshot?> snapshotFactory)
+        {
+            if (snapshotFactory == null)
+                throw new ArgumentNullException(nameof(snapshotFactory));
+
+            if (!ShouldEmit(level, kind, entityType, outputName, busName, sourceId))
+                return;
+
+            Emit(level, kind, entityType, outputName, busName, sourceId, message, data, snapshotFactory());
+        }
+
         private void Unsubscribe(int id)
         {
             lock (_lock)

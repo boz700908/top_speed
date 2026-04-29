@@ -22,25 +22,22 @@ namespace TopSpeed.Menu
                     },
                     () => (int)_settings.Copilot,
                     value => _settingsActions.UpdateSetting(() => _settings.Copilot = (CopilotMode)value),
-                    hint: HintForPlatform(
-                        LocalizationService.Mark("Choose what information the copilot reports during a race. Use LEFT or RIGHT to change."),
-                        LocalizationService.Mark("Choose what information the copilot reports during a race. Swipe left or right with two fingers to change."))),
+                    hint: HintAdjust(LocalizationService.Mark("Choose what information the copilot reports during a race."))),
                 new Switch(LocalizationService.Mark("Curve announcements"),
                     LocalizationService.Mark("speed dependent"),
                     LocalizationService.Mark("fixed distance"),
                     () => _settings.CurveAnnouncement == CurveAnnouncementMode.SpeedDependent,
                     value => _settingsActions.UpdateSetting(() => _settings.CurveAnnouncement = value ? CurveAnnouncementMode.SpeedDependent : CurveAnnouncementMode.FixedDistance),
-                    hint: HintForPlatform(
-                        LocalizationService.Mark("Switch between fixed distance and speed dependent curve announcements. Press ENTER to change."),
-                        LocalizationService.Mark("Switch between fixed distance and speed dependent curve announcements. Swipe up to change."))),
+                    hint: HintChange(LocalizationService.Mark("Switch between fixed distance and speed dependent curve announcements."))),
                 new Slider(
                     LocalizationService.Mark("Speed dependent curve announcement lead time"),
                     "5-40",
                     () => (int)Math.Round(Math.Max(0.5f, Math.Min(4.0f, _settings.CurveAnnouncementLeadTimeSeconds)) * 10.0f),
                     value => _settingsActions.UpdateSetting(() => _settings.CurveAnnouncementLeadTimeSeconds = value / 10.0f),
                     hint: HintForPlatform(
-                        LocalizationService.Mark("Sets how early speed dependent curve announcements are spoken. Use LEFT or RIGHT to change by 0.1 seconds, PAGE UP or PAGE DOWN to change by 1.0 second, HOME for maximum, END for minimum."),
-                        LocalizationService.Mark("Sets how early speed dependent curve announcements are spoken. Swipe up or down with two fingers to change by 1.0 second, swipe left or right with two fingers to change by 0.1 seconds, and swipe up or down with three fingers for maximum or minimum.")),
+                        LocalizationService.Mark("Sets how early speed dependent curve announcements are spoken."),
+                        LocalizationService.Mark("Use LEFT or RIGHT to change by 0.1 seconds, PAGE UP or PAGE DOWN to change by 1.0 second, HOME for maximum, END for minimum."),
+                        LocalizationService.Mark("Swipe up or down with two fingers to change by 1.0 second, swipe left or right with two fingers to change by 0.1 seconds, and swipe up or down with three fingers for maximum or minimum.")),
                     formatValue: FormatCurveLeadTimeSeconds),
                 new RadioButton(LocalizationService.Mark("Automatic race information"),
                     new[]
@@ -51,23 +48,17 @@ namespace TopSpeed.Menu
                     },
                     () => (int)_settings.AutomaticInfo,
                     value => _settingsActions.UpdateSetting(() => _settings.AutomaticInfo = (AutomaticInfoMode)value),
-                    hint: HintForPlatform(
-                        LocalizationService.Mark("Choose how much automatic race information is spoken, such as lap numbers and player positions. Use LEFT or RIGHT to change."),
-                        LocalizationService.Mark("Choose how much automatic race information is spoken, such as lap numbers and player positions. Swipe left or right with two fingers to change."))),
+                    hint: HintAdjust(LocalizationService.Mark("Choose how much automatic race information is spoken, such as lap numbers and player positions."))),
                 new Slider(LocalizationService.Mark("Number of laps"),
                     "1-16",
                     () => _settings.NrOfLaps,
                     value => _settingsActions.UpdateSetting(() => _settings.NrOfLaps = value),
-                    hint: HintForPlatform(
-                        LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum."),
-                        LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer. Swipe up or down with two fingers to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with three fingers for maximum or minimum."))),
+                    hint: HintSlider(LocalizationService.Mark("Sets how many laps the race will be for single race, time trial, and multiplayer."))),
                 new Slider(LocalizationService.Mark("Number of computer players"),
                     "1-7",
                     () => _settings.NrOfComputers,
                     value => _settingsActions.UpdateSetting(() => _settings.NrOfComputers = value),
-                    hint: HintForPlatform(
-                        LocalizationService.Mark("Sets how many computer-controlled cars will race against you. Use LEFT or RIGHT to change by 1, PAGE UP or PAGE DOWN to change by 10, HOME for maximum, END for minimum."),
-                        LocalizationService.Mark("Sets how many computer-controlled cars will race against you. Swipe up or down with two fingers to change by 10, swipe left or right with two fingers to change by 1, and swipe up or down with three fingers for maximum or minimum."))),
+                    hint: HintSlider(LocalizationService.Mark("Sets how many computer-controlled cars will race against you."))),
                 new RadioButton(LocalizationService.Mark("Single race difficulty"),
                     new[]
                     {
@@ -77,9 +68,7 @@ namespace TopSpeed.Menu
                     },
                     () => (int)_settings.Difficulty,
                     value => _settingsActions.UpdateSetting(() => _settings.Difficulty = (RaceDifficulty)value),
-                    hint: HintForPlatform(
-                        LocalizationService.Mark("Choose the difficulty level for single races. Use LEFT or RIGHT to change."),
-                        LocalizationService.Mark("Choose the difficulty level for single races. Swipe left or right with two fingers to change.")))
+                    hint: HintAdjust(LocalizationService.Mark("Choose the difficulty level for single races.")))
             };
             return BackMenu("options_drive", items);
         }

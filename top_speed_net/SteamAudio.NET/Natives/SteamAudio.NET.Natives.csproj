@@ -12,7 +12,7 @@
 		<!-- Packaging -->
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<IncludeContentInPack>true</IncludeContentInPack>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
 		<!-- Metadata -->
 		<PackageId>SteamAudio.NET.Natives</PackageId>

@@ -15,10 +15,8 @@ namespace TopSpeed.Core.Multiplayer
         internal void BeginManualServerEntryCore()
         {
             string? initialAddress = _settings.LastServerAddress;
-#if !NETFRAMEWORK
             if (OperatingSystem.IsAndroid())
                 initialAddress = null;
-#endif
             PromptServerAddressInput(initialAddress);
         }
 

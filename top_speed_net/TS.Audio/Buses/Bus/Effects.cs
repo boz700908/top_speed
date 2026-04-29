@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using MiniAudioEx.Core.AdvancedAPI;
-using MiniAudioEx.Native;
+using SoundFlow.Abstracts;
+using SoundFlow.Modifiers;
 
 namespace TS.Audio
 {
@@ -9,31 +9,25 @@ namespace TS.Audio
     {
         public void SetEffectsEnabled(bool enabled)
         {
+            _effectsEnabled = enabled;
             lock (_effectLock)
-            {
-                _effectsEnabled = enabled;
-                RebuildEffectChain();
-            }
+                ApplyEffectEnabledStatesUnsafe();
 
-            _output.Diagnostics.Emit(
+            _output.Diagnostics.EmitDeferred(
                 AudioDiagnosticLevel.Debug,
                 AudioDiagnosticKind.BusEffectsEnabledChanged,
                 AudioDiagnosticEntityType.Bus,
                 _output.Name,
                 Name,
                 null,
-                enabled ? "Audio bus effects enabled." : "Audio bus effects disabled.",
-                new Dictionary<string, object?>
-                {
-                    ["effectsEnabled"] = enabled,
-                    ["effectCount"] = _effects.Count
-                },
-                new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
+                enabled ? "Audio bus effects enabled." : "Audio bus effects bypassed.",
+                new Dictionary<string, object?> { ["effectsEnabled"] = enabled },
+                () => new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
         }
 
         public BusEffect AddEffect(AudioEffectProcessCallback process, string? name = null)
         {
-            return InsertEffect(int.MaxValue, process, name);
+            return InsertEffect(_effects.Count, process, name);
         }
 
         public BusEffect InsertEffect(int index, AudioEffectProcessCallback process, string? name = null)
@@ -42,64 +36,79 @@ namespace TS.Audio
             if (process == null)
                 throw new ArgumentNullException(nameof(process));
 
-            lock (_effectLock)
-            {
-                var node = new MaEffectNode();
-                var init = node.Initialize(_output.Runtime.EngineHandle, (uint)_output.SampleRate, (uint)_output.Channels);
-                if (init != ma_result.success)
-                {
-                    node.Dispose();
-                    throw new InvalidOperationException("Failed to initialize bus effect node: " + init);
-                }
-
-                var effect = new BusEffect(this, node, process, name);
-                node.Process += (MaEffectNode _, NativeArray<float> framesIn, uint frameCountIn, NativeArray<float> framesOut, ref uint frameCountOut, uint channels) =>
-                {
-                    if (effect.IsDisposed || !effect.Enabled)
-                    {
-                        framesIn.CopyTo(framesOut);
-                        frameCountOut = frameCountIn;
-                        return;
-                    }
-
-                    process(framesIn, frameCountIn, framesOut, ref frameCountOut, channels);
-                };
-
-                var insertAt = index < 0 ? 0 : Math.Min(index, _effects.Count);
-                _effects.Insert(insertAt, effect);
-                RebuildEffectChain();
-                _output.Diagnostics.Emit(
-                    AudioDiagnosticLevel.Debug,
-                    AudioDiagnosticKind.BusEffectAdded,
-                    AudioDiagnosticEntityType.Bus,
-                    _output.Name,
-                    Name,
-                    null,
-                    "Audio bus effect added.",
-                    new Dictionary<string, object?>
-                    {
-                        ["effectName"] = effect.Name,
-                        ["index"] = insertAt,
-                        ["effectCount"] = _effects.Count
-                    },
-                    new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
-                return effect;
-            }
+            return InsertEffectInternal(index, new CallbackEffectModifier(process), name);
         }
 
-        public bool MoveEffect(int fromIndex, int toIndex)
+        public BusEffect AddLowPassEffect(float cutoffFrequency, string? name = null)
         {
+            return InsertLowPassEffect(_effects.Count, cutoffFrequency, name);
+        }
+
+        public BusEffect InsertLowPassEffect(int index, float cutoffFrequency, string? name = null)
+        {
+            ThrowIfDisposed();
+            return InsertEffectInternal(index, new LowPassModifier(_output.SoundFlowFormat, cutoffFrequency), name ?? "low-pass");
+        }
+
+        public BusEffect AddHighPassEffect(float cutoffFrequency, string? name = null)
+        {
+            return InsertHighPassEffect(_effects.Count, cutoffFrequency, name);
+        }
+
+        public BusEffect InsertHighPassEffect(int index, float cutoffFrequency, string? name = null)
+        {
+            ThrowIfDisposed();
+            return InsertEffectInternal(index, new HighPassModifier(_output.SoundFlowFormat, cutoffFrequency), name ?? "high-pass");
+        }
+
+        public BusEffect AddDelayEffect(int delaySamples = 48000, float feedback = 0.5f, float wetMix = 0.3f, float cutoff = 5000f, string? name = null)
+        {
+            return InsertDelayEffect(_effects.Count, delaySamples, feedback, wetMix, cutoff, name);
+        }
+
+        public BusEffect InsertDelayEffect(int index, int delaySamples = 48000, float feedback = 0.5f, float wetMix = 0.3f, float cutoff = 5000f, string? name = null)
+        {
+            ThrowIfDisposed();
+            return InsertEffectInternal(index, new DelayModifier(_output.SoundFlowFormat, delaySamples, feedback, wetMix, cutoff), name ?? "delay");
+        }
+
+        public BusEffect AddReverbEffect(float wet = 0.5f, float roomSize = 0.5f, float damp = 0.5f, float width = 1f, float preDelayMs = 0f, float mix = 0.5f, string? name = null)
+        {
+            return InsertReverbEffect(_effects.Count, wet, roomSize, damp, width, preDelayMs, mix, name);
+        }
+
+        public BusEffect InsertReverbEffect(int index, float wet = 0.5f, float roomSize = 0.5f, float damp = 0.5f, float width = 1f, float preDelayMs = 0f, float mix = 0.5f, string? name = null)
+        {
+            ThrowIfDisposed();
+            var modifier = new AlgorithmicReverbModifier(_output.SoundFlowFormat)
+            {
+                Wet = wet,
+                RoomSize = roomSize,
+                Damp = damp,
+                Width = width,
+                PreDelay = preDelayMs,
+                Mix = mix
+            };
+            return InsertEffectInternal(index, modifier, name ?? "reverb");
+        }
+
+        public bool MoveEffect(BusEffect effect, int newIndex)
+        {
+            if (effect == null)
+                return false;
+
             lock (_effectLock)
             {
-                if (fromIndex < 0 || fromIndex >= _effects.Count || toIndex < 0 || toIndex >= _effects.Count || fromIndex == toIndex)
+                var currentIndex = _effects.IndexOf(effect);
+                if (currentIndex < 0)
                     return false;
 
-                var effect = _effects[fromIndex];
-                _effects.RemoveAt(fromIndex);
-                _effects.Insert(toIndex, effect);
-                RebuildEffectChain();
-                _output.Diagnostics.Emit(
-                    AudioDiagnosticLevel.Trace,
+                _effects.RemoveAt(currentIndex);
+                var clampedIndex = Math.Clamp(newIndex, 0, _effects.Count);
+                _effects.Insert(clampedIndex, effect);
+                RebuildModifierChainUnsafe();
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
                     AudioDiagnosticKind.BusEffectMoved,
                     AudioDiagnosticEntityType.Bus,
                     _output.Name,
@@ -108,45 +117,42 @@ namespace TS.Audio
                     "Audio bus effect moved.",
                     new Dictionary<string, object?>
                     {
-                        ["fromIndex"] = fromIndex,
-                        ["toIndex"] = toIndex,
-                        ["effectName"] = effect.Name
+                        ["from"] = currentIndex,
+                        ["to"] = clampedIndex,
+                        ["effect"] = effect.Name
                     },
-                    new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
+                    () => new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
                 return true;
             }
         }
 
         public bool RemoveEffectAt(int index)
         {
-            BusEffect? removed;
             lock (_effectLock)
             {
                 if (index < 0 || index >= _effects.Count)
                     return false;
 
-                removed = _effects[index];
+                var effect = _effects[index];
                 _effects.RemoveAt(index);
-                RebuildEffectChain();
+                RebuildModifierChainUnsafe();
+                effect.MarkDetached();
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.BusEffectRemoved,
+                    AudioDiagnosticEntityType.Bus,
+                    _output.Name,
+                    Name,
+                    null,
+                    "Audio bus effect removed.",
+                    new Dictionary<string, object?>
+                    {
+                        ["index"] = index,
+                        ["effect"] = effect.Name
+                    },
+                    () => new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
+                return true;
             }
-
-            DetachEffect(removed);
-            _output.Diagnostics.Emit(
-                AudioDiagnosticLevel.Debug,
-                AudioDiagnosticKind.BusEffectRemoved,
-                AudioDiagnosticEntityType.Bus,
-                _output.Name,
-                Name,
-                null,
-                "Audio bus effect removed.",
-                new Dictionary<string, object?>
-                {
-                    ["index"] = index,
-                    ["effectName"] = removed.Name,
-                    ["effectCount"] = _effects.Count
-                },
-                new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
-            return true;
         }
 
         public IReadOnlyList<BusEffect> GetEffects()
@@ -160,18 +166,15 @@ namespace TS.Audio
             BusEffect[] removed;
             lock (_effectLock)
             {
-                if (_effects.Count == 0)
-                    return;
-
                 removed = _effects.ToArray();
                 _effects.Clear();
-                RebuildEffectChain();
+                RebuildModifierChainUnsafe();
             }
 
             for (var i = 0; i < removed.Length; i++)
-                DetachEffect(removed[i]);
+                removed[i].MarkDetached();
 
-            _output.Diagnostics.Emit(
+            _output.Diagnostics.EmitDeferred(
                 AudioDiagnosticLevel.Debug,
                 AudioDiagnosticKind.BusEffectsCleared,
                 AudioDiagnosticEntityType.Bus,
@@ -179,59 +182,56 @@ namespace TS.Audio
                 Name,
                 null,
                 "Audio bus effects cleared.",
-                new Dictionary<string, object?>
-                {
-                    ["removedCount"] = removed.Length
-                },
-                new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
+                new Dictionary<string, object?> { ["count"] = removed.Length },
+                () => new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
         }
 
-        internal void RemoveEffect(BusEffect effect)
+        private BusEffect InsertEffectInternal(int index, SoundModifier modifier, string? name)
         {
-            if (effect == null)
-                return;
-
-            var removed = false;
             lock (_effectLock)
             {
-                removed = _effects.Remove(effect);
-                if (removed)
-                    RebuildEffectChain();
-            }
-
-            if (!removed)
-                return;
-
-            DetachEffect(effect);
-        }
-
-        private void RebuildEffectChain()
-        {
-            MiniAudioNative.ma_node_detach_all_output_buses(NodeHandle);
-
-            var target = _parent?.NodeHandle ?? _output.Runtime.Endpoint;
-            if (!_effectsEnabled || _effects.Count == 0)
-            {
-                MiniAudioNative.ma_node_attach_output_bus(NodeHandle, 0, target, 0);
-                return;
-            }
-
-            for (var i = 0; i < _effects.Count; i++)
-                _effects[i].Node.DetachAllOutputBuses();
-
-            MiniAudioNative.ma_node_attach_output_bus(NodeHandle, 0, _effects[0].Node.NodeHandle, 0);
-            for (var i = 0; i < _effects.Count; i++)
-            {
-                var next = i == _effects.Count - 1 ? target : _effects[i + 1].Node.NodeHandle;
-                _effects[i].Node.AttachOutputBus(0, next, 0);
+                var clampedIndex = Math.Clamp(index, 0, _effects.Count);
+                var effect = new BusEffect(this, modifier, name);
+                _effects.Insert(clampedIndex, effect);
+                RebuildModifierChainUnsafe();
+                _output.Diagnostics.EmitDeferred(
+                    AudioDiagnosticLevel.Debug,
+                    AudioDiagnosticKind.BusEffectAdded,
+                    AudioDiagnosticEntityType.Bus,
+                    _output.Name,
+                    Name,
+                    null,
+                    "Audio bus effect added.",
+                    new Dictionary<string, object?>
+                    {
+                        ["index"] = clampedIndex,
+                        ["effect"] = effect.Name
+                    },
+                    () => new AudioDiagnosticSnapshot(bus: CaptureSnapshot()));
+                return effect;
             }
         }
 
-        private void DetachEffect(BusEffect effect)
+        private void RebuildModifierChainUnsafe()
         {
-            effect.Node.DetachAllOutputBuses();
-            effect.MarkDetached();
-            _output.RetireEffect(effect);
+            for (var i = 0; i < _attachedModifiers.Count; i++)
+                _mixer.RemoveModifier(_attachedModifiers[i]);
+
+            _attachedModifiers.Clear();
+
+            for (var i = 0; i < _effects.Count; i++)
+            {
+                var effect = _effects[i];
+                effect.ApplyBusState(_effectsEnabled);
+                _mixer.AddModifier(effect.Modifier);
+                _attachedModifiers.Add(effect.Modifier);
+            }
+        }
+
+        private void ApplyEffectEnabledStatesUnsafe()
+        {
+            for (var i = 0; i < _effects.Count; i++)
+                _effects[i].ApplyBusState(_effectsEnabled);
         }
     }
 }

@@ -45,8 +45,7 @@ namespace TopSpeed.Vehicles.Live
                     spatialize: true,
                     useHrtf: true);
                 _source.SetDopplerFactor(0f);
-                _source.SetPosition(_position);
-                _source.SetVelocity(_velocity);
+                _source.SetTransform(_position, _velocity);
                 _source.SetVolumePercent(_settings, AudioVolumeCategory.Radio, _volumePercent);
                 UpdatePlaybackLocked();
                 return true;

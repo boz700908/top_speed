@@ -13,7 +13,7 @@ using SdlWindowFlags = TS.Sdl.Video.WindowFlags;
 
 namespace TopSpeed.Windowing.Sdl
 {
-    internal sealed class WindowHost : IWindowHost, ITextInputService, IGestureEventSource, ITouchZoneGestureEventSource, ITouchZoneTouchEventSource
+    internal sealed class WindowHost : IWindowHost, ITextInputService, IGestureEventSource, ITouchZoneGestureEventSource, ITouchZoneTouchEventSource, IControllerEventSource
     {
         private static readonly InitFlags RequiredInit = InitFlags.Video | InitFlags.Events | InitFlags.Sensor;
         private readonly object _sync = new object();
@@ -34,6 +34,7 @@ namespace TopSpeed.Windowing.Sdl
         public event Action<GestureEvent>? GestureRaised;
         public event Action<TouchZoneGestureEvent>? TouchZoneGestureRaised;
         public event Action<TouchZoneTouchEvent>? TouchZoneTouchRaised;
+        public event Action<ControllerEvent>? ControllerEventRaised;
 
         public IntPtr NativeHandle => _window;
 
@@ -197,8 +198,12 @@ namespace TopSpeed.Windowing.Sdl
 
         private void PumpEvents()
         {
+            var routeControllerEvents = OperatingSystem.IsAndroid();
             while (SdlRuntime.PollEvent(out var value))
             {
+                if (routeControllerEvents && ControllerEvents.TryConvert(value, out var controllerEvent) && controllerEvent.Source != ControllerEventSource.Sensor)
+                    ControllerEventRaised?.Invoke(controllerEvent);
+
                 switch ((EventType)value.Type)
                 {
                     case EventType.Quit:
@@ -302,7 +307,6 @@ namespace TopSpeed.Windowing.Sdl
         private static GestureOptions BuildGestureOptions()
         {
             var options = new GestureOptions();
-#if !NETFRAMEWORK
             if (OperatingSystem.IsAndroid())
             {
                 options.SwipeMinDistance = 0.06f;
@@ -310,7 +314,6 @@ namespace TopSpeed.Windowing.Sdl
                 options.TapMove = 0.025f;
                 options.DoubleTapMove = 0.05f;
             }
-#endif
             return options;
         }
     }

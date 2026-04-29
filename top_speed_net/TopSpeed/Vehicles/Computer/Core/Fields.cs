@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using TopSpeed.Audio;
 using TopSpeed.Bots;
 using TopSpeed.Core;
 using TopSpeed.Data;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Tracks;
 using TopSpeed.Vehicles.Live;
@@ -14,7 +14,6 @@ namespace TopSpeed.Vehicles
 {
     internal sealed partial class ComputerPlayer
     {
-        private readonly AudioManager _audio;
         private readonly Track _track;
         private readonly DriveSettings _settings;
         private readonly Func<float> _currentTime;
@@ -23,7 +22,7 @@ namespace TopSpeed.Vehicles
         private readonly int _playerNumber;
         private readonly int _vehicleIndex;
         private readonly List<BotEvent> _events;
-        private readonly string _legacyRoot;
+        private readonly RemoteVehicleAudio _raceAudio;
 
         private ComputerState _state;
         private TrackSurface _surface;

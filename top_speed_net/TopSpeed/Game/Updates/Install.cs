@@ -67,9 +67,6 @@ namespace TopSpeed.Game
 
         private bool TryInstallAndroidPackage()
         {
-#if NETFRAMEWORK
-            return false;
-#else
             if (!OperatingSystem.IsAndroid())
                 return false;
 
@@ -117,7 +114,6 @@ namespace TopSpeed.Game
 
             ExitRequested?.Invoke();
             return true;
-#endif
         }
 
         private static string ResolveExecutablePath(string root, string executableStem)

@@ -10,8 +10,7 @@ namespace TopSpeed.Drive.Session.Systems
     internal sealed class TrackAudio
     {
         private readonly DriveSettings _settings;
-        private readonly Source?[][] _randomSounds;
-        private readonly int[] _totalRandomSounds;
+        private readonly Func<int, Source?> _getRandomSound;
         private readonly Source? _turnEndDing;
         private readonly Action<Source?> _queueSound;
         private readonly Action<Event, float> _queueEvent;
@@ -20,15 +19,13 @@ namespace TopSpeed.Drive.Session.Systems
 
         public TrackAudio(
             DriveSettings settings,
-            Source?[][] randomSounds,
-            int[] totalRandomSounds,
+            Func<int, Source?> getRandomSound,
             Source? turnEndDing,
             Action<Source?> queueSound,
             Action<Event, float> queueEvent)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _randomSounds = randomSounds ?? throw new ArgumentNullException(nameof(randomSounds));
-            _totalRandomSounds = totalRandomSounds ?? throw new ArgumentNullException(nameof(totalRandomSounds));
+            _getRandomSound = getRandomSound ?? throw new ArgumentNullException(nameof(getRandomSound));
             _turnEndDing = turnEndDing;
             _queueSound = queueSound ?? throw new ArgumentNullException(nameof(queueSound));
             _queueEvent = queueEvent ?? throw new ArgumentNullException(nameof(queueEvent));
@@ -63,21 +60,13 @@ namespace TopSpeed.Drive.Session.Systems
             if ((int)_settings.Copilot > 0 && nextRoad.Type != TrackType.Straight)
             {
                 var index = (int)nextRoad.Type - 1;
-                if (index >= 0 && index < _randomSounds.Length && index < _totalRandomSounds.Length && _totalRandomSounds[index] > 0)
-                {
-                    var sound = _randomSounds[index][Algorithm.RandomInt(_totalRandomSounds[index])];
-                    _queueSound(sound);
-                }
+                _queueSound(_getRandomSound(index));
             }
 
             if ((int)_settings.Copilot > 1 && nextRoad.Surface != currentRoad.Surface)
             {
                 var index = (int)nextRoad.Surface + 8;
-                if (index >= 0 && index < _randomSounds.Length && index < _totalRandomSounds.Length && _totalRandomSounds[index] > 0)
-                {
-                    var sound = _randomSounds[index][Algorithm.RandomInt(_totalRandomSounds[index])];
-                    _queueEvent(new Event(Events.PlaySound, sound), 1.0f);
-                }
+                _queueEvent(new Event(Events.PlaySound, _getRandomSound(index)), 1.0f);
             }
 
             return nextRoad;

@@ -1,5 +1,4 @@
-using System.IO;
-using TopSpeed.Data;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Protocol;
 using TopSpeed.Input.Devices.Vibration;
@@ -8,35 +7,28 @@ namespace TopSpeed.Vehicles
 {
     internal partial class Car
     {
-        private void InitializeAudioAssets(VehicleDefinition definition)
+        private void BindAudio(PlayerVehicleAudio audio)
         {
-            _soundEngine = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Engine), looped: true, allowHrtf: true);
-            _soundStart = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Start));
-            _soundStop = TryCreateSound(definition.GetSoundPath(VehicleAction.Stop));
-            _soundHorn = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Horn), looped: true);
-            _soundThrottle = TryCreateSound(definition.GetSoundPath(VehicleAction.Throttle), looped: true, allowHrtf: true);
-            _soundCrashVariants = CreateRequiredSoundVariants(
-                definition.GetSoundPaths(VehicleAction.Crash),
-                definition.GetSoundPath(VehicleAction.Crash));
+            _soundEngine = audio.Engine;
+            _soundThrottle = audio.Throttle;
+            _soundHorn = audio.Horn;
+            _soundStart = audio.Start;
+            _soundStop = audio.Stop;
+            _soundBrake = audio.Brake;
+            _soundCrashVariants = audio.CrashVariants;
             _soundCrash = _soundCrashVariants[0];
-            _soundBrake = CreateRequiredSound(definition.GetSoundPath(VehicleAction.Brake), looped: true, allowHrtf: false);
-            _soundBackfireVariants = CreateOptionalSoundVariants(
-                definition.GetSoundPaths(VehicleAction.Backfire),
-                definition.GetSoundPath(VehicleAction.Backfire));
+            _soundMiniCrash = audio.MiniCrash;
+            _soundAsphalt = audio.Asphalt;
+            _soundGravel = audio.Gravel;
+            _soundWater = audio.Water;
+            _soundSand = audio.Sand;
+            _soundSnow = audio.Snow;
+            _soundWipers = audio.Wipers;
+            _soundBump = audio.Bump;
+            _soundBadSwitch = audio.BadSwitch;
+            _soundBackfireVariants = audio.BackfireVariants;
             _soundBackfire = _soundBackfireVariants.Length > 0 ? _soundBackfireVariants[0] : null;
-
-            _hasWipers = definition.HasWipers == 1 ? 1 : 0;
-            if (_hasWipers == 1)
-                _soundWipers = CreateRequiredSound(Path.Combine(_legacyRoot, "wipers.wav"), looped: true, allowHrtf: false);
-
-            _soundAsphalt = CreateTrackSurfaceLoop(Path.Combine(_legacyRoot, "asphalt.wav"));
-            _soundGravel = CreateTrackSurfaceLoop(Path.Combine(_legacyRoot, "gravel.wav"));
-            _soundWater = CreateTrackSurfaceLoop(Path.Combine(_legacyRoot, "water.wav"));
-            _soundSand = CreateTrackSurfaceLoop(Path.Combine(_legacyRoot, "sand.wav"));
-            _soundSnow = CreateTrackSurfaceLoop(Path.Combine(_legacyRoot, "snow.wav"));
-            _soundMiniCrash = CreateRequiredSound(Path.Combine(_legacyRoot, "crashshort.wav"));
-            _soundBump = CreateRequiredSound(Path.Combine(_legacyRoot, "bump.wav"), allowHrtf: false);
-            _soundBadSwitch = CreateRequiredSound(Path.Combine(_legacyRoot, "badswitch.wav"), allowHrtf: false);
+            _hasWipers = audio.HasWipers ? 1 : 0;
         }
 
         private IVibrationDevice? InitializeVibration(IVibrationDevice? vibrationDevice)

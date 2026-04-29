@@ -135,14 +135,15 @@ namespace TopSpeed.Drive.Multiplayer
             return perc;
         }
 
-        private void AnnounceFinishOrder(AudioSource?[] playerSounds, AudioSource?[] finishSounds, int playerNumber, ref int positionFinish)
+        private void AnnounceFinishOrder(int playerNumber, ref int positionFinish)
         {
-            if (playerNumber < 0 || playerNumber >= playerSounds.Length || finishSounds.Length == 0)
+            var playerSound = GetPlayerNumberSoundByIndex(playerNumber);
+            var finishSound = GetFinishedSoundByIndex(positionFinish);
+            if (playerSound == null || finishSound == null)
                 return;
 
-            SpeakIfLoaded(playerSounds[playerNumber], true);
-            var finishIndex = Math.Min(positionFinish, finishSounds.Length - 1);
-            SpeakIfLoaded(finishSounds[finishIndex], true);
+            SpeakIfLoaded(playerSound, true);
+            SpeakIfLoaded(finishSound, true);
             positionFinish++;
         }
     }

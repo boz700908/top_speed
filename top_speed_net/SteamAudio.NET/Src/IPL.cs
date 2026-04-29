@@ -5,7 +5,7 @@
 	/// </summary>
 	public static partial class IPL
 	{
-		public const string Library = "phonon.dll";
+		public const string Library = "phonon";
 
 		public partial struct Vector3
 		{

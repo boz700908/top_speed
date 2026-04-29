@@ -16,10 +16,9 @@ namespace TopSpeed.Drive.Single.Session.Systems
         private readonly ComputerPlayer?[] _players;
         private readonly int _playerCount;
         private readonly Func<int> _getPlayerNumber;
-        private readonly Source?[] _positionSounds;
-        private readonly Source?[] _playerNumberSounds;
-        private readonly Source?[][] _randomSounds;
-        private readonly int[] _totalRandomSounds;
+        private readonly Func<int, Source?> _getPositionSound;
+        private readonly Func<int, Source?> _getPlayerNumberSound;
+        private readonly Func<int, Source?> _getRandomSound;
         private readonly Func<bool> _isStarted;
         private readonly Func<int> _getLap;
         private readonly Func<int> _getLapLimit;
@@ -39,10 +38,9 @@ namespace TopSpeed.Drive.Single.Session.Systems
             ComputerPlayer?[] players,
             int playerCount,
             Func<int> getPlayerNumber,
-            Source?[] positionSounds,
-            Source?[] playerNumberSounds,
-            Source?[][] randomSounds,
-            int[] totalRandomSounds,
+            Func<int, Source?> getPositionSound,
+            Func<int, Source?> getPlayerNumberSound,
+            Func<int, Source?> getRandomSound,
             Func<bool> isStarted,
             Func<int> getLap,
             Func<int> getLapLimit,
@@ -58,10 +56,9 @@ namespace TopSpeed.Drive.Single.Session.Systems
             _players = players ?? throw new ArgumentNullException(nameof(players));
             _playerCount = playerCount;
             _getPlayerNumber = getPlayerNumber ?? throw new ArgumentNullException(nameof(getPlayerNumber));
-            _positionSounds = positionSounds ?? throw new ArgumentNullException(nameof(positionSounds));
-            _playerNumberSounds = playerNumberSounds ?? throw new ArgumentNullException(nameof(playerNumberSounds));
-            _randomSounds = randomSounds ?? throw new ArgumentNullException(nameof(randomSounds));
-            _totalRandomSounds = totalRandomSounds ?? throw new ArgumentNullException(nameof(totalRandomSounds));
+            _getPositionSound = getPositionSound ?? throw new ArgumentNullException(nameof(getPositionSound));
+            _getPlayerNumberSound = getPlayerNumberSound ?? throw new ArgumentNullException(nameof(getPlayerNumberSound));
+            _getRandomSound = getRandomSound ?? throw new ArgumentNullException(nameof(getRandomSound));
             _isStarted = isStarted ?? throw new ArgumentNullException(nameof(isStarted));
             _getLap = getLap ?? throw new ArgumentNullException(nameof(getLap));
             _getLapLimit = getLapLimit ?? throw new ArgumentNullException(nameof(getLapLimit));
@@ -141,9 +138,9 @@ namespace TopSpeed.Drive.Single.Session.Systems
             if (automatic && position != _getPositionComment())
             {
                 if (position == _playerCount + 1)
-                    _speakIfLoaded(_positionSounds[_playerCount], true);
+                    _speakIfLoaded(_getPositionSound(_playerCount), true);
                 else
-                    _speakIfLoaded(_positionSounds[position - 1], true);
+                    _speakIfLoaded(_getPositionSound(position - 1), true);
 
                 _setPositionComment(position);
                 return;
@@ -154,7 +151,7 @@ namespace TopSpeed.Drive.Single.Session.Systems
                 if (inFront != -1)
                 {
                     var bot = _players[inFront]!;
-                    _speakIfLoaded(_playerNumberSounds[bot.PlayerNumber], true);
+                    _speakIfLoaded(_getPlayerNumberSound(bot.PlayerNumber), true);
                     SpeakRandom(FrontSlot);
                     return;
                 }
@@ -162,7 +159,7 @@ namespace TopSpeed.Drive.Single.Session.Systems
             else if (onTail != -1)
             {
                 var bot = _players[onTail]!;
-                _speakIfLoaded(_playerNumberSounds[bot.PlayerNumber], true);
+                _speakIfLoaded(_getPlayerNumberSound(bot.PlayerNumber), true);
                 SpeakRandom(TailSlot);
                 return;
             }
@@ -170,9 +167,9 @@ namespace TopSpeed.Drive.Single.Session.Systems
             if (inFront == -1 && onTail == -1 && !automatic)
             {
                 if (position == _playerCount + 1)
-                    _speakIfLoaded(_positionSounds[_playerCount], true);
+                    _speakIfLoaded(_getPositionSound(_playerCount), true);
                 else
-                    _speakIfLoaded(_positionSounds[position - 1], true);
+                    _speakIfLoaded(_getPositionSound(position - 1), true);
 
                 _setPositionComment(position);
             }
@@ -180,10 +177,7 @@ namespace TopSpeed.Drive.Single.Session.Systems
 
         private void SpeakRandom(int slot)
         {
-            if (slot < 0 || slot >= _randomSounds.Length || slot >= _totalRandomSounds.Length || _totalRandomSounds[slot] <= 0)
-                return;
-
-            var sound = _randomSounds[slot][Algorithm.RandomInt(_totalRandomSounds[slot])];
+            var sound = _getRandomSound(slot);
             if (sound != null)
                 _speak(sound, true);
         }

@@ -1,52 +1,107 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Numerics;
 using SteamAudio;
 
 namespace TS.Audio
 {
-    public sealed partial class SteamAudioContext
+    internal sealed unsafe partial class SteamAudioRuntime
     {
-        public void UpdateSimulation(IReadOnlyList<AudioSourceHandle> sources)
+        public void UpdateListener(Vector3 position, Vector3 forward, Vector3 up)
         {
-            if (sources == null || sources.Count == 0)
+            if (_context.Handle == IntPtr.Zero)
                 return;
 
-            lock (_simLock)
+            var normForward = NormalizeOrFallback(forward, new Vector3(0f, 0f, 1f));
+            var normUp = NormalizeOrFallback(up, new Vector3(0f, 1f, 0f));
+            var right = NormalizeOrFallback(Vector3.Cross(normUp, normForward), new Vector3(1f, 0f, 0f));
+
+            _listenerState = new ListenerState(
+                ToIpl(right),
+                ToIpl(normUp),
+                new IPL.Vector3(-normForward.X, -normForward.Y, -normForward.Z),
+                ToIpl(position));
+        }
+
+        public void SetScene(IPL.Scene scene)
+        {
+            if (_context.Handle == IntPtr.Zero || scene.Handle == IntPtr.Zero)
+                return;
+
+            lock (_simulationLock)
             {
-                var active = new HashSet<AudioSourceHandle>();
-                foreach (var source in sources)
+                EnsureSimulator();
+                _scene = scene;
+                if (_simulator.Handle == IntPtr.Zero)
+                    return;
+
+                IPL.SimulatorSetScene(_simulator, _scene);
+                IPL.SimulatorCommit(_simulator);
+            }
+        }
+
+        public void ClearScene()
+        {
+            lock (_simulationLock)
+            {
+                if (_simulator.Handle != IntPtr.Zero)
                 {
-                    if (source == null || !source.IsSpatialized || !source.UsesSteamAudio || !source.IsPlaying)
-                        continue;
-                    active.Add(source);
+                    IPL.SimulatorSetScene(_simulator, default);
+                    IPL.SimulatorCommit(_simulator);
                 }
 
-                if (active.Count == 0)
+                _scene = default;
+            }
+        }
+
+        public void UpdateSimulation(IReadOnlyList<AudioSourceHandle> sources)
+        {
+            if (_context.Handle == IntPtr.Zero || sources == null || sources.Count == 0)
+                return;
+
+            lock (_simulationLock)
+            {
+                _activeSources.Clear();
+                for (var i = 0; i < sources.Count; i++)
+                {
+                    var source = sources[i];
+                    if (source == null || !source.IsSpatialized || !source.UsesSteamAudio || !source.IsPlaying)
+                        continue;
+
+                    _activeSources.Add(source);
+                }
+
+                if (_activeSources.Count == 0)
                 {
                     if (_sources.Count > 0)
-                        RemoveInactiveSources(active);
+                        RemoveInactiveSources(_activeSources);
                     return;
                 }
 
                 if (_simulator.Handle == IntPtr.Zero || _scene.Handle == IntPtr.Zero)
                 {
                     if (_sources.Count > 0)
-                        RemoveInactiveSources(new HashSet<AudioSourceHandle>());
+                    {
+                        _activeSources.Clear();
+                        RemoveInactiveSources(_activeSources);
+                    }
 
-                    foreach (var source in active)
-                        ApplyRoomOnlyOutputs(source);
-
+                    for (var i = 0; i < sources.Count; i++)
+                    {
+                        var source = sources[i];
+                        if (source != null && source.IsSpatialized && source.UsesSteamAudio && source.IsPlaying)
+                            ApplyRoomOnlyOutputs(source);
+                    }
                     return;
                 }
 
-                foreach (var source in active)
+                foreach (var source in _activeSources)
                 {
                     EnsureSource(source);
                     SetSourceInputs(source);
                 }
 
-                RemoveInactiveSources(active);
+                RemoveInactiveSources(_activeSources);
 
                 var shared = BuildSharedInputs();
                 var flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections;
@@ -55,20 +110,23 @@ namespace TS.Audio
                 IPL.SimulatorRunDirect(_simulator);
                 IPL.SimulatorRunReflections(_simulator);
 
-                foreach (var source in active)
+                foreach (var source in _activeSources)
                 {
-                    if (!_sources.TryGetValue(source, out var simSource) || simSource.Handle == IntPtr.Zero)
+                    if (!_sources.TryGetValue(source, out var simulationSource) || simulationSource.Handle == IntPtr.Zero)
                         continue;
-                    var sourceFlags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections;
-                    IPL.SourceGetOutputs(simSource, sourceFlags, out var outputs);
+
+                    IPL.SourceGetOutputs(simulationSource, flags, out var outputs);
                     ApplyDirectOutputs(source, in outputs.Direct);
                     ApplyReverbOutputs(source, in outputs.Reflections);
                 }
             }
         }
 
-        private void CreateSimulator()
+        private void EnsureSimulator()
         {
+            if (_simulator.Handle != IntPtr.Zero || _context.Handle == IntPtr.Zero)
+                return;
+
             var settings = new IPL.SimulationSettings
             {
                 Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
@@ -83,12 +141,11 @@ namespace TS.Audio
                 NumThreads = Math.Max(1, Environment.ProcessorCount - 1),
                 RayBatchSize = 64,
                 NumVisSamples = 8,
-                SamplingRate = SampleRate,
-                FrameSize = FrameSize
+                SamplingRate = AudioSettings.SamplingRate,
+                FrameSize = AudioSettings.FrameSize
             };
 
-            var error = IPL.SimulatorCreate(Context, in settings, out _simulator);
-            if (error != IPL.Error.Success)
+            if (IPL.SimulatorCreate(_context, in settings, out _simulator) != IPL.Error.Success)
                 _simulator = default;
         }
 
@@ -102,12 +159,11 @@ namespace TS.Audio
                 Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections
             };
 
-            var error = IPL.SourceCreate(_simulator, in settings, out var simSource);
-            if (error != IPL.Error.Success)
+            if (IPL.SourceCreate(_simulator, in settings, out var simulationSource) != IPL.Error.Success || simulationSource.Handle == IntPtr.Zero)
                 return;
 
-            IPL.SourceAdd(simSource, _simulator);
-            _sources[source] = simSource;
+            IPL.SourceAdd(simulationSource, _simulator);
+            _sources[source] = simulationSource;
         }
 
         private void RemoveInactiveSources(HashSet<AudioSourceHandle> active)
@@ -115,52 +171,69 @@ namespace TS.Audio
             if (_sources.Count == 0)
                 return;
 
-            var toRemove = new List<AudioSourceHandle>();
+            _sourcesToRemove.Clear();
             foreach (var entry in _sources)
             {
                 if (!active.Contains(entry.Key))
-                    toRemove.Add(entry.Key);
+                    _sourcesToRemove.Add(entry.Key);
             }
 
-            foreach (var handle in toRemove)
+            for (var i = 0; i < _sourcesToRemove.Count; i++)
             {
-                if (_sources.TryGetValue(handle, out var simSource) && simSource.Handle != IntPtr.Zero)
+                var handle = _sourcesToRemove[i];
+                if (_sources.TryGetValue(handle, out var simulationSource) && simulationSource.Handle != IntPtr.Zero)
                 {
-                    IPL.SourceRemove(simSource, _simulator);
-                    IPL.SourceRelease(ref simSource);
+                    if (_simulator.Handle != IntPtr.Zero)
+                        IPL.SourceRemove(simulationSource, _simulator);
+                    IPL.SourceRelease(ref simulationSource);
                 }
+
+                handle.ClearDirectSimulation();
+                handle.ClearReverbSimulation();
                 _sources.Remove(handle);
             }
+
+            _sourcesToRemove.Clear();
         }
 
         private void SetSourceInputs(AudioSourceHandle handle)
         {
-            if (!_sources.TryGetValue(handle, out var source) || source.Handle != IntPtr.Zero == false)
+            if (!_sources.TryGetValue(handle, out var source) || source.Handle == IntPtr.Zero)
                 return;
 
-            var spatial = handle.SpatialParams;
-            var position = new IPL.Vector3
+            var position = ToIpl(handle.WorldPosition);
+            var distanceModel = new IPL.DistanceAttenuationModel
             {
-                X = Volatile.Read(ref spatial.PosX),
-                Y = Volatile.Read(ref spatial.PosY),
-                Z = Volatile.Read(ref spatial.PosZ)
+                Type = handle.DistanceModel == DistanceModel.Inverse
+                    ? IPL.DistanceAttenuationModelType.InverseDistance
+                    : IPL.DistanceAttenuationModelType.Callback,
+                MinDistance = handle.ReferenceDistance,
+                Callback = null,
+                UserData = IntPtr.Zero,
+                Dirty = 0
             };
 
-            var coord = new IPL.CoordinateSpace3
+            var airModel = new IPL.AirAbsorptionModel
             {
-                Origin = position,
-                Right = new IPL.Vector3 { X = 1f, Y = 0f, Z = 0f },
-                Up = new IPL.Vector3 { X = 0f, Y = 1f, Z = 0f },
-                Ahead = new IPL.Vector3 { X = 0f, Y = 0f, Z = 1f }
+                Type = IPL.AirAbsorptionModelType.Default
             };
+            airModel.Coefficients[0] = 1f;
+            airModel.Coefficients[1] = 1f;
+            airModel.Coefficients[2] = 1f;
 
             var inputs = new IPL.SimulationInputs
             {
                 Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
                 DirectFlags = IPL.DirectSimulationFlags.Occlusion | IPL.DirectSimulationFlags.Transmission | IPL.DirectSimulationFlags.AirAbsorption,
-                Source = coord,
-                DistanceAttenuationModel = new IPL.DistanceAttenuationModel { Type = IPL.DistanceAttenuationModelType.Default, MinDistance = 1.0f },
-                AirAbsorptionModel = new IPL.AirAbsorptionModel { Type = IPL.AirAbsorptionModelType.Default },
+                Source = new IPL.CoordinateSpace3
+                {
+                    Origin = position,
+                    Right = new IPL.Vector3(1f, 0f, 0f),
+                    Up = new IPL.Vector3(0f, 1f, 0f),
+                    Ahead = new IPL.Vector3(0f, 0f, 1f)
+                },
+                DistanceAttenuationModel = distanceModel,
+                AirAbsorptionModel = airModel,
                 Directivity = new IPL.Directivity { DipoleWeight = 0f, DipolePower = 1f },
                 OcclusionType = IPL.OcclusionType.Raycast,
                 OcclusionRadius = 0.5f,
@@ -170,12 +243,9 @@ namespace TS.Audio
                 NumTransmissionRays = 4
             };
 
-            unsafe
-            {
-                inputs.ReverbScale[0] = 1.0f;
-                inputs.ReverbScale[1] = 1.0f;
-                inputs.ReverbScale[2] = 1.0f;
-            }
+            inputs.ReverbScale[0] = 1f;
+            inputs.ReverbScale[1] = 1f;
+            inputs.ReverbScale[2] = 1f;
 
             IPL.SourceSetInputs(source, inputs.Flags, in inputs);
         }
@@ -196,7 +266,7 @@ namespace TS.Audio
                 NumBounces = 2,
                 Duration = ReflectionDurationSeconds,
                 Order = ReflectionOrder,
-                IrradianceMinDistance = 1.0f
+                IrradianceMinDistance = 1f
             };
         }
     }

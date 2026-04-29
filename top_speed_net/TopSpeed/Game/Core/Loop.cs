@@ -25,8 +25,6 @@ namespace TopSpeed.Game
                 _pendingDriveStart = false;
                 StartDrive(_pendingMode);
             }
-
-            SyncAudioLoopState();
         }
     }
 }

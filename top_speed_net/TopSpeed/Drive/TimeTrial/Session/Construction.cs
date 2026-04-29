@@ -17,7 +17,7 @@ namespace TopSpeed.Drive.TimeTrial
         {
             var loadedTrack = Track.Load(track, _audio);
             var car = CarFactory.CreateDefault(
-                _audio,
+                _raceAudio,
                 loadedTrack,
                 _input,
                 _settings,
@@ -55,15 +55,6 @@ namespace TopSpeed.Drive.TimeTrial
             }
 
             return laps;
-        }
-
-        private Source[] CreateNumberSounds()
-        {
-            var sounds = new Source[101];
-            for (var i = 0; i <= 100; i++)
-                sounds[i] = LoadLanguageSound($"numbers\\{i}");
-
-            return sounds;
         }
 
         private Source[] CreateUnkeySounds()

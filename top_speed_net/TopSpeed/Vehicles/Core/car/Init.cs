@@ -1,8 +1,7 @@
 using System;
-using System.IO;
-using TopSpeed.Audio;
 using TopSpeed.Core;
 using TopSpeed.Data;
+using TopSpeed.Drive.Session.Audio;
 using TopSpeed.Input;
 using TopSpeed.Physics.Powertrain;
 using TopSpeed.Protocol;
@@ -19,7 +18,7 @@ namespace TopSpeed.Vehicles
     internal partial class Car
     {
         public Car(
-            AudioManager audio,
+            RaceAudioFactory raceAudio,
             Track track,
             DriveInput input,
             DriveSettings settings,
@@ -30,12 +29,12 @@ namespace TopSpeed.Vehicles
             IVibrationDevice? vibrationDevice = null)
             : base(new DriveInputCarController(input))
         {
-            _audio = audio;
+            if (raceAudio == null)
+                throw new ArgumentNullException(nameof(raceAudio));
             _track = track;
             _settings = settings;
             _currentTime = currentTime;
             _started = started;
-            _legacyRoot = Path.Combine(AssetPaths.SoundsRoot, "Legacy");
             _events = new EventQueue();
             _runtimeContext = new CarRuntimeContext();
             _physicsModel = new Default();
@@ -52,7 +51,8 @@ namespace TopSpeed.Vehicles
             var definition = LoadDefinition(vehicleIndex, vehicleFile, track.Weather);
             ApplyDefinition(definition);
             InitializeDriveSystems(definition);
-            InitializeAudioAssets(definition);
+            _raceAudio = raceAudio.CreatePlayer(definition);
+            BindAudio(_raceAudio);
             _vibration = InitializeVibration(vibrationDevice);
             ConfigureInitialAudioState();
         }

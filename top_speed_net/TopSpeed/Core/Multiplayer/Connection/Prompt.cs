@@ -54,10 +54,8 @@ namespace TopSpeed.Core.Multiplayer
                     if (!HandleServerAddressInput(result.Text))
                     {
                         var retry = string.IsNullOrWhiteSpace(result.Text) ? initialValue : result.Text;
-#if !NETFRAMEWORK
                         if (OperatingSystem.IsAndroid())
                             retry = null;
-#endif
                         PromptServerAddressInput(retry);
                     }
                 });

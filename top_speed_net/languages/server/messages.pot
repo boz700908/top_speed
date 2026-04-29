@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-16 20:18+0200\n"
+"POT-Creation-Date: 2026-04-29 04:18+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -87,6 +87,10 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:115
 msgid "Available commands:"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:258
+msgid "BMW 3 Series"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:209
@@ -305,6 +309,10 @@ msgid ""
 "expected={2}."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:346
+msgid "Ducati Panigale V4"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Completion.cs:90
 #, csharp-format
 msgid "Duplicate finish ignored: room={0}, player={1}, number={2}."
@@ -379,6 +387,10 @@ msgstr ""
 msgid "Failed to start transport on port {0}."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:114
+msgid "Fiat 500"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Race\Players.cs:215
 #, csharp-format
 msgid "Finish ignored: room={0}, player={1}, number={2}, state={3}."
@@ -388,6 +400,10 @@ msgstr ""
 #, csharp-format
 msgid ""
 "Finish recorded: room={0}, player={1}, number={2}, place={3}, timeMs={4}."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:170
+msgid "Ford Mustang 1969"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:49
@@ -538,9 +554,17 @@ msgstr ""
 msgid "Join room assignment: room={0}, player={1}, playerNumber={2}, host={3}."
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:318
+msgid "Kawasaki Ninja ZX-10R"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Validate.cs:98
 #, csharp-format
 msgid "Key '{0}' is missing a value."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:228
+msgid "Lamborghini Aventador"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:202
@@ -597,12 +621,24 @@ msgstr ""
 msgid "Max players: {0}"
 msgstr ""
 
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:288
+msgid "Mercedes Sprinter"
+msgstr ""
+
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:203
 msgid "Message of the day"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Commands\Host.cs:309
 msgid "Message of the day updated."
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:142
+msgid "Mini Cooper S"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:54
+msgid "Nissan GT-R Nismo"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Updates\Runner.cs:62
@@ -677,6 +713,10 @@ msgstr ""
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Ready.cs:83
 #, csharp-format
 msgid "Player {0}"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:84
+msgid "Porsche 911 GT3 RS"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Validate.cs:90
@@ -1080,7 +1120,7 @@ msgstr ""
 msgid "The update info file has an invalid server version format."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:82
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Protocol\RoomTexts.cs:9
 msgid "There are no bots to remove."
 msgstr ""
 
@@ -1088,8 +1128,7 @@ msgstr ""
 msgid "This game room is currently in progress."
 msgstr ""
 
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Bots.cs:37
-#: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Services\Room\Membership.cs:68
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Protocol\RoomTexts.cs:8
 msgid "This game room is unavailable because it is full."
 msgstr ""
 
@@ -1116,6 +1155,10 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Program.Args.cs:62
 msgid "TopSpeed.Server usage:"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:198
+msgid "Toyota Camry"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Shared\Data\Tracks\Parser\Validate.cs:149
@@ -1253,6 +1296,10 @@ msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Updates\Runner.cs:75
 msgid "Would you like to download the update? (y/n)"
+msgstr ""
+
+#: D:\top_speed\top_speed_net\TopSpeed.Shared\Vehicles\Catalog\Data.cs:374
+msgid "Yamaha YZF-R1"
 msgstr ""
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Messages.cs:102

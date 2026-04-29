@@ -124,7 +124,8 @@ namespace TopSpeed.Vehicles
                 _speed = 0;
             _lateralVelocityMps = 0f;
             _yawRateRad = 0f;
-            _soundBump.Play(loop: false);
+            if (!_soundBump.IsPlaying)
+                _soundBump.Play(loop: false);
             Horn();
         }
 
@@ -178,14 +179,7 @@ namespace TopSpeed.Vehicles
 
         public void Dispose()
         {
-            _soundEngine.Dispose();
-            _soundHorn.Dispose();
-            _soundStart.Dispose();
-            _soundCrash.Dispose();
-            _soundBrake.Dispose();
-            _soundMiniCrash.Dispose();
-            _soundBump.Dispose();
-            _soundBackfire?.Dispose();
+            _raceAudio.Dispose();
             _radio.Dispose();
             _liveRadio.Dispose();
         }

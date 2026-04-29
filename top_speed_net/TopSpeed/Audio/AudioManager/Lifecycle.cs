@@ -4,7 +4,12 @@ namespace TopSpeed.Audio
     {
         public void Dispose()
         {
+            if (_disposed)
+                return;
+
+            _disposed = true;
             StopUpdateThread();
+            _updateWake.Dispose();
             ClearCachedPaths();
             _engine.Dispose();
         }
