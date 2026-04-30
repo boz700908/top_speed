@@ -1371,7 +1371,7 @@ msgstr "信息"
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Rooms\Online.cs:11
 msgid "main room"
-msgstr "主房间"
+msgstr "大厅"
 
 #: D:\top_speed\top_speed_net\TopSpeed.Server\Network\Runtime\core.cs:73
 msgid "multiple"
