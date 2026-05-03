@@ -80,7 +80,8 @@ namespace TopSpeed.Server.Network
                     return;
                 }
 
-                var activeParticipants = readyHumans + room.Bots.Count;
+                var activeHumanParticipantIds = room.PendingLoadouts.Keys.Where(id => room.PlayerIds.Contains(id)).ToArray();
+                var activeParticipants = activeHumanParticipantIds.Length + room.Bots.Count;
                 if (activeParticipants < minimumParticipants)
                 {
                     TransitionState(room, RoomRaceState.Lobby);
@@ -94,6 +95,17 @@ namespace TopSpeed.Server.Network
                         room.Name,
                         activeParticipants,
                         minimumParticipants));
+                    return;
+                }
+
+                if (!_owner.EnsureRoomTrackPackageReady(room, activeHumanParticipantIds))
+                {
+                    _owner._logger.Debug(LocalizationService.Format(
+                        LocalizationService.Mark("Waiting for track package readiness: room={0}, trackHash={1}, ready={2}/{3}."),
+                        room.Id,
+                        room.TrackSelection?.Hash ?? string.Empty,
+                        room.TrackReadyPlayers.Count(id => activeHumanParticipantIds.Contains(id)),
+                        activeHumanParticipantIds.Length));
                     return;
                 }
 

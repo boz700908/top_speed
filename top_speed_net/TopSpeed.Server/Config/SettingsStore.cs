@@ -69,6 +69,7 @@ namespace TopSpeed.Server.Config
                 ? "en"
                 : settings.Language.Trim();
             settings.Moderation ??= new ServerModerationSettings();
+            settings.Features ??= new ServerFeaturesSettings();
             settings.Moderation.MaxNameLength = NormalizeMaxNameLength(settings.Moderation.MaxNameLength);
             settings.UpdateRuntimeAssetTag = ServerUpdateConfig.NormalizeConfiguredRuntimeAssetTag(settings.UpdateRuntimeAssetTag);
             return settings;

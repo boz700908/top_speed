@@ -103,6 +103,16 @@ namespace TopSpeed.Menu
             return EmptyBackMenu("multiplayer_room_tracks_adventure", LocalizationService.Mark("Select a track"));
         }
 
+        private MenuScreen BuildMultiplayerRoomTrackCustomMenu()
+        {
+            return EmptyBackMenu("multiplayer_room_tracks_custom", LocalizationService.Mark("Select a custom track"));
+        }
+
+        private MenuScreen BuildMultiplayerRoomTrackLocalCustomMenu()
+        {
+            return EmptyBackMenu("multiplayer_room_tracks_local_custom", LocalizationService.Mark("Upload a local custom track"));
+        }
+
         private MenuScreen BuildMultiplayerLoadoutVehicleMenu()
         {
             return EmptyBackMenu("multiplayer_loadout_vehicle", LocalizationService.Mark("Choose your vehicle"));

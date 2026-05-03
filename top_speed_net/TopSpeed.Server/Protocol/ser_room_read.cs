@@ -46,13 +46,26 @@ namespace TopSpeed.Server.Protocol
         public static bool TryReadRoomSetTrack(byte[] data, out PacketRoomSetTrack packet)
         {
             packet = new PacketRoomSetTrack();
-            if (data.Length < 2 + 12)
+            if (data.Length < 2 + 1)
                 return false;
-            var reader = new PacketReader(data);
-            reader.ReadByte();
-            reader.ReadByte();
-            packet.TrackName = reader.ReadFixedString(12);
-            return PacketValidation.IsValidRoomSetTrack(packet);
+            try
+            {
+                var reader = new PacketReader(data);
+                reader.ReadByte();
+                reader.ReadByte();
+                packet.Track = ReadTrackRef(ref reader);
+                return PacketValidation.IsValidRoomSetTrack(packet);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                packet = new PacketRoomSetTrack();
+                return false;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                packet = new PacketRoomSetTrack();
+                return false;
+            }
         }
 
         public static bool TryReadRoomSetLaps(byte[] data, out PacketRoomSetLaps packet)
@@ -119,32 +132,58 @@ namespace TopSpeed.Server.Protocol
         public static bool TryReadRoomEvent(byte[] data, out PacketRoomEvent packet)
         {
             packet = new PacketRoomEvent();
-            if (data.Length < 2 + 4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 12 + 1 + 4 + ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength)
+            if (data.Length < 2 + 4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1)
                 return false;
-            var reader = new PacketReader(data);
-            reader.ReadByte();
-            reader.ReadByte();
-            packet.RoomId = reader.ReadUInt32();
-            packet.RoomVersion = reader.ReadUInt32();
-            packet.EventSequence = reader.ReadUInt32();
-            packet.RaceInstanceId = reader.ReadUInt32();
-            packet.Kind = (RoomEventKind)reader.ReadByte();
-            packet.HostPlayerId = reader.ReadUInt32();
-            packet.RoomType = (GameRoomType)reader.ReadByte();
-            packet.PlayerCount = reader.ReadByte();
-            packet.PlayersToStart = reader.ReadByte();
-            packet.RaceState = (RoomRaceState)reader.ReadByte();
-            packet.RacePaused = reader.ReadBool();
-            packet.TrackName = reader.ReadFixedString(12);
-            packet.Laps = reader.ReadByte();
-            packet.GameRulesFlags = reader.ReadUInt32();
-            packet.RoomName = reader.ReadFixedString(ProtocolConstants.MaxRoomNameLength);
-            packet.SubjectPlayerId = reader.ReadUInt32();
-            packet.SubjectPlayerNumber = reader.ReadByte();
-            packet.SubjectPlayerState = (PlayerState)reader.ReadByte();
-            packet.SubjectPlayerName = reader.ReadFixedString(ProtocolConstants.MaxPlayerNameLength);
-            return PacketValidation.IsValidRoomEvent(packet);
+            try
+            {
+                var reader = new PacketReader(data);
+                reader.ReadByte();
+                reader.ReadByte();
+                packet.RoomId = reader.ReadUInt32();
+                packet.RoomVersion = reader.ReadUInt32();
+                packet.EventSequence = reader.ReadUInt32();
+                packet.RaceInstanceId = reader.ReadUInt32();
+                packet.Kind = (RoomEventKind)reader.ReadByte();
+                packet.HostPlayerId = reader.ReadUInt32();
+                packet.RoomType = (GameRoomType)reader.ReadByte();
+                packet.PlayerCount = reader.ReadByte();
+                packet.PlayersToStart = reader.ReadByte();
+                packet.RaceState = (RoomRaceState)reader.ReadByte();
+                packet.RacePaused = reader.ReadBool();
+                packet.Track = ReadTrackRef(ref reader);
+                packet.TrackName = packet.Track.IsBuiltIn ? packet.Track.BuiltInTrackKey : packet.Track.TrackId;
+                packet.Laps = reader.ReadByte();
+                packet.GameRulesFlags = reader.ReadUInt32();
+                packet.RoomName = reader.ReadFixedString(ProtocolConstants.MaxRoomNameLength);
+                packet.SubjectPlayerId = reader.ReadUInt32();
+                packet.SubjectPlayerNumber = reader.ReadByte();
+                packet.SubjectPlayerState = (PlayerState)reader.ReadByte();
+                packet.SubjectPlayerName = reader.ReadFixedString(ProtocolConstants.MaxPlayerNameLength);
+                return PacketValidation.IsValidRoomEvent(packet);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                packet = new PacketRoomEvent();
+                return false;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                packet = new PacketRoomEvent();
+                return false;
+            }
         }
 
+        private static TrackPackageRef ReadTrackRef(ref PacketReader reader)
+        {
+            var kind = (RoomTrackSelectionKind)reader.ReadByte();
+            return new TrackPackageRef
+            {
+                Kind = kind,
+                BuiltInTrackKey = reader.ReadString16(),
+                TrackId = reader.ReadString16(),
+                Version = reader.ReadString16(),
+                Hash = TrackPackageRef.NormalizeHash(reader.ReadString16())
+            };
+        }
     }
 }

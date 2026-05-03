@@ -7,6 +7,15 @@ namespace TopSpeed.Protocol
         public const int MaxMediaFileExtensionLength = 16;
         public const int MaxMediaBytes = 8 * 1024 * 1024;
         public const int MaxMediaChunkBytes = 900;
+        public const int MaxTrackPackageBytes = 32 * 1024 * 1024;
+        public const int MaxTrackPackageAssetBytes = 8 * 1024 * 1024;
+        public const int MaxTrackPackageChunkBytes = 900;
+        public const int MaxTrackPackageCacheEntries = 50;
+        public const int MaxTrackPackageCatalogEntries = 256;
+        public const int MaxTrackPackageDisplayNameLength = 160;
+        public const int MaxTrackIdLength = 128;
+        public const int MaxTrackVersionLength = 64;
+        public const int MaxTrackHashLength = 128;
         public const int MaxLiveFrameBytes = 1200;
         public const int LiveSampleRate = 48000;
         public const int LiveFrameMs = 60;

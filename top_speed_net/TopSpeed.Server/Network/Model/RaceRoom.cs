@@ -27,6 +27,7 @@ namespace TopSpeed.Server.Network
             RoomType = roomType;
             PlayersToStart = playersToStart;
             TrackName = "america";
+            TrackSelection = TrackPackageRef.BuiltIn("america");
             Laps = 3;
         }
 
@@ -49,8 +50,10 @@ namespace TopSpeed.Server.Network
         public bool TrackSelected { get; set; }
         public TrackData? TrackData { get; set; }
         public string TrackName { get; set; }
+        public TrackPackageRef TrackSelection { get; set; }
         public byte Laps { get; set; }
         public uint GameRulesFlags { get; set; }
+        public HashSet<uint> TrackReadyPlayers { get; } = new HashSet<uint>();
         public HashSet<uint> ActiveRaceParticipantIds { get; } = new HashSet<uint>();
         public List<RoomEventJournalEntry> EventJournal { get; } = new List<RoomEventJournalEntry>();
         public List<byte> RaceResults { get; } = new List<byte>();

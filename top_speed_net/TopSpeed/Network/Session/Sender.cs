@@ -12,6 +12,21 @@ namespace TopSpeed.Network.Session
             _peer = peer;
         }
 
+        public bool IsConnected
+        {
+            get
+            {
+                try
+                {
+                    return _peer.ConnectionState == ConnectionState.Connected;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public bool TrySend(byte[] payload, PacketStream stream)
         {
             var spec = PacketStreams.Get(stream);
@@ -28,7 +43,7 @@ namespace TopSpeed.Network.Session
         {
             try
             {
-                if (_peer.ConnectionState != ConnectionState.Connected)
+                if (!IsConnected)
                     return false;
 
                 _peer.Send(payload, channel, ToDelivery(kind));

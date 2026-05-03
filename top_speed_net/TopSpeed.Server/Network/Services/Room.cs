@@ -42,12 +42,47 @@ namespace TopSpeed.Server.Network
                         _owner.PacketFail(endPoint, Command.RoomJoin);
                 });
                 registry.Add("room", Command.RoomLeave, (player, _, _) => Leave(player, true));
-                registry.Add("room", Command.RoomSetTrack, (player, payload, endPoint) =>
+                registry.Add("room", Command.RoomSetTrackV2, (player, payload, endPoint) =>
                 {
                     if (PacketSerializer.TryReadRoomSetTrack(payload, out var track))
                         SetTrack(player, track);
                     else
-                        _owner.PacketFail(endPoint, Command.RoomSetTrack);
+                        _owner.PacketFail(endPoint, Command.RoomSetTrackV2);
+                });
+                registry.Add("room", Command.TrackPackageUploadBegin, (player, payload, endPoint) =>
+                {
+                    if (PacketSerializer.TryReadTrackPackageUploadBegin(payload, out var begin))
+                        HandleTrackPackageUploadBegin(player, begin);
+                    else
+                        _owner.PacketFail(endPoint, Command.TrackPackageUploadBegin);
+                });
+                registry.Add("room", Command.TrackPackageUploadChunk, (player, payload, endPoint) =>
+                {
+                    if (PacketSerializer.TryReadTrackPackageUploadChunk(payload, out var chunk))
+                        HandleTrackPackageUploadChunk(player, chunk);
+                    else
+                        _owner.PacketFail(endPoint, Command.TrackPackageUploadChunk);
+                });
+                registry.Add("room", Command.TrackPackageUploadEnd, (player, payload, endPoint) =>
+                {
+                    if (PacketSerializer.TryReadTrackPackageUploadEnd(payload, out var end))
+                        HandleTrackPackageUploadEnd(player, end);
+                    else
+                        _owner.PacketFail(endPoint, Command.TrackPackageUploadEnd);
+                });
+                registry.Add("room", Command.TrackPackageReady, (player, payload, endPoint) =>
+                {
+                    if (PacketSerializer.TryReadTrackPackageReady(payload, out var ready))
+                        HandleTrackPackageReady(player, ready);
+                    else
+                        _owner.PacketFail(endPoint, Command.TrackPackageReady);
+                });
+                registry.Add("room", Command.TrackPackageCatalogRequest, (player, payload, endPoint) =>
+                {
+                    if (PacketSerializer.TryReadTrackPackageCatalogRequest(payload, out var request))
+                        HandleTrackPackageCatalogRequest(player, request);
+                    else
+                        _owner.PacketFail(endPoint, Command.TrackPackageCatalogRequest);
                 });
                 registry.Add("room", Command.RoomSetLaps, (player, payload, endPoint) =>
                 {

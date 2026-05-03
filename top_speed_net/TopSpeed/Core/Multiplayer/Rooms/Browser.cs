@@ -21,7 +21,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
 
             _state.RoomDrafts.IsRoomBrowserOpenPending = true;
-            if (!TrySend(session.SendRoomListRequest(), "room list request"))
+            if (!TrySend(session.SendRoomListRequest(), LocalizationService.Mark("room list request")))
                 _state.RoomDrafts.IsRoomBrowserOpenPending = false;
         }
 
@@ -34,7 +34,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomJoin(roomId), "room join request");
+            TrySend(session.SendRoomJoin(roomId), LocalizationService.Mark("room join request"));
         }
 
         private void UpdateRoomBrowserMenu()

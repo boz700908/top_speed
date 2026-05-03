@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Threading;
 using LiteNetLib;
 using TopSpeed.Network.Session;
 using TopSpeed.Protocol;
@@ -18,6 +19,7 @@ namespace TopSpeed.Network
         private readonly Loop _loop;
         private Action<IncomingPacket>? _packetSink;
         private byte _playerNumber;
+        private int _disconnectPacketQueued;
 
         public MultiplayerSession(
             NetManager manager,
@@ -51,6 +53,7 @@ namespace TopSpeed.Network
         public byte PlayerNumber => _playerNumber;
         public string Motd { get; }
         public string PlayerName { get; }
+        public bool IsConnected => _sender.IsConnected;
 
         public void UpdatePlayerNumber(byte playerNumber)
         {
@@ -60,6 +63,20 @@ namespace TopSpeed.Network
         public bool TryDequeuePacket(out IncomingPacket packet)
         {
             return _incoming.TryDequeue(out packet);
+        }
+
+        private void QueueSyntheticDisconnectIfNeeded()
+        {
+            if (_sender.IsConnected)
+                return;
+
+            if (Interlocked.Exchange(ref _disconnectPacketQueued, 1) != 0)
+                return;
+
+            _incoming.Enqueue(new IncomingPacket(
+                Command.Disconnect,
+                new[] { ProtocolConstants.Version, (byte)Command.Disconnect },
+                DateTime.UtcNow.Ticks));
         }
 
         public void SetPacketSink(Action<IncomingPacket>? packetSink)

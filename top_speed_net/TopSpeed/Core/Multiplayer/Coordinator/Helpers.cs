@@ -58,11 +58,14 @@ namespace TopSpeed.Core.Multiplayer
             return tracks.ToArray();
         }
 
-        private bool TrySend(bool sent, string action)
+        private bool TrySend(bool sent, string actionMessageId)
         {
             if (sent)
                 return true;
 
+            var action = LocalizationService.Translate(actionMessageId);
+            if (string.IsNullOrWhiteSpace(action))
+                action = actionMessageId ?? string.Empty;
             _speech.Speak(
                 LocalizationService.Format(
                     LocalizationService.Mark("Failed to send {0}. Please check your connection."),

@@ -34,6 +34,17 @@ namespace TopSpeed.Server.Network
             }
         }
 
+        public void SetFeatureSettings(ServerFeaturesSettings features)
+        {
+            if (features == null)
+                return;
+
+            lock (_lock)
+            {
+                _config.Features = features.Clone();
+            }
+        }
+
         public ServerPlayerInfo[] GetPlayersSnapshot()
         {
             lock (_lock)

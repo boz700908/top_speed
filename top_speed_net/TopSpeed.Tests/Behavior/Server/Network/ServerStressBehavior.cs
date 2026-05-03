@@ -280,6 +280,7 @@ public sealed class ServerStressBehaviorTests
             Server.DisconnectPeerForTest(client.EndPoint);
             client.EndPoint = new IPEndPoint(IPAddress.Loopback, _nextReconnectPort++);
             SendProtocolHello(client, serverPlayer.PlayerId, serverPlayer.ResumeToken);
+            Send(client, WritePlayerHello("stress-" + client.PlayerId));
             var resumed = Server.GetPlayerSnapshotForTest(client.PlayerId);
             client.PlayerNumber = resumed.PlayerNumber;
             client.RoomId = resumed.RoomId.GetValueOrDefault(client.RoomId);

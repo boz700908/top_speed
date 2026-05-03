@@ -94,6 +94,8 @@ namespace TopSpeed.Core.Multiplayer
             CurrentRoom.RacePaused = roomEvent.RacePaused;
             if (!string.IsNullOrWhiteSpace(roomEvent.TrackName))
                 CurrentRoom.TrackName = roomEvent.TrackName;
+            if (roomEvent.Track != null && PacketValidation.IsValidTrackPackageRef(roomEvent.Track))
+                CurrentRoom.Track = CloneTrack(roomEvent.Track);
             if (roomEvent.Laps > 0)
                 CurrentRoom.Laps = roomEvent.Laps;
             CurrentRoom.GameRulesFlags = roomEvent.GameRulesFlags;
@@ -189,6 +191,16 @@ namespace TopSpeed.Core.Multiplayer
 
             players.Sort((a, b) => a.PlayerNumber.CompareTo(b.PlayerNumber));
             CurrentRoom.Players = players.ToArray();
+        }
+
+        private static TrackPackageRef CloneTrack(TrackPackageRef track)
+        {
+            if (track == null)
+                return TrackPackageRef.BuiltIn(string.Empty);
+
+            return track.IsCustomPackage
+                ? TrackPackageRef.Custom(track.TrackId ?? string.Empty, track.Version ?? string.Empty, track.Hash ?? string.Empty)
+                : TrackPackageRef.BuiltIn(track.BuiltInTrackKey ?? string.Empty);
         }
     }
 }

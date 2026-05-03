@@ -104,8 +104,13 @@ public sealed class ProtocolBehaviorTests
         };
 
         var payload = ClientPacketSerializer.WriteRoomEvent(roomEvent);
+        var expectedTrackPayload = 1
+            + 2 + PacketWriter.MeasureString16(roomEvent.TrackName)
+            + 2
+            + 2
+            + 2;
         var expectedPayload =
-            4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 12 + 1 + 4 +
+            4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + expectedTrackPayload + 1 + 4 +
             ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength;
         payload.Length.Should().Be(2 + expectedPayload);
 

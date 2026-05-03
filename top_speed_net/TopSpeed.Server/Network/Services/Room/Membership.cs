@@ -91,6 +91,7 @@ namespace TopSpeed.Server.Network
                 }
 
                 var roomId = player.RoomId.Value;
+                _owner._trackPackageUploads.Remove(player.Id);
                 if (!_owner._rooms.TryGetValue(roomId, out var room))
                 {
                     player.RoomId = null;
@@ -113,6 +114,7 @@ namespace TopSpeed.Server.Network
                 player.State = PlayerState.NotReady;
                 room.PendingLoadouts.Remove(player.Id);
                 room.PrepareSkips.Remove(player.Id);
+                room.TrackReadyPlayers.Remove(player.Id);
                 room.MediaMap.Remove(player.Id);
                 _owner.StopLive(player, room, notifyRoom: notify);
                 player.IncomingMedia = null;
@@ -193,6 +195,7 @@ namespace TopSpeed.Server.Network
                 player.PlayerNumber = byte.MaxValue;
                 player.State = PlayerState.NotReady;
                 room.PrepareSkips.Remove(player.Id);
+                room.TrackReadyPlayers.Remove(player.Id);
                 CompactNumbers(room);
 
                 _owner.SendStream(player, PacketSerializer.WritePlayerNumber(player.Id, player.PlayerNumber), PacketStream.Control);

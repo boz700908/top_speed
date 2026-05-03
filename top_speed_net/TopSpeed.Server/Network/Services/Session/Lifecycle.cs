@@ -78,6 +78,8 @@ namespace TopSpeed.Server.Network
                 {
                     _owner.StopLive(player, room, notifyRoom: true);
                     _owner.ResetMediaState(player, room);
+                    _owner._trackPackageUploads.Remove(player.Id);
+                    room.TrackReadyPlayers.Remove(player.Id);
                     var payload = PacketSerializer.WritePlayer(Command.PlayerDisconnected, player.Id, player.PlayerNumber);
                     _owner._notify.ToRoomExcept(room, player.Id, payload, PacketStream.RaceEvent);
                     _owner._notify.ToRoomExcept(room, player.Id, payload, PacketStream.Room);
@@ -133,6 +135,7 @@ namespace TopSpeed.Server.Network
                 player.MarkClosed();
                 if (player.RoomId.HasValue)
                     _owner._room.Leave(player, notifyRoom);
+                _owner._trackPackageUploads.Remove(player.Id);
                 if (announcePresenceDisconnect && player.ServerPresenceAnnounced)
                     _owner.BroadcastServerDisconnectAnnouncement(player, reason);
                 if (sendDisconnectPacket)

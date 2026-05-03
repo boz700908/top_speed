@@ -114,7 +114,13 @@ namespace TopSpeed.Server.Protocol
         public static byte[] WriteRoomList(PacketRoomList list)
         {
             var count = Math.Min(list.Rooms.Length, ProtocolConstants.MaxRoomListEntries);
-            var payload = 1 + (count * (4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1 + 12));
+            var payload = 1;
+            for (var i = 0; i < count; i++)
+            {
+                var room = list.Rooms[i];
+                payload += 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1;
+                payload += MeasureTrackRef(NormalizeTrackRef(room.Track, room.TrackName));
+            }
             var buffer = WritePacketHeader(Command.RoomList, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
@@ -129,7 +135,7 @@ namespace TopSpeed.Server.Protocol
                 writer.WriteByte(room.PlayerCount);
                 writer.WriteByte(room.PlayersToStart);
                 writer.WriteByte((byte)room.RaceState);
-                writer.WriteFixedString(room.TrackName ?? string.Empty, 12);
+                WriteTrackRef(ref writer, NormalizeTrackRef(room.Track, room.TrackName));
             }
             return buffer;
         }
@@ -137,8 +143,9 @@ namespace TopSpeed.Server.Protocol
         public static byte[] WriteRoomState(PacketRoomState state)
         {
             var count = Math.Min(state.Players.Length, ProtocolConstants.MaxPlayers);
-            var payload = 4 + 4 + 4 + 4 + 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1 + 1 + 1 + 12 + 1 + 4 + 1 +
-                (count * (4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength));
+            var payload = 4 + 4 + 4 + 4 + 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 4 + 1 +
+                (count * (4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength))
+                + MeasureTrackRef(NormalizeTrackRef(state.Track, state.TrackName));
             var buffer = WritePacketHeader(Command.RoomState, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
@@ -155,7 +162,7 @@ namespace TopSpeed.Server.Protocol
             writer.WriteBool(state.InRoom);
             writer.WriteBool(state.IsHost);
             writer.WriteBool(state.RacePaused);
-            writer.WriteFixedString(state.TrackName ?? string.Empty, 12);
+            WriteTrackRef(ref writer, NormalizeTrackRef(state.Track, state.TrackName));
             writer.WriteByte(state.Laps);
             writer.WriteUInt32(state.GameRulesFlags);
             writer.WriteByte((byte)count);
@@ -173,8 +180,9 @@ namespace TopSpeed.Server.Protocol
         public static byte[] WriteRoomGet(PacketRoomGet packet)
         {
             var count = Math.Min(packet.Players.Length, ProtocolConstants.MaxPlayers);
-            var payload = 1 + 4 + 4 + 4 + 4 + 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1 + 12 + 1 + 4 + 1 +
-                (count * (4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength));
+            var payload = 1 + 4 + 4 + 4 + 4 + 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1 + 1 + 4 + 1 +
+                (count * (4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength))
+                + MeasureTrackRef(NormalizeTrackRef(packet.Track, packet.TrackName));
             var buffer = WritePacketHeader(Command.RoomGet, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
@@ -190,7 +198,7 @@ namespace TopSpeed.Server.Protocol
             writer.WriteByte(packet.PlayersToStart);
             writer.WriteByte((byte)packet.RaceState);
             writer.WriteBool(packet.RacePaused);
-            writer.WriteFixedString(packet.TrackName ?? string.Empty, 12);
+            WriteTrackRef(ref writer, NormalizeTrackRef(packet.Track, packet.TrackName));
             writer.WriteByte(packet.Laps);
             writer.WriteUInt32(packet.GameRulesFlags);
             writer.WriteByte((byte)count);
@@ -208,8 +216,9 @@ namespace TopSpeed.Server.Protocol
 
         public static byte[] WriteRoomEvent(PacketRoomEvent evt)
         {
-            var payload = 4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 12 + 1 + 4 +
-                ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength;
+            var payload = 4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 4 +
+                ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength
+                + MeasureTrackRef(NormalizeTrackRef(evt.Track, evt.TrackName));
             var buffer = WritePacketHeader(Command.RoomEvent, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
@@ -225,7 +234,7 @@ namespace TopSpeed.Server.Protocol
             writer.WriteByte(evt.PlayersToStart);
             writer.WriteByte((byte)evt.RaceState);
             writer.WriteBool(evt.RacePaused);
-            writer.WriteFixedString(evt.TrackName ?? string.Empty, 12);
+            WriteTrackRef(ref writer, NormalizeTrackRef(evt.Track, evt.TrackName));
             writer.WriteByte(evt.Laps);
             writer.WriteUInt32(evt.GameRulesFlags);
             writer.WriteFixedString(evt.RoomName ?? string.Empty, ProtocolConstants.MaxRoomNameLength);
@@ -234,6 +243,40 @@ namespace TopSpeed.Server.Protocol
             writer.WriteByte((byte)evt.SubjectPlayerState);
             writer.WriteFixedString(evt.SubjectPlayerName ?? string.Empty, ProtocolConstants.MaxPlayerNameLength);
             return buffer;
+        }
+
+        private static TrackPackageRef NormalizeTrackRef(TrackPackageRef track, string legacyTrackName)
+        {
+            if (track != null && track.Kind == RoomTrackSelectionKind.CustomPackage)
+            {
+                return TrackPackageRef.Custom(
+                    track.TrackId,
+                    track.Version,
+                    track.Hash);
+            }
+
+            var builtIn = track != null ? track.BuiltInTrackKey : string.Empty;
+            if (string.IsNullOrWhiteSpace(builtIn))
+                builtIn = legacyTrackName ?? string.Empty;
+            return TrackPackageRef.BuiltIn(builtIn);
+        }
+
+        private static int MeasureTrackRef(TrackPackageRef track)
+        {
+            return 1
+                + 2 + PacketWriter.MeasureString16(track.BuiltInTrackKey)
+                + 2 + PacketWriter.MeasureString16(track.TrackId)
+                + 2 + PacketWriter.MeasureString16(track.Version)
+                + 2 + PacketWriter.MeasureString16(track.Hash);
+        }
+
+        private static void WriteTrackRef(ref PacketWriter writer, TrackPackageRef track)
+        {
+            writer.WriteByte((byte)track.Kind);
+            writer.WriteString16(track.BuiltInTrackKey ?? string.Empty);
+            writer.WriteString16(track.TrackId ?? string.Empty);
+            writer.WriteString16(track.Version ?? string.Empty);
+            writer.WriteString16(track.Hash ?? string.Empty);
         }
 
         public static byte[] WriteRoomRaceStateChanged(PacketRoomRaceStateChanged packet)

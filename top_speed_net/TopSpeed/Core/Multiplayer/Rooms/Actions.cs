@@ -46,11 +46,19 @@ namespace TopSpeed.Core.Multiplayer
             var session = SessionOrNull();
             if (session == null)
             {
-                _speech.Speak(LocalizationService.Mark("Not connected to a server."));
+                if (_state.Connection.ClientState == MultiplayerClientState.Reconnecting)
+                {
+                    _speech.Speak(LocalizationService.Mark("Reconnection is in progress. Disconnecting now."));
+                    Disconnect();
+                    return;
+                }
+
+                _speech.Speak(LocalizationService.Mark("Not connected to a server. Returning to main menu."));
+                Disconnect();
                 return;
             }
 
-            if (!TrySend(session.SendRoomLeave(), "room leave request"))
+            if (!TrySend(session.SendRoomLeave(), LocalizationService.Mark("room leave request")))
                 return;
             _speech.Speak(LocalizationService.Mark("Leaving game room."));
             _menu.ShowRoot(MultiplayerMenuKeys.Lobby);
@@ -71,7 +79,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomStartRace(), "race start request");
+            TrySend(session.SendRoomStartRace(), LocalizationService.Mark("race start request"));
         }
 
         private void AddBotToRoom()
@@ -89,7 +97,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomAddBot(), "add bot request");
+            TrySend(session.SendRoomAddBot(), LocalizationService.Mark("add bot request"));
         }
 
         private void RemoveLastBotFromRoom()
@@ -107,7 +115,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomRemoveBot(), "remove bot request");
+            TrySend(session.SendRoomRemoveBot(), LocalizationService.Mark("remove bot request"));
         }
 
         private void SubmitLoadoutReady(bool automaticTransmission)
@@ -139,7 +147,7 @@ namespace TopSpeed.Core.Multiplayer
 
             var selectedCar = (CarType)vehicleIndex;
             _setLocalMultiplayerLoadout(vehicleIndex, automaticTransmission);
-            if (!TrySend(session.SendRoomPlayerReady(selectedCar, automaticTransmission), "ready state"))
+            if (!TrySend(session.SendRoomPlayerReady(selectedCar, automaticTransmission), LocalizationService.Mark("ready state")))
                 return;
             _speech.Speak(LocalizationService.Mark("Ready. Waiting for other players."));
             _menu.ShowRoot(MultiplayerMenuKeys.RoomControls);
@@ -231,7 +239,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            TrySend(session.SendRoomRaceControl(RoomRaceControlAction.CancelPrepare), "game cancel request");
+            TrySend(session.SendRoomRaceControl(RoomRaceControlAction.CancelPrepare), LocalizationService.Mark("game cancel request"));
         }
 
         private void HandleQuitLoadoutQuestionResult(int resultId)
@@ -259,7 +267,7 @@ namespace TopSpeed.Core.Multiplayer
 
             if (_state.Rooms.CurrentRoom.RaceState == RoomRaceState.Preparing)
             {
-                if (!TrySend(session.SendRoomPlayerWithdraw(), "race preparation withdrawal"))
+                if (!TrySend(session.SendRoomPlayerWithdraw(), LocalizationService.Mark("race preparation withdrawal")))
                     return;
                 _speech.Speak(LocalizationService.Mark("You left race preparation and returned to room controls."));
             }

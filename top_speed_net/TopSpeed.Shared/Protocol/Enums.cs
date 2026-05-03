@@ -109,7 +109,18 @@ namespace TopSpeed.Protocol
         RoomRacePlayerFinished = 54,
         RoomRaceCompleted = 55,
         RoomRaceAborted = 56,
-        RoomRaceControl = 57
+        RoomRaceControl = 57,
+        RoomSetTrackV2 = 58,
+        TrackPackageUploadBegin = 59,
+        TrackPackageUploadChunk = 60,
+        TrackPackageUploadEnd = 61,
+        TrackPackageUploadResult = 62,
+        TrackPackageTransferBegin = 63,
+        TrackPackageTransferChunk = 64,
+        TrackPackageTransferEnd = 65,
+        TrackPackageReady = 66,
+        TrackPackageCatalogRequest = 67,
+        TrackPackageCatalog = 68
     }
 
     public enum ProtocolMessageCode : byte
@@ -201,6 +212,14 @@ namespace TopSpeed.Protocol
         Complete = 2,
         Cancelled = 3,
         Expired = 4
+    }
+
+    public enum TrackPackageUploadStatus : byte
+    {
+        None = 0,
+        Accepted = 1,
+        Reused = 2,
+        Rejected = 3
     }
 
     public enum ConnectionLifecycleState : byte

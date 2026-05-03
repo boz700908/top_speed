@@ -8,6 +8,7 @@ namespace TopSpeed.Game
         private void SetSession(MultiplayerSession session)
         {
             _session = session;
+            ResetMultiplayerTrackPackageState();
             _multiplayerRaceRuntime.ResetSession();
             ClearQueuedMultiplayerPackets();
             session.SetPacketSink(packet => _multiplayerDispatch.Enqueue(session, packet));
@@ -26,6 +27,7 @@ namespace TopSpeed.Game
                 session.SetPacketSink(null);
             session?.Dispose();
             _session = null;
+            ResetMultiplayerTrackPackageState();
             _multiplayerRaceRuntime.ResetSession();
             ClearQueuedMultiplayerPackets();
             _multiplayerCoordinator.OnSessionCleared();

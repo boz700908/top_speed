@@ -32,9 +32,17 @@ namespace TopSpeed.Core.Multiplayer
         {
             _state.RoomDrafts.RoomOptionsDraftActive = true;
             _state.RoomDrafts.RoomOptionsTrackRandom = false;
-            _state.RoomDrafts.RoomOptionsTrackName = string.IsNullOrWhiteSpace(_state.Rooms.CurrentRoom.TrackName)
-                ? TrackList.RaceTracks[0].Key
-                : _state.Rooms.CurrentRoom.TrackName;
+            var currentTrack = _state.Rooms.CurrentRoom.Track;
+            if (currentTrack == null || !PacketValidation.IsValidTrackPackageRef(currentTrack))
+                currentTrack = TrackPackageRef.BuiltIn(_state.Rooms.CurrentRoom.TrackName);
+            if (currentTrack == null || !PacketValidation.IsValidTrackPackageRef(currentTrack))
+                currentTrack = TrackPackageRef.BuiltIn(TrackList.RaceTracks[0].Key);
+
+            _state.RoomDrafts.RoomOptionsTrack = CloneTrackRef(currentTrack);
+            _state.RoomDrafts.RoomOptionsTrackName = _state.RoomDrafts.RoomOptionsTrack.IsBuiltIn
+                ? _state.RoomDrafts.RoomOptionsTrack.BuiltInTrackKey
+                : _state.RoomDrafts.RoomOptionsTrack.TrackId;
+            _state.RoomDrafts.RoomOptionsTrackDisplayName = FormatTrackRefDisplay(_state.RoomDrafts.RoomOptionsTrack);
             _state.RoomDrafts.RoomOptionsLaps = _state.Rooms.CurrentRoom.Laps > 0 ? _state.Rooms.CurrentRoom.Laps : (byte)1;
             _state.RoomDrafts.RoomOptionsPlayersToStart = _state.Rooms.CurrentRoom.PlayersToStart >= 2 ? _state.Rooms.CurrentRoom.PlayersToStart : (byte)2;
             _state.RoomDrafts.RoomOptionsGameRulesFlags = _state.Rooms.CurrentRoom.GameRulesFlags;
@@ -46,7 +54,11 @@ namespace TopSpeed.Core.Multiplayer
         {
             _state.RoomDrafts.RoomOptionsDraftActive = false;
             _state.RoomDrafts.RoomOptionsTrackRandom = false;
+            _state.RoomDrafts.RoomOptionsTrack = TrackPackageRef.BuiltIn(string.Empty);
+            _state.RoomDrafts.RoomOptionsTrackDisplayName = string.Empty;
             _state.RoomDrafts.RoomOptionsGameRulesFlags = 0;
+            _state.RoomDrafts.RoomTrackCatalogOpenPending = false;
+            _state.RoomDrafts.RoomTrackUploadReturnToCatalog = false;
         }
 
         private void ConfirmRoomOptionsChanges()
@@ -65,17 +77,22 @@ namespace TopSpeed.Core.Multiplayer
             }
 
             var appliedAny = false;
-            var currentTrack = string.IsNullOrWhiteSpace(_state.Rooms.CurrentRoom.TrackName) ? TrackList.RaceTracks[0].Key : _state.Rooms.CurrentRoom.TrackName;
-            if (!string.Equals(currentTrack, _state.RoomDrafts.RoomOptionsTrackName, StringComparison.OrdinalIgnoreCase))
+            var currentTrack = _state.Rooms.CurrentRoom.Track;
+            if (currentTrack == null || !PacketValidation.IsValidTrackPackageRef(currentTrack))
+                currentTrack = TrackPackageRef.BuiltIn(_state.Rooms.CurrentRoom.TrackName);
+            if (currentTrack == null || !PacketValidation.IsValidTrackPackageRef(currentTrack))
+                currentTrack = TrackPackageRef.BuiltIn(TrackList.RaceTracks[0].Key);
+
+            if (!TrackRefsEqual(currentTrack, _state.RoomDrafts.RoomOptionsTrack))
             {
-                if (!TrySend(session.SendRoomSetTrack(_state.RoomDrafts.RoomOptionsTrackName), "track change request"))
+                if (!TrySend(session.SendRoomSetTrack(_state.RoomDrafts.RoomOptionsTrack), LocalizationService.Mark("track change request")))
                     return;
                 appliedAny = true;
             }
 
             if (_state.Rooms.CurrentRoom.Laps != _state.RoomDrafts.RoomOptionsLaps)
             {
-                if (!TrySend(session.SendRoomSetLaps(_state.RoomDrafts.RoomOptionsLaps), "lap count change request"))
+                if (!TrySend(session.SendRoomSetLaps(_state.RoomDrafts.RoomOptionsLaps), LocalizationService.Mark("lap count change request")))
                     return;
                 appliedAny = true;
             }
@@ -85,16 +102,17 @@ namespace TopSpeed.Core.Multiplayer
                 var playersToStart = _state.RoomDrafts.RoomOptionsPlayersToStart < 2 ? (byte)2 : _state.RoomDrafts.RoomOptionsPlayersToStart;
                 if (_state.Rooms.CurrentRoom.PlayersToStart != playersToStart)
                 {
-                    if (!TrySend(session.SendRoomSetPlayersToStart(playersToStart), "player count change request"))
+                    if (!TrySend(session.SendRoomSetPlayersToStart(playersToStart), LocalizationService.Mark("player count change request")))
                         return;
                     appliedAny = true;
                 }
             }
 
-            var gameRules = _state.RoomDrafts.RoomOptionsGameRulesFlags & (uint)RoomGameRules.GhostMode;
+            var gameRules = _state.RoomDrafts.RoomOptionsGameRulesFlags
+                & ((uint)RoomGameRules.GhostMode | (uint)RoomGameRules.CustomTracks);
             if (_state.Rooms.CurrentRoom.GameRulesFlags != gameRules)
             {
-                if (!TrySend(session.SendRoomSetGameRules(gameRules), "game rules change request"))
+                if (!TrySend(session.SendRoomSetGameRules(gameRules), LocalizationService.Mark("game rules change request")))
                     return;
                 appliedAny = true;
             }
@@ -116,9 +134,9 @@ namespace TopSpeed.Core.Multiplayer
                 return LocalizationService.Mark("Track, currently random chosen.");
             }
 
-            var trackName = TryGetTrackDisplay(_state.RoomDrafts.RoomOptionsTrackName, out var display)
-                ? LocalizationService.Translate(display)
-                : _state.RoomDrafts.RoomOptionsTrackName;
+            var trackName = string.IsNullOrWhiteSpace(_state.RoomDrafts.RoomOptionsTrackDisplayName)
+                ? FormatTrackRefDisplay(_state.RoomDrafts.RoomOptionsTrack)
+                : _state.RoomDrafts.RoomOptionsTrackDisplayName;
             return LocalizationService.Format(
                 LocalizationService.Mark("Track, currently {0}."),
                 trackName);
@@ -177,6 +195,8 @@ namespace TopSpeed.Core.Multiplayer
             RebuildRoomTrackTypeMenu();
             RebuildRoomTrackMenu(MultiplayerMenuKeys.RoomTrackRace, TrackCategory.RaceTrack);
             RebuildRoomTrackMenu(MultiplayerMenuKeys.RoomTrackAdventure, TrackCategory.StreetAdventure);
+            RebuildRoomTrackCustomMenu();
+            RebuildRoomTrackLocalCustomMenu();
             _menu.Push(MultiplayerMenuKeys.RoomTrackType);
         }
 
@@ -211,6 +231,33 @@ namespace TopSpeed.Core.Multiplayer
             _state.RoomDrafts.RoomOptionsGameRulesFlags = flags;
         }
 
+        private bool GetRoomOptionsCustomTracksEnabled()
+        {
+            if (!_state.RoomDrafts.RoomOptionsDraftActive)
+                BeginRoomOptionsDraft();
+
+            return (_state.RoomDrafts.RoomOptionsGameRulesFlags & (uint)RoomGameRules.CustomTracks) != 0u;
+        }
+
+        private bool IsCurrentRoomCustomTracksEnabled()
+        {
+            return (_state.Rooms.CurrentRoom.GameRulesFlags & (uint)RoomGameRules.CustomTracks) != 0u;
+        }
+
+        private void SetRoomOptionsCustomTracksEnabled(bool enabled)
+        {
+            if (!_state.RoomDrafts.RoomOptionsDraftActive)
+                BeginRoomOptionsDraft();
+
+            var flags = _state.RoomDrafts.RoomOptionsGameRulesFlags;
+            if (enabled)
+                flags |= (uint)RoomGameRules.CustomTracks;
+            else
+                flags &= ~(uint)RoomGameRules.CustomTracks;
+
+            _state.RoomDrafts.RoomOptionsGameRulesFlags = flags;
+        }
+
         private void AnnounceCurrentRoomGameRules()
         {
             if (!_state.Rooms.CurrentRoom.InRoom)
@@ -219,25 +266,79 @@ namespace TopSpeed.Core.Multiplayer
                 return;
             }
 
-            _speech.Speak(FormatGameRulesSummary(_state.Rooms.CurrentRoom.GameRulesFlags));
+            var room = _state.Rooms.CurrentRoom;
+            _speech.Speak(FormatGameRulesSummary(
+                room.GameRulesFlags,
+                room.Track,
+                room.TrackName,
+                room.Laps,
+                room.PlayersToStart));
         }
 
-        private static string FormatGameRulesSummary(uint gameRulesFlags)
+        private static string FormatGameRulesSummary(
+            uint gameRulesFlags,
+            TrackPackageRef track,
+            string trackName,
+            byte laps,
+            byte playersToStart)
         {
             var ghostEnabled = (gameRulesFlags & (uint)RoomGameRules.GhostMode) != 0u;
-            return ghostEnabled
-                ? LocalizationService.Mark("Ghost mode is enabled.")
-                : LocalizationService.Mark("Ghost mode is disabled.");
+            var customTracksEnabled = (gameRulesFlags & (uint)RoomGameRules.CustomTracks) != 0u;
+            var trackDisplay = ResolveTrackAnnouncement(track, trackName);
+            var normalizedLaps = laps > 0 ? laps : (byte)1;
+            var normalizedPlayers = playersToStart >= 2 ? playersToStart : (byte)2;
+            var lapsText = LocalizationService.Format(
+                normalizedLaps == 1
+                    ? LocalizationService.Mark("{0} lap")
+                    : LocalizationService.Mark("{0} laps"),
+                normalizedLaps);
+            var playersText = LocalizationService.Format(
+                normalizedPlayers == 1
+                    ? LocalizationService.Mark("{0} player")
+                    : LocalizationService.Mark("{0} players"),
+                normalizedPlayers);
+            return LocalizationService.Format(
+                LocalizationService.Mark("Ghost mode is {0}. Custom tracks are {1}. The chosen track is {2}. The game will run for {3}. This room is limited to {4}."),
+                ghostEnabled
+                    ? LocalizationService.Translate(LocalizationService.Mark("enabled"))
+                    : LocalizationService.Translate(LocalizationService.Mark("disabled")),
+                customTracksEnabled
+                    ? LocalizationService.Translate(LocalizationService.Mark("enabled"))
+                    : LocalizationService.Translate(LocalizationService.Mark("disabled")),
+                trackDisplay,
+                lapsText,
+                playersText);
+        }
+
+        private static string ResolveTrackAnnouncement(TrackPackageRef track, string trackName)
+        {
+            var display = FormatTrackRefDisplay(track);
+            if (!string.IsNullOrWhiteSpace(display))
+                return display;
+
+            if (TryGetTrackDisplay(trackName, out var builtInDisplay))
+                return LocalizationService.Translate(builtInDisplay);
+
+            var fallback = (trackName ?? string.Empty).Trim();
+            return string.IsNullOrWhiteSpace(fallback)
+                ? LocalizationService.Mark("Unknown")
+                : fallback;
         }
 
         private void RebuildRoomTrackTypeMenu()
         {
-            var items = new List<MenuItem>
+            var items = new List<MenuItem>();
+            items.Add(new MenuItem(LocalizationService.Mark("Race track"), MenuAction.None, nextMenuId: MultiplayerMenuKeys.RoomTrackRace));
+            items.Add(new MenuItem(LocalizationService.Mark("Street adventure"), MenuAction.None, nextMenuId: MultiplayerMenuKeys.RoomTrackAdventure));
+            if (IsCurrentRoomCustomTracksEnabled())
             {
-                new MenuItem(LocalizationService.Mark("Race track"), MenuAction.None, nextMenuId: MultiplayerMenuKeys.RoomTrackRace),
-                new MenuItem(LocalizationService.Mark("Street adventure"), MenuAction.None, nextMenuId: MultiplayerMenuKeys.RoomTrackAdventure),
-                new MenuItem(LocalizationService.Mark("Random"), MenuAction.None, onActivate: SelectRandomRoomTrackAny)
-            };
+                items.Add(new MenuItem(
+                    LocalizationService.Mark("Custom track"),
+                    MenuAction.None,
+                    onActivate: OpenRoomTrackCustomMenu));
+            }
+
+            items.Add(new MenuItem(LocalizationService.Mark("Random"), MenuAction.None, onActivate: SelectRandomRoomTrackAny));
 
             _menu.UpdateItems(MultiplayerMenuKeys.RoomTrackType, items);
         }
@@ -249,7 +350,7 @@ namespace TopSpeed.Core.Multiplayer
             for (var i = 0; i < tracks.Count; i++)
             {
                 var track = tracks[i];
-                items.Add(new MenuItem(track.Display, MenuAction.None, onActivate: () => SelectRoomTrack(track.Key, false)));
+                items.Add(new MenuItem(track.Display, MenuAction.None, onActivate: () => SelectRoomTrack(TrackPackageRef.BuiltIn(track.Key), track.Display, false)));
             }
 
             items.Add(new MenuItem(LocalizationService.Mark("Random"), MenuAction.None, onActivate: () => SelectRandomRoomTrackCategory(category)));
@@ -283,7 +384,22 @@ namespace TopSpeed.Core.Multiplayer
 
         private void SelectRoomTrack(string trackKey, bool randomChosen)
         {
-            _state.RoomDrafts.RoomOptionsTrackName = string.IsNullOrWhiteSpace(trackKey) ? TrackList.RaceTracks[0].Key : trackKey;
+            SelectRoomTrack(TrackPackageRef.BuiltIn(trackKey), string.Empty, randomChosen);
+        }
+
+        private void SelectRoomTrack(TrackPackageRef track, string displayName, bool randomChosen)
+        {
+            var normalized = CloneTrackRef(track);
+            if (!PacketValidation.IsValidTrackPackageRef(normalized))
+                normalized = TrackPackageRef.BuiltIn(TrackList.RaceTracks[0].Key);
+
+            _state.RoomDrafts.RoomOptionsTrack = normalized;
+            _state.RoomDrafts.RoomOptionsTrackName = normalized.IsBuiltIn
+                ? normalized.BuiltInTrackKey
+                : normalized.TrackId;
+            _state.RoomDrafts.RoomOptionsTrackDisplayName = string.IsNullOrWhiteSpace(displayName)
+                ? FormatTrackRefDisplay(normalized)
+                : displayName;
             _state.RoomDrafts.RoomOptionsTrackRandom = randomChosen;
             ReturnToRoomOptionsMenu();
             _speech.Speak(GetRoomOptionsTrackText());
@@ -317,6 +433,48 @@ namespace TopSpeed.Core.Multiplayer
             }
 
             return false;
+        }
+
+        private static TrackPackageRef CloneTrackRef(TrackPackageRef track)
+        {
+            if (track == null)
+                return TrackPackageRef.BuiltIn(string.Empty);
+
+            return track.IsCustomPackage
+                ? TrackPackageRef.Custom(track.TrackId ?? string.Empty, track.Version ?? string.Empty, track.Hash ?? string.Empty)
+                : TrackPackageRef.BuiltIn(track.BuiltInTrackKey ?? string.Empty);
+        }
+
+        private static bool TrackRefsEqual(TrackPackageRef left, TrackPackageRef right)
+        {
+            var a = CloneTrackRef(left);
+            var b = CloneTrackRef(right);
+            if (a.Kind != b.Kind)
+                return false;
+            if (a.IsCustomPackage)
+            {
+                return string.Equals(a.TrackId, b.TrackId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(a.Version, b.Version, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(TrackPackageRef.NormalizeHash(a.Hash), TrackPackageRef.NormalizeHash(b.Hash), StringComparison.OrdinalIgnoreCase);
+            }
+
+            return string.Equals(a.BuiltInTrackKey, b.BuiltInTrackKey, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string FormatTrackRefDisplay(TrackPackageRef track)
+        {
+            if (track != null && track.IsCustomPackage)
+            {
+                var id = string.IsNullOrWhiteSpace(track.TrackId) ? LocalizationService.Mark("Custom track") : track.TrackId;
+                if (string.IsNullOrWhiteSpace(track.Version))
+                    return id;
+                return id + " (" + track.Version + ")";
+            }
+
+            var builtIn = track?.BuiltInTrackKey ?? string.Empty;
+            if (TryGetTrackDisplay(builtIn, out var display))
+                return LocalizationService.Translate(display);
+            return builtIn;
         }
     }
 }

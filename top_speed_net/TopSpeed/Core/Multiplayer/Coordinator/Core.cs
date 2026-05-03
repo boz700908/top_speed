@@ -24,11 +24,7 @@ namespace TopSpeed.Core.Multiplayer
             LocalizationService.Mark("Race without bots"),
             LocalizationService.Mark("One-on-one without bots")
         };
-        private static readonly string[] RoomCapacityOptions = BuildNumericOptions(
-            2,
-            ProtocolConstants.MaxRoomPlayersToStart,
-            LocalizationService.Mark("{0} player"),
-            LocalizationService.Mark("{0} players"));
+        private static readonly string[] RoomCapacityOptions = BuildNumberOptions(2, ProtocolConstants.MaxRoomPlayersToStart);
         private static readonly string[] LapCountOptions = BuildNumberOptions(1, 16);
         private static readonly TrackInfo[] RoomTrackOptions = BuildRoomTrackOptions();
         private const int ConnectingPulseIntervalMs = 500;

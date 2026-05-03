@@ -12,9 +12,14 @@ namespace TopSpeed.Core.Multiplayer
         public int PendingLoadoutVehicleIndex;
         public bool RoomOptionsDraftActive;
         public string RoomOptionsTrackName = string.Empty;
+        public TrackPackageRef RoomOptionsTrack = TrackPackageRef.BuiltIn(string.Empty);
+        public string RoomOptionsTrackDisplayName = string.Empty;
         public bool RoomOptionsTrackRandom;
         public byte RoomOptionsLaps = 1;
         public byte RoomOptionsPlayersToStart = 2;
         public uint RoomOptionsGameRulesFlags;
+        public bool RoomTrackCatalogOpenPending;
+        public bool RoomTrackUploadReturnToCatalog;
+        public PacketTrackPackageCatalogEntry[] RoomTrackCatalog = System.Array.Empty<PacketTrackPackageCatalogEntry>();
     }
 }

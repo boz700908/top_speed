@@ -24,7 +24,7 @@ namespace TopSpeed.Server.Network
 
         private void BroadcastGlobalChat(PlayerConnection sender, string message)
         {
-            if (!TextChatModeration.TryAllowTextChat(_config.Moderation, out var moderationMessage))
+            if (!TextChatModeration.TryAllowTextChat(_config.Features, out var moderationMessage))
             {
                 SendProtocolMessage(sender, ProtocolMessageCode.Failed, moderationMessage);
                 return;
@@ -58,7 +58,7 @@ namespace TopSpeed.Server.Network
 
         private void BroadcastRoomChat(PlayerConnection sender, string message)
         {
-            if (!TextChatModeration.TryAllowTextChat(_config.Moderation, out var moderationMessage))
+            if (!TextChatModeration.TryAllowTextChat(_config.Features, out var moderationMessage))
             {
                 SendProtocolMessage(sender, ProtocolMessageCode.Failed, moderationMessage);
                 return;

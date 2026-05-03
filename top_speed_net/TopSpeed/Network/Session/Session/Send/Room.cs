@@ -49,6 +49,11 @@ namespace TopSpeed.Network
             return _sender.TrySend(ClientPacketSerializer.WriteRoomSetTrack(trackName), PacketStream.Room);
         }
 
+        public bool SendRoomSetTrack(TrackPackageRef track)
+        {
+            return _sender.TrySend(ClientPacketSerializer.WriteRoomSetTrack(track), PacketStream.Room);
+        }
+
         public bool SendRoomSetLaps(byte laps)
         {
             return _sender.TrySend(ClientPacketSerializer.WriteRoomSetLaps(laps), PacketStream.Room);
@@ -92,6 +97,34 @@ namespace TopSpeed.Network
         public bool SendRoomRaceControl(RoomRaceControlAction action)
         {
             return _sender.TrySend(ClientPacketSerializer.WriteRoomRaceControl(action), PacketStream.Room);
+        }
+
+        public bool SendTrackPackageUploadBegin(PacketTrackPackageUploadBegin packet)
+        {
+            return _sender.TrySend(ClientPacketSerializer.WriteTrackPackageUploadBegin(packet), PacketStream.Room);
+        }
+
+        public bool SendTrackPackageUploadChunk(PacketTrackPackageUploadChunk packet)
+        {
+            return _sender.TrySend(ClientPacketSerializer.WriteTrackPackageUploadChunk(packet), PacketStream.Room);
+        }
+
+        public bool SendTrackPackageUploadEnd(PacketTrackPackageUploadEnd packet)
+        {
+            return _sender.TrySend(ClientPacketSerializer.WriteTrackPackageUploadEnd(packet), PacketStream.Room);
+        }
+
+        public bool SendTrackPackageReady(string hash)
+        {
+            return _sender.TrySend(ClientPacketSerializer.WriteTrackPackageReady(new PacketTrackPackageReady
+            {
+                Hash = TrackPackageRef.NormalizeHash(hash)
+            }), PacketStream.Room);
+        }
+
+        public bool SendTrackPackageCatalogRequest()
+        {
+            return _sender.TrySend(ClientPacketSerializer.WriteTrackPackageCatalogRequest(), PacketStream.Room);
         }
     }
 }

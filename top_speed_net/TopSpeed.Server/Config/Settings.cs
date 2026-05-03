@@ -9,6 +9,8 @@ namespace TopSpeed.Server.Config
         public int DiscoveryPort { get; set; } = 28631;
         public int MaxPlayers { get; set; } = 64;
         public string Motd { get; set; } = string.Empty;
+        [JsonPropertyName("features")]
+        public ServerFeaturesSettings Features { get; set; } = new ServerFeaturesSettings();
         [JsonPropertyName("moderation")]
         public ServerModerationSettings Moderation { get; set; } = new ServerModerationSettings();
         public string UpdateRuntimeAssetTag { get; set; } = "auto";

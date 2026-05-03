@@ -40,8 +40,25 @@ namespace TopSpeed.Server.Network
             public void SetTrackData(RaceRoom room, string trackName)
             {
                 room.TrackName = trackName;
+                room.TrackSelection = TrackPackageRef.BuiltIn(trackName);
                 room.TrackData = TrackLoader.LoadTrack(room.TrackName, room.Laps, _owner._logger);
                 room.TrackSelected = true;
+                _owner.ResetRoomTrackReadiness(room);
+            }
+
+            public bool SetTrackData(RaceRoom room, TrackPackageRef track)
+            {
+                if (track == null || !track.IsCustomPackage)
+                    return false;
+                if (!_owner.TryGetTrackPackage(track.Hash, out var package))
+                    return false;
+
+                room.TrackSelection = TrackPackageRef.Custom(package.Ref.TrackId, package.Ref.Version, package.Ref.Hash);
+                room.TrackName = room.TrackSelection.TrackId;
+                room.TrackData = package.TrackData.WithLaps(room.Laps);
+                room.TrackSelected = true;
+                _owner.ResetRoomTrackReadiness(room);
+                return true;
             }
         }
     }

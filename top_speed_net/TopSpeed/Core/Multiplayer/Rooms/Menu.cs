@@ -127,6 +127,12 @@ namespace TopSpeed.Core.Multiplayer
                 SetRoomOptionsGhostModeEnabled,
                 hint: LocalizationService.Mark("When enabled, vehicle collisions are disabled and vehicles can pass through each other.")));
 
+            items.Add(new CheckBox(
+                LocalizationService.Mark("Custom tracks"),
+                GetRoomOptionsCustomTracksEnabled,
+                SetRoomOptionsCustomTracksEnabled,
+                hint: LocalizationService.Mark("When enabled, room hosts can upload and select custom tracks from this server.")));
+
             var preserveSelection = string.Equals(_menu.CurrentId, MultiplayerMenuKeys.RoomGameRules, StringComparison.Ordinal);
             _menu.UpdateItems(MultiplayerMenuKeys.RoomGameRules, items, preserveSelection);
         }

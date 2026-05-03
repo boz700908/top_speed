@@ -6,7 +6,7 @@ namespace TopSpeed.Server.Moderation
 {
     internal static class TextChatModeration
     {
-        public static bool TryAllowTextChat(ServerModerationSettings settings, out string message)
+        public static bool TryAllowTextChat(ServerFeaturesSettings settings, out string message)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));

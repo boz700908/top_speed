@@ -31,6 +31,8 @@ namespace TopSpeed.Core.Multiplayer
             MultiplayerMenuKeys.RoomTrackType,
             MultiplayerMenuKeys.RoomTrackRace,
             MultiplayerMenuKeys.RoomTrackAdventure,
+            MultiplayerMenuKeys.RoomTrackCustom,
+            MultiplayerMenuKeys.RoomTrackLocalCustom,
             MultiplayerMenuKeys.LoadoutVehicle,
             MultiplayerMenuKeys.LoadoutTransmission
         };

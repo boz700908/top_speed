@@ -23,6 +23,7 @@ namespace TopSpeed.Server.Commands
         private ServerUpdateRunner _updater;
         private readonly CommandRegistry _registry;
         private readonly OptionMenu _serverOptionsMenu;
+        private readonly OptionMenu _featureOptionsMenu;
         private readonly OptionMenu _moderationOptionsMenu;
         private Thread? _thread;
         private bool _stopRequested;
@@ -42,6 +43,7 @@ namespace TopSpeed.Server.Commands
             _shutdownSource = shutdownSource ?? throw new ArgumentNullException(nameof(shutdownSource));
             _updater = updater ?? throw new ArgumentNullException(nameof(updater));
             _settings.Moderation ??= new ServerModerationSettings();
+            _settings.Features ??= new ServerFeaturesSettings();
             _registry = new CommandRegistry(new[]
             {
                 new CommandDefinition("help", LocalizationService.Mark("Show available server commands."), ExecuteHelp),
@@ -51,6 +53,7 @@ namespace TopSpeed.Server.Commands
                 new CommandDefinition("update", LocalizationService.Mark("Manually check for server updates."), ExecuteUpdate),
                 new CommandDefinition("shutdown", LocalizationService.Mark("Shutdown the server."), ExecuteShutdown)
             });
+            _featureOptionsMenu = CreateFeatureOptionsMenu();
             _moderationOptionsMenu = CreateModerationOptionsMenu();
             _serverOptionsMenu = CreateServerOptionsMenu();
         }
@@ -124,7 +127,7 @@ namespace TopSpeed.Server.Commands
             {
                 var command = commands[i];
                 ConsoleSink.WriteLine(LocalizationService.Format(
-                    LocalizationService.Mark("Command \"{0}\": {1}"),
+                    LocalizationService.Mark("\"{0}\": {1}"),
                     command.Name,
                     LocalizationService.Translate(command.Description)));
             }
@@ -180,9 +183,21 @@ namespace TopSpeed.Server.Commands
                     new OptionItem("server_port", LocalizationService.Mark("Server port"), OptionValueType.Numeric, EditServerPort, () => _settings.Port.ToString()),
                     new OptionItem("discovery_port", LocalizationService.Mark("Discovery port"), OptionValueType.Numeric, EditDiscoveryPort, () => _settings.DiscoveryPort.ToString()),
                     new OptionItem("max_players", LocalizationService.Mark("Max players"), OptionValueType.Numeric, EditMaxPlayers, () => _settings.MaxPlayers.ToString()),
+                    new OptionItem("features", LocalizationService.Mark("Features"), OptionValueType.Menu, () => ShowOptionsMenu(_featureOptionsMenu)),
                     new OptionItem("server_architecture", LocalizationService.Mark("Server architecture"), OptionValueType.Choice, EditRuntimeArchitecture, CurrentRuntimeAssetLabel),
                     new OptionItem("check_updates_on_startup", LocalizationService.Mark("Check for updates on startup"), OptionValueType.Bool, ToggleCheckForUpdatesOnStartup, () => CommandInput.FormatOnOff(_settings.CheckForUpdatesOnStartup)),
                     new OptionItem("moderation", LocalizationService.Mark("Moderation"), OptionValueType.Menu, () => ShowOptionsMenu(_moderationOptionsMenu))
+                });
+        }
+
+        private OptionMenu CreateFeatureOptionsMenu()
+        {
+            return new OptionMenu(
+                LocalizationService.Mark("Feature options:"),
+                new List<OptionItem>
+                {
+                    new OptionItem("custom_tracks", LocalizationService.Mark("Custom tracks"), OptionValueType.Bool, ToggleCustomTracks, () => CommandInput.FormatOnOff(_settings.Features.CustomTracks)),
+                    new OptionItem("text_chat", LocalizationService.Mark("Text chat"), OptionValueType.Bool, ToggleTextChat, () => CommandInput.FormatOnOff(_settings.Features.TextChat))
                 });
         }
 
@@ -194,8 +209,7 @@ namespace TopSpeed.Server.Commands
                 {
                     new OptionItem("block_repeated_letters_in_name", LocalizationService.Mark("Block repeated letters in call signs"), OptionValueType.Bool, ToggleBlockRepeatedLettersInName, () => CommandInput.FormatOnOff(_settings.Moderation.BlockRepeatedLettersInName)),
                     new OptionItem("max_name_length", LocalizationService.Mark("Maximum call sign length"), OptionValueType.Numeric, EditModerationMaxNameLength, () => _settings.Moderation.MaxNameLength.ToString()),
-                    new OptionItem("allow_duplicate_names", LocalizationService.Mark("Allow duplicate call signs"), OptionValueType.Bool, ToggleAllowDuplicateNames, () => CommandInput.FormatOnOff(_settings.Moderation.AllowDuplicateNames)),
-                    new OptionItem("text_chat", LocalizationService.Mark("Text chat"), OptionValueType.Bool, ToggleTextChat, () => CommandInput.FormatOnOff(_settings.Moderation.TextChat))
+                    new OptionItem("allow_duplicate_names", LocalizationService.Mark("Allow duplicate call signs"), OptionValueType.Bool, ToggleAllowDuplicateNames, () => CommandInput.FormatOnOff(_settings.Moderation.AllowDuplicateNames))
                 });
         }
 
@@ -384,6 +398,13 @@ namespace TopSpeed.Server.Commands
             ConsoleSink.WriteLineFormat(LocalizationService.Mark("Max players updated to {0}."), maxPlayers);
         }
 
+        private void ToggleCustomTracks()
+        {
+            _settings.Features.CustomTracks = !_settings.Features.CustomTracks;
+            ApplyFeatureSettings();
+            ConsoleSink.WriteLine(BuildOptionLine(LocalizationService.Mark("Custom tracks"), CommandInput.FormatOnOff(_settings.Features.CustomTracks)));
+        }
+
         private void ToggleCheckForUpdatesOnStartup()
         {
             _settings.CheckForUpdatesOnStartup = !_settings.CheckForUpdatesOnStartup;
@@ -424,9 +445,15 @@ namespace TopSpeed.Server.Commands
 
         private void ToggleTextChat()
         {
-            _settings.Moderation.TextChat = !_settings.Moderation.TextChat;
-            ApplyModerationSettings();
-            ConsoleSink.WriteLine(BuildOptionLine(LocalizationService.Mark("Text chat"), CommandInput.FormatOnOff(_settings.Moderation.TextChat)));
+            _settings.Features.TextChat = !_settings.Features.TextChat;
+            ApplyFeatureSettings();
+            ConsoleSink.WriteLine(BuildOptionLine(LocalizationService.Mark("Text chat"), CommandInput.FormatOnOff(_settings.Features.TextChat)));
+        }
+
+        private void ApplyFeatureSettings()
+        {
+            _server.SetFeatureSettings(_settings.Features);
+            SaveSettings();
         }
 
         private void ApplyModerationSettings()

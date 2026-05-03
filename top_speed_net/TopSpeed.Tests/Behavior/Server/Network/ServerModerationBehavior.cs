@@ -97,7 +97,7 @@ public sealed class ServerModerationBehaviorTests
     [Fact]
     public void TextChatModeration_ShouldRejectWhenDisabled()
     {
-        var settings = new ServerModerationSettings
+        var settings = new ServerFeaturesSettings
         {
             TextChat = false
         };

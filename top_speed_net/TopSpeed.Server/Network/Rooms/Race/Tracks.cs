@@ -34,6 +34,13 @@ namespace TopSpeed.Server.Network
             if (!room.TrackSelected || room.TrackData == null)
                 return;
 
+            if (room.TrackSelection != null && room.TrackSelection.IsCustomPackage)
+            {
+                if (TryGetTrackPackage(room.TrackSelection.Hash, out var package))
+                    SendTrackPackageToPlayer(player, package);
+                return;
+            }
+
             var trackLength = (ushort)Math.Min(room.TrackData.Definitions.Length, ProtocolConstants.MaxMultiTrackLength);
             SendStream(player, PacketSerializer.WriteLoadCustomTrack(new PacketLoadCustomTrack
             {

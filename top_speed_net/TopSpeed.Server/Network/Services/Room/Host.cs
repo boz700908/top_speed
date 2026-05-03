@@ -25,14 +25,38 @@ namespace TopSpeed.Server.Network
                     return;
                 }
 
-                var trackName = (packet.TrackName ?? string.Empty).Trim();
-                if (string.IsNullOrWhiteSpace(trackName))
+                if (packet.Track == null || !PacketValidation.IsValidTrackPackageRef(packet.Track))
                 {
-                    _owner.SendProtocolMessage(player, ProtocolMessageCode.InvalidTrack, LocalizationService.Mark("Track cannot be empty."));
+                    _owner.SendProtocolMessage(player, ProtocolMessageCode.InvalidTrack, LocalizationService.Mark("Invalid track selection."));
                     return;
                 }
 
-                SetTrackData(room, trackName);
+                if (packet.Track.IsBuiltIn)
+                {
+                    var trackName = (packet.Track.BuiltInTrackKey ?? string.Empty).Trim();
+                    if (string.IsNullOrWhiteSpace(trackName))
+                    {
+                        _owner.SendProtocolMessage(player, ProtocolMessageCode.InvalidTrack, LocalizationService.Mark("Track cannot be empty."));
+                        return;
+                    }
+
+                    SetTrackData(room, trackName);
+                }
+                else
+                {
+                    if (!IsCustomTrackSelectionEnabled(room))
+                    {
+                        _owner.SendProtocolMessage(player, ProtocolMessageCode.Failed, LocalizationService.Mark("Custom tracks are not enabled for this room."));
+                        return;
+                    }
+
+                    if (!SetTrackData(room, packet.Track))
+                    {
+                        _owner.SendProtocolMessage(player, ProtocolMessageCode.InvalidTrack, LocalizationService.Mark("Custom track package is not available on server."));
+                        return;
+                    }
+                }
+
                 _owner.SendTrackToNotReady(room);
                 TouchVersion(room);
                 _owner._notify.RoomLifecycle(room, RoomEventKind.TrackChanged);
@@ -63,7 +87,17 @@ namespace TopSpeed.Server.Network
 
                 room.Laps = packet.Laps;
                 if (room.TrackSelected)
-                    SetTrackData(room, room.TrackName);
+                {
+                    if (room.TrackSelection != null && room.TrackSelection.IsCustomPackage)
+                    {
+                        if (!SetTrackData(room, room.TrackSelection))
+                            SetTrackData(room, "america");
+                    }
+                    else
+                    {
+                        SetTrackData(room, room.TrackName);
+                    }
+                }
                 _owner.SendTrackToNotReady(room);
                 TouchVersion(room);
                 _owner._notify.RoomLifecycle(room, RoomEventKind.LapsChanged);
@@ -101,6 +135,7 @@ namespace TopSpeed.Server.Network
                 _owner._race.TransitionState(room, RoomRaceState.Preparing);
                 room.PendingLoadouts.Clear();
                 room.PrepareSkips.Clear();
+                _owner.ResetRoomTrackReadiness(room);
                 _owner._notify.RoomLifecycle(room, RoomEventKind.PrepareStarted);
                 _owner._race.AssignRandomBotLoadouts(room);
                 _owner._race.AnnounceBotsReady(room);
@@ -182,7 +217,18 @@ namespace TopSpeed.Server.Network
                     return;
                 }
 
-                var normalizedFlags = packet.GameRulesFlags & (uint)RoomGameRules.GhostMode;
+                var requestedFlags = packet.GameRulesFlags;
+                if (!_owner._config.Features.CustomTracks
+                    && (requestedFlags & (uint)RoomGameRules.CustomTracks) != 0u)
+                {
+                    _owner.SendProtocolMessage(player, ProtocolMessageCode.Failed, LocalizationService.Mark("Custom tracks are disabled on this server."));
+                    return;
+                }
+
+                var allowedFlags = (uint)RoomGameRules.GhostMode;
+                if (_owner._config.Features.CustomTracks)
+                    allowedFlags |= (uint)RoomGameRules.CustomTracks;
+                var normalizedFlags = requestedFlags & allowedFlags;
                 if (room.GameRulesFlags == normalizedFlags)
                     return;
 

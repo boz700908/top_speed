@@ -55,6 +55,16 @@ namespace TopSpeed.Core.Multiplayer
             _owner.HandleRoomRaceStateChangedCore(roomRaceStateChanged);
         }
 
+        public void HandleTrackPackageUploadResult(PacketTrackPackageUploadResult result)
+        {
+            _owner.HandleTrackPackageUploadResultCore(result);
+        }
+
+        public void HandleTrackPackageCatalog(PacketTrackPackageCatalog catalog)
+        {
+            _owner.HandleTrackPackageCatalogCore(catalog);
+        }
+
         public void HandleOnlinePlayers(PacketOnlinePlayers onlinePlayers)
         {
             _owner.HandleOnlinePlayersCore(onlinePlayers);

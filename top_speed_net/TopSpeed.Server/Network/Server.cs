@@ -36,6 +36,8 @@ namespace TopSpeed.Server.Network
         private readonly Dictionary<uint, PlayerConnection> _players = new Dictionary<uint, PlayerConnection>();
         private readonly Dictionary<string, uint> _endpointIndex = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<uint, RaceRoom> _rooms = new Dictionary<uint, RaceRoom>();
+        private readonly Dictionary<string, TrackPackageRecord> _trackPackageCache = new Dictionary<string, TrackPackageRecord>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<uint, TrackPackageUploadSession> _trackPackageUploads = new Dictionary<uint, TrackPackageUploadSession>();
         private readonly Faker _faker = new Faker();
         private readonly Random _random = new Random();
 
@@ -68,6 +70,7 @@ namespace TopSpeed.Server.Network
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _config.Moderation ??= new ServerModerationSettings();
+            _config.Features ??= new ServerFeaturesSettings();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _transport = new UdpServerTransport(_logger);
             _pktReg = new ServerPktReg();

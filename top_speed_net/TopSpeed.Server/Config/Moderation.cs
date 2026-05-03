@@ -13,17 +13,13 @@ namespace TopSpeed.Server.Config
         [JsonPropertyName("allow_duplicate_names")]
         public bool AllowDuplicateNames { get; set; } = true;
 
-        [JsonPropertyName("text_chat")]
-        public bool TextChat { get; set; } = true;
-
         public ServerModerationSettings Clone()
         {
             return new ServerModerationSettings
             {
                 BlockRepeatedLettersInName = BlockRepeatedLettersInName,
                 MaxNameLength = MaxNameLength,
-                AllowDuplicateNames = AllowDuplicateNames,
-                TextChat = TextChat
+                AllowDuplicateNames = AllowDuplicateNames
             };
         }
     }

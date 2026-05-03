@@ -20,6 +20,7 @@ namespace TopSpeed.Game
             session.SetPacketSink(null);
             session.Dispose();
             _session = null;
+            ResetPendingTrackPackageTransfers();
             ClearQueuedMultiplayerPackets();
             _speech.Speak(LocalizationService.Mark("Connection lost. Reconnecting."));
             return true;
@@ -52,6 +53,7 @@ namespace TopSpeed.Game
         {
             _session = session;
             _multiplayerCoordinator.SetClientState(wasInRace ? MultiplayerClientState.Racing : MultiplayerClientState.Lobby);
+            ResetPendingTrackPackageTransfers();
             ClearQueuedMultiplayerPackets();
             session.SetPacketSink(packet => _multiplayerDispatch.Enqueue(session, packet));
             if (wasInRace)

@@ -7,8 +7,9 @@ namespace TopSpeed.Network
     {
         public static byte[] WriteRoomEvent(PacketRoomEvent evt)
         {
-            var payload = 4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 12 + 1 + 4 +
-                ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength;
+            var payload = 4 + 4 + 4 + 4 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 4 +
+                ProtocolConstants.MaxRoomNameLength + 4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength
+                + MeasureTrackRef(NormalizeTrackRef(evt.Track, evt.TrackName));
             var buffer = WritePacketHeader(Command.RoomEvent, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
@@ -24,7 +25,7 @@ namespace TopSpeed.Network
             writer.WriteByte(evt.PlayersToStart);
             writer.WriteByte((byte)evt.RaceState);
             writer.WriteBool(evt.RacePaused);
-            writer.WriteFixedString(evt.TrackName ?? string.Empty, 12);
+            WriteTrackRef(ref writer, NormalizeTrackRef(evt.Track, evt.TrackName));
             writer.WriteByte(evt.Laps);
             writer.WriteUInt32(evt.GameRulesFlags);
             writer.WriteFixedString(evt.RoomName ?? string.Empty, ProtocolConstants.MaxRoomNameLength);
@@ -38,8 +39,9 @@ namespace TopSpeed.Network
         public static byte[] WriteRoomGet(PacketRoomGet packet)
         {
             var count = Math.Min(packet.Players.Length, ProtocolConstants.MaxPlayers);
-            var payload = 1 + 4 + 4 + 4 + 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 12 + 1 + 4 + 1 +
-                (count * (4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength));
+            var payload = 1 + 4 + 4 + 4 + 4 + ProtocolConstants.MaxRoomNameLength + 1 + 1 + 1 + 1 + 4 + 1 +
+                (count * (4 + 1 + 1 + ProtocolConstants.MaxPlayerNameLength))
+                + MeasureTrackRef(NormalizeTrackRef(packet.Track, packet.TrackName));
             var buffer = WritePacketHeader(Command.RoomGet, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
@@ -53,7 +55,7 @@ namespace TopSpeed.Network
             writer.WriteByte((byte)packet.RoomType);
             writer.WriteByte(packet.PlayersToStart);
             writer.WriteByte((byte)packet.RaceState);
-            writer.WriteFixedString(packet.TrackName ?? string.Empty, 12);
+            WriteTrackRef(ref writer, NormalizeTrackRef(packet.Track, packet.TrackName));
             writer.WriteByte(packet.Laps);
             writer.WriteUInt32(packet.GameRulesFlags);
             writer.WriteByte((byte)count);
@@ -67,6 +69,40 @@ namespace TopSpeed.Network
             }
 
             return buffer;
+        }
+
+        private static TrackPackageRef NormalizeTrackRef(TrackPackageRef track, string legacyTrackName)
+        {
+            if (track != null && track.Kind == RoomTrackSelectionKind.CustomPackage)
+            {
+                return TrackPackageRef.Custom(
+                    track.TrackId,
+                    track.Version,
+                    track.Hash);
+            }
+
+            var builtIn = track != null ? track.BuiltInTrackKey : string.Empty;
+            if (string.IsNullOrWhiteSpace(builtIn))
+                builtIn = legacyTrackName ?? string.Empty;
+            return TrackPackageRef.BuiltIn(builtIn);
+        }
+
+        private static int MeasureTrackRef(TrackPackageRef track)
+        {
+            return 1
+                + 2 + PacketWriter.MeasureString16(track.BuiltInTrackKey)
+                + 2 + PacketWriter.MeasureString16(track.TrackId)
+                + 2 + PacketWriter.MeasureString16(track.Version)
+                + 2 + PacketWriter.MeasureString16(track.Hash);
+        }
+
+        private static void WriteTrackRef(ref PacketWriter writer, TrackPackageRef track)
+        {
+            writer.WriteByte((byte)track.Kind);
+            writer.WriteString16(track.BuiltInTrackKey ?? string.Empty);
+            writer.WriteString16(track.TrackId ?? string.Empty);
+            writer.WriteString16(track.Version ?? string.Empty);
+            writer.WriteString16(track.Hash ?? string.Empty);
         }
     }
 }

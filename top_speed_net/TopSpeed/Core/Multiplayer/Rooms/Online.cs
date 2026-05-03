@@ -24,7 +24,7 @@ namespace TopSpeed.Core.Multiplayer
                 return;
 
             _state.RoomDrafts.IsOnlinePlayersOpenPending = true;
-            if (!TrySend(session.SendOnlinePlayersRequest(), "online players request"))
+            if (!TrySend(session.SendOnlinePlayersRequest(), LocalizationService.Mark("online players request")))
                 _state.RoomDrafts.IsOnlinePlayersOpenPending = false;
         }
 

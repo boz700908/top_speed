@@ -13,6 +13,11 @@ namespace TopSpeed.Game
             {
                 _reg.Add("room", Command.PlayerJoined, HandlePlayerJoined);
                 _reg.Add("room", Command.LoadCustomTrack, HandleLoadCustomTrack);
+                _reg.Add("room", Command.TrackPackageUploadResult, HandleTrackPackageUploadResult);
+                _reg.Add("room", Command.TrackPackageCatalog, HandleTrackPackageCatalog);
+                _reg.Add("room", Command.TrackPackageTransferBegin, HandleTrackPackageTransferBegin);
+                _reg.Add("room", Command.TrackPackageTransferChunk, HandleTrackPackageTransferChunk);
+                _reg.Add("room", Command.TrackPackageTransferEnd, HandleTrackPackageTransferEnd);
                 _reg.Add("room", Command.RoomList, HandleRoomList);
                 _reg.Add("room", Command.RoomState, HandleRoomState);
                 _reg.Add("room", Command.RoomEvent, HandleRoomEvent);
@@ -51,6 +56,41 @@ namespace TopSpeed.Game
                 return true;
             }
 
+            private bool HandleTrackPackageUploadResult(IncomingPacket packet)
+            {
+                if (ClientPacketSerializer.TryReadTrackPackageUploadResult(packet.Payload, out var result))
+                    _owner._multiplayerCoordinator.HandleTrackPackageUploadResult(result);
+                return true;
+            }
+
+            private bool HandleTrackPackageCatalog(IncomingPacket packet)
+            {
+                if (ClientPacketSerializer.TryReadTrackPackageCatalog(packet.Payload, out var catalog))
+                    _owner._multiplayerCoordinator.HandleTrackPackageCatalog(catalog);
+                return true;
+            }
+
+            private bool HandleTrackPackageTransferBegin(IncomingPacket packet)
+            {
+                if (ClientPacketSerializer.TryReadTrackPackageTransferBegin(packet.Payload, out var begin))
+                    _owner.HandleTrackPackageTransferBegin(begin);
+                return true;
+            }
+
+            private bool HandleTrackPackageTransferChunk(IncomingPacket packet)
+            {
+                if (ClientPacketSerializer.TryReadTrackPackageTransferChunk(packet.Payload, out var chunk))
+                    _owner.HandleTrackPackageTransferChunk(chunk);
+                return true;
+            }
+
+            private bool HandleTrackPackageTransferEnd(IncomingPacket packet)
+            {
+                if (ClientPacketSerializer.TryReadTrackPackageTransferEnd(packet.Payload, out var end))
+                    _owner.HandleTrackPackageTransferEnd(end);
+                return true;
+            }
+
             private bool HandleRoomList(IncomingPacket packet)
             {
                 if (ClientPacketSerializer.TryReadRoomList(packet.Payload, out var roomList))
@@ -62,6 +102,8 @@ namespace TopSpeed.Game
             {
                 if (ClientPacketSerializer.TryReadRoomState(packet.Payload, out var roomState))
                 {
+                    _owner.SetMultiplayerRoomLaps(roomState.Laps);
+                    _owner.TryApplyCachedTrackPackage(roomState.Track);
                     _owner._multiplayerRaceRuntime.ApplyRoomState(roomState);
 
                     if (_owner._multiplayerRaceRuntime.Mode != null && _owner._multiplayerRaceRuntime.MatchesRoom(roomState.RoomId))
@@ -127,6 +169,8 @@ namespace TopSpeed.Game
             {
                 if (ClientPacketSerializer.TryReadRoomEvent(packet.Payload, out var roomEvent))
                 {
+                    _owner.SetMultiplayerRoomLaps(roomEvent.Laps);
+                    _owner.TryApplyCachedTrackPackage(roomEvent.Track);
                     if (_owner._multiplayerRaceRuntime.Mode != null
                         && _owner._multiplayerRaceRuntime.MatchesContext(
                             roomEvent.RoomId,

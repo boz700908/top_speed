@@ -64,6 +64,7 @@ namespace TopSpeed.Core.Multiplayer
                 InRoom = packet.InRoom,
                 IsHost = packet.IsHost,
                 TrackName = packet.TrackName ?? string.Empty,
+                Track = CloneTrack(packet.Track),
                 Laps = packet.Laps,
                 GameRulesFlags = packet.GameRulesFlags,
                 Players = ToParticipants(packet.Players)
@@ -91,6 +92,7 @@ namespace TopSpeed.Core.Multiplayer
                 RaceState = RoomRules.NormalizeRaceState(packet.RaceState),
                 RacePaused = packet.RacePaused,
                 TrackName = packet.TrackName ?? string.Empty,
+                Track = CloneTrack(packet.Track),
                 Laps = packet.Laps,
                 GameRulesFlags = packet.GameRulesFlags,
                 RoomName = packet.RoomName ?? string.Empty,
@@ -135,6 +137,16 @@ namespace TopSpeed.Core.Multiplayer
             }
 
             return players;
+        }
+
+        private static TrackPackageRef CloneTrack(TrackPackageRef track)
+        {
+            if (track == null)
+                return TrackPackageRef.BuiltIn(string.Empty);
+
+            return track.IsCustomPackage
+                ? TrackPackageRef.Custom(track.TrackId ?? string.Empty, track.Version ?? string.Empty, track.Hash ?? string.Empty)
+                : TrackPackageRef.BuiltIn(track.BuiltInTrackKey ?? string.Empty);
         }
     }
 }

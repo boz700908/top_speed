@@ -43,6 +43,9 @@ namespace TopSpeed.Core.Multiplayer
                 return false;
             }
 
+            if (UpdateTrackPackageUploadOperation())
+                return true;
+
             return false;
         }
     }

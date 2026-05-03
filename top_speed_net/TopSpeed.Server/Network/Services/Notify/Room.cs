@@ -59,6 +59,7 @@ namespace TopSpeed.Server.Network
                     InRoom = true,
                     IsHost = room.HostId == player.Id,
                     RacePaused = room.RacePaused,
+                    Track = CloneTrackRef(room.TrackSelection),
                     TrackName = room.TrackName,
                     Laps = room.Laps,
                     GameRulesFlags = room.GameRulesFlags,
@@ -94,6 +95,7 @@ namespace TopSpeed.Server.Network
                     PlayersToStart = room.PlayersToStart,
                     RaceState = room.RaceState,
                     RacePaused = room.RacePaused,
+                    Track = CloneTrackRef(room.TrackSelection),
                     TrackName = room.TrackName,
                     Laps = room.Laps,
                     GameRulesFlags = room.GameRulesFlags,
@@ -171,6 +173,7 @@ namespace TopSpeed.Server.Network
                     PlayerCount = (byte)Math.Min(ProtocolConstants.MaxPlayers, RaceServer.GetRoomParticipantCount(room)),
                     PlayersToStart = room.PlayersToStart,
                     RaceState = room.RaceState,
+                    Track = CloneTrackRef(room.TrackSelection),
                     TrackName = room.TrackName
                 };
             }
@@ -215,11 +218,23 @@ namespace TopSpeed.Server.Network
                     PlayersToStart = room.PlayersToStart,
                     RaceState = room.RaceState,
                     RacePaused = room.RacePaused,
+                    Track = CloneTrackRef(room.TrackSelection),
                     TrackName = room.TrackName,
                     Laps = room.Laps,
                     GameRulesFlags = room.GameRulesFlags,
                     RoomName = room.Name
                 };
+            }
+
+            private static TrackPackageRef CloneTrackRef(TrackPackageRef track)
+            {
+                if (track == null)
+                    return TrackPackageRef.BuiltIn(string.Empty);
+
+                if (track.IsCustomPackage)
+                    return TrackPackageRef.Custom(track.TrackId, track.Version, track.Hash);
+
+                return TrackPackageRef.BuiltIn(track.BuiltInTrackKey);
             }
         }
     }

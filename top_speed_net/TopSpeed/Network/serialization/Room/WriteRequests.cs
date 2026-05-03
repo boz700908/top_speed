@@ -60,11 +60,26 @@ namespace TopSpeed.Network
 
         public static byte[] WriteRoomSetTrack(string trackName)
         {
-            var buffer = WritePacketHeader(Command.RoomSetTrack, 12);
+            return WriteRoomSetTrack(TrackPackageRef.BuiltIn(trackName));
+        }
+
+        public static byte[] WriteRoomSetTrack(TrackPackageRef track)
+        {
+            var normalizedTrack = NormalizeTrackRef(track);
+            var payload = 1
+                + 2 + PacketWriter.MeasureString16(normalizedTrack.BuiltInTrackKey)
+                + 2 + PacketWriter.MeasureString16(normalizedTrack.TrackId)
+                + 2 + PacketWriter.MeasureString16(normalizedTrack.Version)
+                + 2 + PacketWriter.MeasureString16(normalizedTrack.Hash);
+            var buffer = WritePacketHeader(Command.RoomSetTrackV2, payload);
             var writer = new PacketWriter(buffer);
             writer.WriteByte(ProtocolConstants.Version);
-            writer.WriteByte((byte)Command.RoomSetTrack);
-            writer.WriteFixedString(trackName ?? string.Empty, 12);
+            writer.WriteByte((byte)Command.RoomSetTrackV2);
+            writer.WriteByte((byte)normalizedTrack.Kind);
+            writer.WriteString16(normalizedTrack.BuiltInTrackKey);
+            writer.WriteString16(normalizedTrack.TrackId);
+            writer.WriteString16(normalizedTrack.Version);
+            writer.WriteString16(normalizedTrack.Hash);
             return buffer;
         }
 
@@ -137,6 +152,22 @@ namespace TopSpeed.Network
             writer.WriteByte((byte)Command.RoomRaceControl);
             writer.WriteByte((byte)action);
             return buffer;
+        }
+
+        private static TrackPackageRef NormalizeTrackRef(TrackPackageRef track)
+        {
+            if (track == null)
+                return TrackPackageRef.BuiltIn(string.Empty);
+
+            if (track.Kind == RoomTrackSelectionKind.CustomPackage)
+            {
+                return TrackPackageRef.Custom(
+                    track.TrackId,
+                    track.Version,
+                    track.Hash);
+            }
+
+            return TrackPackageRef.BuiltIn(track.BuiltInTrackKey);
         }
     }
 }

@@ -19,6 +19,8 @@ namespace TopSpeed.Network
             {
                 // Keep session alive even if the transport reports a transient poll error.
             }
+
+            QueueSyntheticDisconnectIfNeeded();
         }
 
         private void SendKeepAlive()
