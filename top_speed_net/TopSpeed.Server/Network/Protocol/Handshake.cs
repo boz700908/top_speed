@@ -93,16 +93,19 @@ namespace TopSpeed.Server.Network
 
             var serverRange = ProtocolProfile.ServerSupported;
             var compat = ProtocolCompat.Resolve(clientRange, serverRange);
+            var effectiveStatus = compat.Status;
+            if (compat.IsCompatible && compat.NegotiatedVersion != hello.ClientVersion)
+                effectiveStatus = ProtocolCompatStatus.CompatibleDowngrade;
 
             if (!compat.IsCompatible)
             {
                 var rejectedWelcome = new PacketProtocolWelcome
                 {
-                    Status = compat.Status,
+                    Status = effectiveStatus,
                     NegotiatedVersion = compat.NegotiatedVersion,
                     ServerMinSupported = serverRange.MinSupported,
                     ServerMaxSupported = serverRange.MaxSupported,
-                    Message = BuildHandshakeMessage(compat.Status, hello.ClientVersion, serverRange)
+                    Message = BuildHandshakeMessage(effectiveStatus, hello.ClientVersion, serverRange)
                 };
                 SendStream(player, PacketSerializer.WriteProtocolWelcome(rejectedWelcome), PacketStream.Control);
                 _logger.Warning(
@@ -113,7 +116,7 @@ namespace TopSpeed.Server.Network
                         hello.ClientVersion,
                         clientRange,
                         serverRange,
-                        compat.Status));
+                        effectiveStatus));
                 player.Handshake = HandshakeState.Rejected;
                 RemoveConnection(
                     player,
@@ -121,17 +124,6 @@ namespace TopSpeed.Server.Network
                     sendDisconnectPacket: true,
                     reason: "protocol_mismatch",
                     disconnectMessage: rejectedWelcome.Message);
-                return;
-            }
-
-            if (compat.NegotiatedVersion != hello.ClientVersion)
-            {
-                RejectHandshake(
-                    player,
-                    LocalizationService.Format(
-                        LocalizationService.Mark("Protocol mismatch. Reported protocol version is {0}, but negotiation resolved {1}. Please update client or server so protocol versions match."),
-                        hello.ClientVersion,
-                        compat.NegotiatedVersion));
                 return;
             }
 
@@ -145,12 +137,12 @@ namespace TopSpeed.Server.Network
 
             var welcome = new PacketProtocolWelcome
             {
-                Status = compat.Status,
+                Status = effectiveStatus,
                 NegotiatedVersion = compat.NegotiatedVersion,
                 ServerMinSupported = serverRange.MinSupported,
                 ServerMaxSupported = serverRange.MaxSupported,
                 ResumeToken = player.ResumeToken,
-                Message = BuildHandshakeMessage(compat.Status, hello.ClientVersion, serverRange)
+                Message = BuildHandshakeMessage(effectiveStatus, hello.ClientVersion, serverRange)
             };
             SendStream(player, PacketSerializer.WriteProtocolWelcome(welcome), PacketStream.Control);
         }
@@ -198,27 +190,27 @@ namespace TopSpeed.Server.Network
                 case ProtocolCompatStatus.CompatibleDowngrade:
                     if (clientVersion > serverRange.MaxSupported)
                         return LocalizationService.Format(
-                            LocalizationService.Mark("Your protocol version is newer than this server: {0}. This server supports protocol versions {1}. You can continue, but some features may behave differently or may not work at all."),
+                            LocalizationService.Mark("Your client protocol version is newer than this server: {0}. This server supports protocol versions {1}. You can continue, but some features may behave differently or may not work at all."),
                             clientVersion,
                             serverRange);
 
                     return LocalizationService.Format(
-                        LocalizationService.Mark("Your protocol version is older than this server: {0}. This server supports protocol versions {1}. You can continue, but some features may behave differently or may not work at all."),
+                        LocalizationService.Mark("Your client protocol version is older than this server: {0}. This server supports protocol versions {1}. You can continue, but some features may behave differently or may not work at all."),
                         clientVersion,
                         serverRange);
                 case ProtocolCompatStatus.ClientTooOld:
                     return LocalizationService.Format(
-                        LocalizationService.Mark("Your protocol version is out-of-date: {0}. This server supports protocol versions {1}. Please update your client."),
+                        LocalizationService.Mark("Your client protocol version is out-of-date: {0}. This server supports protocol versions {1}. Please update your client."),
                         clientVersion,
                         serverRange);
                 case ProtocolCompatStatus.ClientTooNew:
                     return LocalizationService.Format(
-                        LocalizationService.Mark("Your protocol version is too new: {0} and does not match this server protocol. This server supports protocol versions {1}. The server needs an update."),
+                        LocalizationService.Mark("Your client protocol version is too new: {0} and does not match this server protocol. This server supports protocol versions {1}. The server needs an update."),
                         clientVersion,
                         serverRange);
                 default:
                     return LocalizationService.Format(
-                        LocalizationService.Mark("Your protocol version is {0}. This server supports protocol versions {1}."),
+                        LocalizationService.Mark("Your client protocol version is {0}. This server supports protocol versions {1}."),
                         clientVersion,
                         serverRange);
             }

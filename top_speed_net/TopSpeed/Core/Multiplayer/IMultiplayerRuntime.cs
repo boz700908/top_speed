@@ -1,5 +1,6 @@
 using TopSpeed.Menu;
 using TopSpeed.Protocol;
+using TopSpeed.Input;
 
 namespace TopSpeed.Core.Multiplayer
 {
@@ -28,6 +29,7 @@ namespace TopSpeed.Core.Multiplayer
         void PreviousChatCategory();
         void NextChatItem();
         void PreviousChatItem();
+        bool TryHandleRaceLoopHistoryShortcuts(IInputService input);
         void CheckPing();
         void OpenGlobalChatHotkey();
         void OpenRoomChatHotkey();

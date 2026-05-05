@@ -58,7 +58,7 @@ public sealed class ServerHandshakeBehaviorTests
     }
 
     [Fact]
-    public void Handshake_ShouldReject_WhenNegotiatedProtocolDiffersFromClientVersion()
+    public void Handshake_ShouldAllow_WhenNegotiatedProtocolDiffersFromClientVersion()
     {
         using var fixture = new HandshakeFixture();
         fixture.SendProtocolHello(new PacketProtocolHello
@@ -70,8 +70,13 @@ public sealed class ServerHandshakeBehaviorTests
             ResumeToken = 0
         });
 
-        Action readRemovedPlayer = () => fixture.Server.GetPlayerSnapshotForTest(1);
-        readRemovedPlayer.Should().Throw<InvalidOperationException>();
+        var pending = fixture.Server.GetPlayerSnapshotForTest(1);
+        pending.Handshake.Should().Be(HandshakeState.AwaitingPlayerHello);
+        pending.LifecycleState.Should().Be(ConnectionLifecycleState.ProtocolNegotiated);
+
+        fixture.SendPlayerHello("pilot");
+        var completed = fixture.Server.GetPlayerSnapshotForTest(1);
+        completed.Handshake.Should().Be(HandshakeState.Complete);
     }
 
     [Fact]

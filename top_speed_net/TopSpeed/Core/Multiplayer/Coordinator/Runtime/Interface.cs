@@ -22,6 +22,11 @@ namespace TopSpeed.Core.Multiplayer
             PreviousChatItem();
         }
 
+        bool IMultiplayerRuntime.TryHandleRaceLoopHistoryShortcuts(Input.IInputService input)
+        {
+            return TryHandleRaceLoopHistoryShortcuts(input);
+        }
+
         void IMultiplayerRuntime.CheckPing()
         {
             CheckCurrentPing();

@@ -99,8 +99,7 @@ namespace TopSpeed.Network
                 else if (packet.Command == Command.ProtocolWelcome && ClientPacketSerializer.TryReadProtocolWelcome(packet.Payload, out var welcome))
                 {
                     state.ProtocolWelcome = welcome;
-                    var acceptedCompatibility = IsCompatibilityAccepted(welcome.Status)
-                        && welcome.NegotiatedVersion == ProtocolProfile.Current;
+                    var acceptedCompatibility = IsCompatibilityAccepted(welcome.Status);
                     if (!acceptedCompatibility)
                     {
                         state.ProtocolFailureMessage = ResolveProtocolCompatibilityFailure(welcome);
