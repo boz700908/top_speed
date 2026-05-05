@@ -37,6 +37,16 @@ namespace TopSpeed.Core.Multiplayer
             OpenRoomChatHotkey();
         }
 
+        void IMultiplayerRuntime.StartConnectingSoundPulse()
+        {
+            StartConnectingPulse();
+        }
+
+        void IMultiplayerRuntime.StopConnectingSoundPulse()
+        {
+            StopConnectingPulse();
+        }
+
         bool IMultiplayerMenuTouch.HasActiveOverlayQuestion => _questions.HasActiveOverlayQuestion;
 
         void IMultiplayerMenuTouch.NextChatCategory()

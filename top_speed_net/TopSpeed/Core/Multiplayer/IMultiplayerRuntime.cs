@@ -41,6 +41,9 @@ namespace TopSpeed.Core.Multiplayer
         void HandleTrackPackageCatalog(PacketTrackPackageCatalog catalog);
         void HandleOnlinePlayers(PacketOnlinePlayers onlinePlayers);
         void HandleProtocolMessage(PacketProtocolMessage message);
+        void PlayConnectedSound();
+        void StartConnectingSoundPulse();
+        void StopConnectingSoundPulse();
 
         string ResolvePlayerName(byte playerNumber);
     }

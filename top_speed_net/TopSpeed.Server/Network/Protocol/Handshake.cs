@@ -15,16 +15,20 @@ namespace TopSpeed.Server.Network
             if (player.Handshake == HandshakeState.Rejected)
                 return true;
 
-            if (command == Command.KeepAlive)
+            if (command == Command.KeepAlive || command == Command.Ping || command == Command.ClientHeartbeat)
+            {
+                player.LastHeartbeatUtc = DateTime.UtcNow;
                 return true;
+            }
 
             if (player.Handshake == HandshakeState.AwaitingPlayerHello)
             {
                 if (command != Command.PlayerHello)
                 {
-                    RejectHandshake(
-                        player,
-                        LocalizationService.Mark("Player identification is required before session initialization."));
+                    _logger.Debug(LocalizationService.Format(
+                        LocalizationService.Mark("Ignoring pre-identification command from {0}: {1}."),
+                        player.EndPoint,
+                        command));
                     return true;
                 }
 
@@ -35,14 +39,16 @@ namespace TopSpeed.Server.Network
                     return true;
                 }
 
+                player.LastHeartbeatUtc = DateTime.UtcNow;
                 HandlePlayerHello(player, playerHello);
                 return true;
             }
 
             if (command != Command.ProtocolHello)
             {
-                RejectHandshake(player, LocalizationService.Format(
-                    LocalizationService.Mark("Protocol negotiation is required before {0}. Please update your client."),
+                _logger.Debug(LocalizationService.Format(
+                    LocalizationService.Mark("Ignoring pre-protocol command from {0}: {1}."),
+                    player.EndPoint,
                     command));
                 return true;
             }
@@ -54,6 +60,7 @@ namespace TopSpeed.Server.Network
                 return true;
             }
 
+            player.LastHeartbeatUtc = DateTime.UtcNow;
             EvaluateProtocolHello(player, hello);
             return true;
         }
@@ -134,6 +141,7 @@ namespace TopSpeed.Server.Network
             player = resolvedPlayer;
             player.Handshake = HandshakeState.AwaitingPlayerHello;
             player.NegotiatedProtocol = compat.NegotiatedVersion;
+            player.MarkProtocolNegotiated();
 
             var welcome = new PacketProtocolWelcome
             {
