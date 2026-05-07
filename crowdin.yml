@@ -6,7 +6,6 @@ files:
         zh-CN: zh-cn
         es-ES: es
         vi-VN: vi
-
   - source: /top_speed_net/languages/server/messages.pot
     translation: /top_speed_net/languages/server/%locale%/messages.po
     languages_mapping:
