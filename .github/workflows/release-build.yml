@@ -520,8 +520,9 @@ jobs:
           if-no-files-found: error
           path: ${{ steps.package_android.outputs.artifact_paths }}
 
-  ios_build:
-    name: Build iOS ${{ matrix.target_name }}
+  build_ios:
+    name: Build iOS ${{ matrix.target_name }} [${{ matrix.signing_mode }}]
+    if: ${{ matrix.enabled }}
     needs: metadata
     runs-on: macos-26
     strategy:
@@ -530,9 +531,20 @@ jobs:
         include:
           - target_name: arm64
             runtime_id: ios-arm64
-            required_xcode: "26.3"
-            workload_set_version: "10.0.202"
+            required_xcode: "26.4"
+            workload_set_version: "10.0.203"
+            signing_mode: unsigned
+            enable_code_signing: false
+            enabled: true
             artifact_name: release-assets-ios-arm64
+          - target_name: arm64-sign
+            runtime_id: ios-arm64
+            required_xcode: "26.4"
+            workload_set_version: "10.0.203"
+            signing_mode: signed
+            enable_code_signing: true
+            enabled: false
+            artifact_name: release-assets-ios-arm64-signed
     defaults:
       run:
         working-directory: top_speed_net
@@ -568,8 +580,22 @@ jobs:
           fi
 
           echo "Selected Xcode path: $xcode_path"
-          sudo xcode-select -s "$xcode_path/Contents/Developer"
+          developer_dir="$xcode_path/Contents/Developer"
+          sudo xcode-select -s "$developer_dir"
           xcodebuild -version
+
+          macos_sdk_dir="$developer_dir/Platforms/MacOSX.platform/Developer/SDKs"
+          if [[ ! -e "$macos_sdk_dir/MacOSX.sdk" ]]; then
+            latest_macos_sdk="$(ls -d "$macos_sdk_dir"/MacOSX*.sdk 2>/dev/null | sort -V | tail -n 1 || true)"
+            if [[ -z "$latest_macos_sdk" ]]; then
+              echo "No MacOSX*.sdk found in '$macos_sdk_dir'." >&2
+              exit 1
+            fi
+            echo "MacOSX.sdk alias is missing; creating symlink to '$latest_macos_sdk'."
+            sudo ln -s "$latest_macos_sdk" "$macos_sdk_dir/MacOSX.sdk"
+          fi
+
+          "$developer_dir/usr/bin/xcodebuild" -sdk "$macos_sdk_dir/MacOSX.sdk" -find clang++
 
       - name: Install iOS workload set
         run: dotnet workload install ios --version ${{ matrix.workload_set_version }}
@@ -605,6 +631,7 @@ jobs:
         shell: bash
         env:
           VERSION: ${{ needs.metadata.outputs.version }}
+          ENABLE_CODE_SIGNING: ${{ matrix.enable_code_signing }}
         run: |
           set -euo pipefail
 
@@ -617,7 +644,7 @@ jobs:
             --runtime ${{ matrix.runtime_id }} \
             -p:ArchiveOnBuild=true \
             -p:BuildIpa=true \
-            -p:EnableCodeSigning=false \
+            -p:EnableCodeSigning=$ENABLE_CODE_SIGNING \
             -bl:artifacts/ios/ios-publish.binlog
 
           ipa_name="TopSpeed-ios-arm64-Release-v-$VERSION.ipa"
@@ -664,35 +691,8 @@ jobs:
           path: |
             top_speed_net/artifacts/ios/*.binlog
 
-  ios_sign:
-    name: Sign iOS ${{ matrix.target_name }}
-    needs:
-      - metadata
-      - ios_build
-    if: ${{ false }}
-    runs-on: macos-26
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target_name: arm64
-            build_artifact_name: release-assets-ios-arm64
-            signed_artifact_name: release-assets-ios-arm64-signed
-    defaults:
-      run:
-        working-directory: top_speed_net
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: recursive
-
-      - name: Download iOS build artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: ${{ matrix.build_artifact_name }}
-          path: signing-input
-
       # - name: Prepare iOS signing certificate
+      #   if: ${{ matrix.signing_mode == 'signed' }}
       #   shell: bash
       #   env:
       #     IOS_CERT_P12_B64: ${{ secrets.IOS_CERT_P12_B64 }}
@@ -707,6 +707,7 @@ jobs:
       #     security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       # - name: Install iOS provisioning profile
+      #   if: ${{ matrix.signing_mode == 'signed' }}
       #   shell: bash
       #   env:
       #     IOS_PROVISION_B64: ${{ secrets.IOS_PROVISION_B64 }}
@@ -716,9 +717,9 @@ jobs:
       #     echo "$IOS_PROVISION_B64" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/top_speed.mobileprovision"
 
       # - name: Sign IPA
+      #   if: ${{ matrix.signing_mode == 'signed' }}
       #   run: |
       #     echo "Signing implementation goes here."
-      #     ls -la signing-input
 
   release:
     name: Publish Release
@@ -728,7 +729,7 @@ jobs:
       - build_mac
       - build_linux
       - build_android
-      - ios_build
+      - build_ios
     runs-on: ubuntu-latest
     permissions:
       contents: write
