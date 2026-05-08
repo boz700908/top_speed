@@ -550,13 +550,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          xcode_path="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -n 1 || true)"
+          # .NET iOS workload 26.4 currently requires Xcode 26.4 specifically.
+          # Prefer Xcode 26.4, and only fall back to any 26.x if 26.4 is unavailable.
+          xcode_path="$(ls -d /Applications/Xcode_26.4*.app 2>/dev/null | sort -V | tail -n 1 || true)"
+          if [[ -z "$xcode_path" ]]; then
+            xcode_path="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -n 1 || true)"
+          fi
           if [[ -z "$xcode_path" ]]; then
             echo "No Xcode 26 installation found on this runner." >&2
             ls -1 /Applications | grep '^Xcode' || true
             exit 1
           fi
 
+          echo "Selected Xcode path: $xcode_path"
           sudo xcode-select -s "$xcode_path/Contents/Developer"
           xcodebuild -version
 
