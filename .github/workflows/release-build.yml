@@ -530,14 +530,14 @@ jobs:
         include:
           - target_name: arm64
             runtime_id: ios-arm64
-            required_xcode: "26.4"
+            required_xcode: "26.3"
             workload_set_version: "10.0.203"
             signing_mode: unsigned
             enable_code_signing: false
             artifact_name: release-assets-ios-arm64
           - target_name: arm64-sign
             runtime_id: ios-arm64
-            required_xcode: "26.4"
+            required_xcode: "26.3"
             workload_set_version: "10.0.203"
             signing_mode: signed
             enable_code_signing: true
