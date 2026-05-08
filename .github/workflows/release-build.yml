@@ -522,7 +522,6 @@ jobs:
 
   build_ios:
     name: Build iOS ${{ matrix.target_name }} [${{ matrix.signing_mode }}]
-    if: ${{ matrix.enabled }}
     needs: metadata
     runs-on: macos-26
     strategy:
@@ -535,7 +534,6 @@ jobs:
             workload_set_version: "10.0.203"
             signing_mode: unsigned
             enable_code_signing: false
-            enabled: true
             artifact_name: release-assets-ios-arm64
           - target_name: arm64-sign
             runtime_id: ios-arm64
@@ -543,7 +541,6 @@ jobs:
             workload_set_version: "10.0.203"
             signing_mode: signed
             enable_code_signing: true
-            enabled: false
             artifact_name: release-assets-ios-arm64-signed
     defaults:
       run:
@@ -554,6 +551,7 @@ jobs:
           submodules: recursive
 
       - name: Setup build environment
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         uses: ./.github/actions/setup-build-env
         with:
           dotnet-version: 10.0.x
@@ -564,6 +562,7 @@ jobs:
           java-version: "21"
 
       - name: Select required Xcode
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -598,9 +597,11 @@ jobs:
           "$developer_dir/usr/bin/xcodebuild" -sdk "$macos_sdk_dir/MacOSX.sdk" -find clang++
 
       - name: Install iOS workload set
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         run: dotnet workload install ios --version ${{ matrix.workload_set_version }}
 
       - name: Print iOS toolchain versions
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -611,6 +612,7 @@ jobs:
           xcrun ld -v
 
       - name: Validate native iOS dependencies
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -627,6 +629,7 @@ jobs:
           done
 
       - name: Build and package iOS target
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         id: package_ios
         shell: bash
         env:
@@ -676,6 +679,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS build artifact
+        if: ${{ matrix.signing_mode == 'unsigned' }}
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact_name }}
@@ -683,13 +687,20 @@ jobs:
           path: ${{ steps.package_ios.outputs.artifact_paths }}
 
       - name: Upload iOS diagnostics artifact
-        if: ${{ always() }}
+        if: ${{ always() && matrix.signing_mode == 'unsigned' }}
         uses: actions/upload-artifact@v6
         with:
           name: ios-diagnostics-${{ matrix.target_name }}
           if-no-files-found: warn
           path: |
             top_speed_net/artifacts/ios/*.binlog
+
+      - name: Signed matrix placeholder
+        if: ${{ matrix.signing_mode == 'signed' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Signing matrix entry is intentionally disabled for now."
 
       # - name: Prepare iOS signing certificate
       #   if: ${{ matrix.signing_mode == 'signed' }}
