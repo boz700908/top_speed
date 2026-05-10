@@ -55,7 +55,6 @@ namespace TopSpeed.Drive.Multiplayer
             _soundPlayerNr = new AudioSource?[MaxPlayers];
             _soundFinished = new AudioSource?[MaxPlayers];
             _liveTx = new Tx(_network);
-            _network.SetVoiceTransmissionSink(OnLocalVoiceTransmissionStateChanged);
 
             var runtimeObjects = CreateRuntimeObjects(trackName, trackData, vehicleIndex, vehicleFile);
             _track = runtimeObjects.Track;
@@ -91,9 +90,7 @@ namespace TopSpeed.Drive.Multiplayer
 
         public void ReplaceNetwork(NetworkSession network)
         {
-            _network.SetVoiceTransmissionSink(null);
             _network = network ?? throw new ArgumentNullException(nameof(network));
-            _network.SetVoiceTransmissionSink(OnLocalVoiceTransmissionStateChanged);
             _liveTx.ReplaceSession(network);
         }
     }

@@ -31,7 +31,11 @@ namespace TopSpeed.Network.Session
             if (_active)
             {
                 if (!TrySendStop(playerId, playerNumber, _streamId))
-                    return false;
+                {
+                    // Recover from a stale local active state so transmission does not get stuck forever.
+                    _active = false;
+                    _streamId = 0;
+                }
             }
 
             var sent = _sender.TrySend(

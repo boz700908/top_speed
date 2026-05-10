@@ -36,9 +36,6 @@ namespace TopSpeed.Drive.Multiplayer
                 for (var j = 0; j < count && j < _randomSounds[i].Length; j++)
                     DisposeSound(_randomSounds[i][j]);
             }
-
-            DisposeSoundAsset(_micOpenSound);
-            DisposeSoundAsset(_micCloseSound);
         }
 
         private void FinalizeRemotePlayers()
@@ -60,11 +57,6 @@ namespace TopSpeed.Drive.Multiplayer
 
             sound.Stop();
             sound.Dispose();
-        }
-
-        private static void DisposeSoundAsset(SoundAsset? sound)
-        {
-            sound?.Dispose();
         }
     }
 }

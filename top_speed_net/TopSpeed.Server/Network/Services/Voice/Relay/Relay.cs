@@ -14,7 +14,7 @@ namespace TopSpeed.Server.Network
                 return;
             if (!player.RoomId.HasValue || !_rooms.TryGetValue(player.RoomId.Value, out var room))
                 return;
-            if (start.PlayerId != player.Id || start.PlayerNumber != player.PlayerNumber)
+            if (start.PlayerId != player.Id)
                 return;
             if (!PacketValidation.IsValidVoiceStart(start))
                 return;
@@ -61,7 +61,7 @@ namespace TopSpeed.Server.Network
                 return;
             if (!player.RoomId.HasValue || !_rooms.TryGetValue(player.RoomId.Value, out var room))
                 return;
-            if (frame.PlayerId != player.Id || frame.PlayerNumber != player.PlayerNumber)
+            if (frame.PlayerId != player.Id)
                 return;
             if (!PacketValidation.IsValidVoiceFrame(frame))
                 return;
@@ -103,7 +103,7 @@ namespace TopSpeed.Server.Network
                 return;
             if (!player.RoomId.HasValue || !_rooms.TryGetValue(player.RoomId.Value, out var room))
                 return;
-            if (stop.PlayerId != player.Id || stop.PlayerNumber != player.PlayerNumber)
+            if (stop.PlayerId != player.Id)
                 return;
             if (!PacketValidation.IsValidVoiceStop(stop))
                 return;
