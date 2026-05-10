@@ -1,4 +1,3 @@
-using System;
 using TopSpeed.Input;
 
 namespace TopSpeed.Game.Multiplayer.Communicator
@@ -39,8 +38,7 @@ namespace TopSpeed.Game.Multiplayer.Communicator
                 return;
             }
 
-            var pttHeld = _input.IsDown(InputKey.V);
-            var shouldTransmit = ShouldTransmit(pttHeld, out var pushToTalk);
+            var shouldTransmit = ShouldTransmit(out var pushToTalk);
             var frequencyTenths = _multiplayer.CommunicatorFrequencyTenths;
 
             if (_transmitting &&
@@ -70,29 +68,35 @@ namespace TopSpeed.Game.Multiplayer.Communicator
         }
 
         // Single source of truth for "should we be transmitting right now?".
-        // VOX gates on the recent-voice-activity hold window (anything quieter than
-        // VoiceActivationThreshold for VoiceActivationHoldMs stops transmission).
-        // PTT gates strictly on the V key being held.
-        private bool ShouldTransmit(bool pttHeld, out bool pushToTalk)
+        // VOX mode: continuous transmission while voice activation is enabled. No
+        // voice-activity detector — the user explicitly opted into open-mic.
+        // PTT mode: transmit only while the V key is held with no modifier keys
+        // (Ctrl / Shift / Alt). The modifier exclusion is critical because
+        // Ctrl+Shift+V is the toggle shortcut for VOX itself; without it, pressing
+        // the toggle would briefly open PTT and play the activation cue.
+        private bool ShouldTransmit(out bool pushToTalk)
         {
             if (_multiplayer.CommunicatorVoiceActivationEnabled)
             {
                 pushToTalk = false;
-                return IsVoiceActivityActive();
+                return true;
             }
 
             pushToTalk = true;
-            return pttHeld;
+            return IsUnmodifiedKeyDown(InputKey.V);
         }
 
-        private bool IsVoiceActivityActive()
+        private bool IsUnmodifiedKeyDown(InputKey key)
         {
-            var last = _lastVoiceActivityUtcTicks;
-            if (last <= 0)
+            if (!_input.IsDown(key))
                 return false;
 
-            var holdTicks = TimeSpan.FromMilliseconds(VoiceActivationHoldMs).Ticks;
-            return DateTime.UtcNow.Ticks - last <= holdTicks;
+            return !_input.IsDown(InputKey.LeftControl)
+                && !_input.IsDown(InputKey.RightControl)
+                && !_input.IsDown(InputKey.LeftShift)
+                && !_input.IsDown(InputKey.RightShift)
+                && !_input.IsDown(InputKey.LeftAlt)
+                && !_input.IsDown(InputKey.RightAlt);
         }
 
         private uint NextStreamId()
