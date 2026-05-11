@@ -31,8 +31,6 @@ namespace TopSpeed.Game.Multiplayer.Communicator
             var audible = IsAudibleForLocalFrequency(start.FrequencyTenths, localFrequencyTenths);
             stream.SetAudible(audible);
             _remoteStreams[start.PlayerId] = stream;
-            if (start.PushToTalk && audible)
-                PlayRemotePttCue();
         }
 
         public void ApplyRemoteVoiceFrame(PacketPlayerVoiceFrame frame, long receivedUtcTicks)
@@ -90,6 +88,8 @@ namespace TopSpeed.Game.Multiplayer.Communicator
                     continue;
                 if (now - stream.LastReceivedUtcTicks <= timeoutTicks)
                     continue;
+                if (stream.PushToTalk && stream.IsAudible)
+                    PlayRemotePttCue();
                 stream.Dispose();
                 expired.Add(pair.Key);
             }

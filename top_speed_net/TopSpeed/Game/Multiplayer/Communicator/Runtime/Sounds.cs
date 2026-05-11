@@ -57,7 +57,18 @@ namespace TopSpeed.Game.Multiplayer.Communicator
             if (cue == null)
                 return;
 
-            PlayLocalCue(cue);
+            try
+            {
+                // Match race announcement unkey playback path (copilot bus), while
+                // still scaling by communicator volume settings.
+                _audio.PlayOneShot(cue, AudioEngineOptions.CopilotBusName, configure: handle =>
+                {
+                    handle.SetVolumePercent(_settings, AudioVolumeCategory.Communicator, 100);
+                });
+            }
+            catch
+            {
+            }
         }
 
         private SoundAsset? GetPttCue()

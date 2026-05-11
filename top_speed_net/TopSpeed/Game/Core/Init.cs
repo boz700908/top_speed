@@ -75,6 +75,7 @@ namespace TopSpeed.Game
             _driveSessionFactory = new DriveSessionFactory(audio, speech, _settings, _driveInput, _fileDialogs);
             _stateMachine = new StateMachine(this);
             _menu = new MenuManager(audio, speech, () => _settings.UsageHints);
+            _menu.SetLetterNavigationKeyReserved(InputKey.V, reserved: true);
             _dialogs = new DialogManager(_menu, message => speech.Speak(message));
             _choices = new ChoiceDialogManager(_menu, message => speech.Speak(message));
             var pick = new Pick();
